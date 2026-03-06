@@ -42,8 +42,8 @@ export default function Dashboard() {
 
     try {
       const [meRes, progRes] = await Promise.all([
-        fetch("http://127.0.0.1:8000/api/me/", { headers }),
-        fetch("http://127.0.0.1:8000/api/progress/", { headers })
+        fetch("https://finedu-project.onrender.com/api/me/", { headers }),
+        fetch("https://finedu-project.onrender.com/api/progress/", { headers })
       ]);
       
       const meData = await meRes.json();
@@ -74,7 +74,7 @@ export default function Dashboard() {
   };
 
   const fetchClassrooms = async (headers: any) => {
-    const classRes = await fetch("http://127.0.0.1:8000/api/classrooms/", { headers });
+    const classRes = await fetch("https://finedu-project.onrender.com/api/classrooms/", { headers });
     if (classRes.ok) setClassrooms(await classRes.json());
   };
 
@@ -93,7 +93,7 @@ export default function Dashboard() {
   const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch("http://127.0.0.1:8000/api/classrooms/", {
+    const res = await fetch("https://finedu-project.onrender.com/api/classrooms/", {
       method: "POST", headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(classForm)
     });
@@ -106,7 +106,7 @@ export default function Dashboard() {
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://127.0.0.1:8000/api/classrooms/${selectedClassId}/add_student/`, {
+    const res = await fetch(`https://finedu-project.onrender.com/api/classrooms/${selectedClassId}/add_student/`, {
       method: "POST", headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ student_code: studentCode })
     });
@@ -119,7 +119,7 @@ export default function Dashboard() {
 
   const handleStudentClick = async (studentId: number) => {
     const token = localStorage.getItem("token");
-    const res = await fetch(`http://127.0.0.1:8000/api/student/${studentId}/detail/`, {
+    const res = await fetch(`https://finedu-project.onrender.com/api/student/${studentId}/detail/`, {
       headers: { "Authorization": `Token ${token}` }
     });
     if (res.ok) {

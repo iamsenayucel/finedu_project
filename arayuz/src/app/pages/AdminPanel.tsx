@@ -45,9 +45,9 @@ export default function AdminPanel() {
     try {
       const headers = { "Authorization": `Token ${token}` };
       const [meRes, unitsRes, usersRes] = await Promise.all([
-        fetch("http://127.0.0.1:8000/api/me/", { headers }),
-        fetch("http://127.0.0.1:8000/api/units/", { headers }),
-        fetch("http://127.0.0.1:8000/api/users/", { headers })
+        fetch("https://finedu-project.onrender.com/api/me/", { headers }),
+        fetch("https://finedu-project.onrender.com/api/units/", { headers }),
+        fetch("https://finedu-project.onrender.com/api/users/", { headers })
       ]);
 
       const meData = await meRes.json();
@@ -108,19 +108,19 @@ export default function AdminPanel() {
     let bodyData: any = {};
 
     if (modal.type === "UNIT") {
-      url = modal.action === "ADD" ? "http://127.0.0.1:8000/api/units/" : `http://127.0.0.1:8000/api/units/${modal.data.id}/`;
+      url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/units/" : `https://finedu-project.onrender.com/api/units/${modal.data.id}/`;
       bodyData = { title: formData.title, badge_name: formData.badge_name, target_grade: formData.target_grade };
     } 
     else if (modal.type === "SUBTOPIC") {
-      url = modal.action === "ADD" ? "http://127.0.0.1:8000/api/subtopics/add/" : `http://127.0.0.1:8000/api/subtopics/${modal.data.id}/`;
+      url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/subtopics/add/" : `https://finedu-project.onrender.com/api/subtopics/${modal.data.id}/`;
       bodyData = { title: formData.title, unitId: modal.parentId };
     } 
     else if (modal.type === "CONTENT") {
-      url = modal.action === "ADD" ? "http://127.0.0.1:8000/api/contents/add/" : `http://127.0.0.1:8000/api/contents/${modal.data.id}/`;
+      url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/contents/add/" : `https://finedu-project.onrender.com/api/contents/${modal.data.id}/`;
       bodyData = { contentTitle: formData.title, contentType: formData.contentType, videoUrl: formData.videoUrl, subtopicId: modal.parentId };
     }
     else if (modal.type === "USER") {
-      url = "http://127.0.0.1:8000/api/register/";
+      url = "https://finedu-project.onrender.com/api/register/";
       bodyData = {
         username: formData.email,
         email: formData.email,
@@ -158,7 +158,7 @@ export default function AdminPanel() {
     const endpoints: any = { "UNIT": "units", "SUBTOPIC": "subtopics", "CONTENT": "contents", "USER": "users" };
     
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/${endpoints[type]}/${id}/`, {
+      const res = await fetch(`https://finedu-project.onrender.com/api/${endpoints[type]}/${id}/`, {
         method: "DELETE", headers: { "Authorization": `Token ${token}` }
       });
       if (res.ok) {

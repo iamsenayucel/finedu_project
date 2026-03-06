@@ -53,7 +53,7 @@ export default function Register() {
         grade_level: formData.role === "STUDENT" ? formData.gradeLevel : null,
       };
 
-      const response = await fetch("http://127.0.0.1:8000/api/register/", {
+      const response = await fetch("https://finedu-project.onrender.com/api/register/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

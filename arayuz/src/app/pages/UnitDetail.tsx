@@ -45,18 +45,18 @@ export default function UnitDetail() {
         };
 
         // 1. Kullanıcıyı Çek
-        const userRes = await fetch("http://127.0.0.1:8000/api/me/", { headers });
+        const userRes = await fetch("https://finedu-project.onrender.com/api/me/", { headers });
         const userData = await userRes.json();
         setUser(userData.user);
 
         // 2. Üniteyi Çek
-        const unitRes = await fetch(`http://127.0.0.1:8000/api/units/${unitId}/`, { headers });
+        const unitRes = await fetch(`https://finedu-project.onrender.com/api/units/${unitId}/`, { headers });
         if (!unitRes.ok) throw new Error("Ünite bulunamadı");
         const unitData = await unitRes.json();
         setUnit(unitData);
 
         // 3. Öğrencinin İlerlemesini (Tamamladığı ID'leri) Çek
-        const progressRes = await fetch("http://127.0.0.1:8000/api/progress/", { headers });
+        const progressRes = await fetch("https://finedu-project.onrender.com/api/progress/", { headers });
         const progressData = await progressRes.json();
         setCompletedIds(progressData);
 
@@ -77,7 +77,7 @@ export default function UnitDetail() {
     
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://127.0.0.1:8000/api/progress/", {
+      const res = await fetch("https://finedu-project.onrender.com/api/progress/", {
         method: "POST",
         headers: {
           "Authorization": `Token ${token}`,
