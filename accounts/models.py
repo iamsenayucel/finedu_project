@@ -49,6 +49,7 @@ class Content(models.Model):
     content_type = models.CharField(max_length=55, choices=CONTENT_TYPES)
     video_file = models.FileField(upload_to='videos/', null=True, blank=True)
     game_file_path = models.CharField(max_length=255, null=True, blank=True)
+    game_code = models.CharField(max_length=50, blank=True, null=True)
     order = models.IntegerField(default=0)
     def __str__(self):
         return f"{self.subtopic.title} > {self.title}"

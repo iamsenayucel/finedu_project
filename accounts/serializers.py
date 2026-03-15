@@ -11,7 +11,7 @@ class ContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Content
         # DİKKAT: 'video_file' buraya eklendi!
-        fields = ['id', 'title', 'content_type', 'video_file', 'game_file_path', 'order']
+        fields = ['id', 'title', 'content_type', 'video_file', 'game_file_path', 'order', 'game_code']
 
 # Yeni: Alt Başlıkları JSON'a Çevirici
 class SubtopicSerializer(serializers.ModelSerializer):
