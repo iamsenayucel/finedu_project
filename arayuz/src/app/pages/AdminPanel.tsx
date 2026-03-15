@@ -18,6 +18,8 @@ export default function AdminPanel() {
   const [units, setUnits] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // AĞAÇ YAPISI İÇİN GENİŞLETME DURUMLARI
   const [expandedUnitId, setExpandedUnitId] = useState<number | null>(null);
@@ -37,6 +39,9 @@ export default function AdminPanel() {
     title: "", target_grade: "", badge_name: "", contentType: "VIDEO", videoUrl: "",
     email: "", firstName: "", lastName: "", password: "", role: "STUDENT"
   });
+
+  // YENİ: Video dosyasını hafızada tutacak state
+  const [videoFile, setVideoFile] = useState<File | null>(null);
 
   const fetchData = async () => {
     const token = localStorage.getItem("token");
@@ -71,6 +76,7 @@ export default function AdminPanel() {
   // MODAL AÇMA YARDIMCISI
   const openModal = (type: string, action: string, parentId: number | null = null, data: any = null) => {
     setModal({ isOpen: true, type, action, parentId, data });
+    setVideoFile(null); // Modalı açarken eski seçili dosyayı temizle
     
     if (action === "EDIT" && data && type !== "USER") {
       setFormData({
@@ -105,7 +111,11 @@ export default function AdminPanel() {
     const token = localStorage.getItem("token");
     let url = "";
     let method = modal.action === "ADD" ? "POST" : "PUT";
+    
+    // İstek türü (JSON mu FormData mı?)
+    let isFormData = false;
     let bodyData: any = {};
+    let formPayload = new FormData();
 
     if (modal.type === "UNIT") {
       url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/units/" : `https://finedu-project.onrender.com/api/units/${modal.data.id}/`;
@@ -116,8 +126,21 @@ export default function AdminPanel() {
       bodyData = { title: formData.title, unitId: modal.parentId };
     } 
     else if (modal.type === "CONTENT") {
+      isFormData = true; // İçerik ekliyorsak FormData kullanacağız
       url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/contents/add/" : `https://finedu-project.onrender.com/api/contents/${modal.data.id}/`;
-      bodyData = { contentTitle: formData.title, contentType: formData.contentType, videoUrl: formData.videoUrl, subtopicId: modal.parentId };
+      
+      formPayload.append("contentTitle", formData.title);
+      formPayload.append("contentType", formData.contentType);
+      if (modal.parentId) formPayload.append("subtopicId", String(modal.parentId));
+      
+      // Video dosyası seçildiyse pakete ekle
+      if (formData.contentType === "VIDEO") {
+        if (videoFile) {
+          formPayload.append("video_file", videoFile);
+        } else if (modal.action === "ADD") {
+          return alert("Lütfen yüklemek için bir video dosyası seçin!");
+        }
+      }
     }
     else if (modal.type === "USER") {
       url = "https://finedu-project.onrender.com/api/register/";
@@ -133,21 +156,56 @@ export default function AdminPanel() {
     }
 
     try {
-      const res = await fetch(url, {
-        method, headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify(bodyData)
-      });
-      if (res.ok) {
-        setModal({ ...modal, isOpen: false });
-        fetchData(); 
-        if (modal.type === "USER") alert("Kullanıcı başarıyla oluşturuldu!");
-      } else { 
-        const errorData = await res.json();
-        alert("İşlem başarısız oldu:\n" + (errorData.error || JSON.stringify(errorData))); 
+      const headers: any = { "Authorization": `Token ${token}` };
+      
+      if (isFormData) {
+        // VİDEO YÜKLENİYORSA: Gerçek zamanlı ilerleme çubuğu (Progress Bar) için XMLHttpRequest kullanıyoruz
+        await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open(method, url, true);
+          xhr.setRequestHeader("Authorization", `Token ${token}`);
+          
+          // Yükleme sırasında yüzdelik dilimi hesapla ve state'e yaz
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const percentCompleted = Math.round((event.loaded * 100) / event.total);
+              setUploadProgress(percentCompleted);
+            }
+          };
+
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) resolve(JSON.parse(xhr.responseText));
+            else reject(JSON.parse(xhr.responseText));
+          };
+          
+          xhr.onerror = () => reject("Network Error");
+          xhr.send(formPayload);
+        });
+
+      } else {
+        // VİDEO YOKSA: Normal metinleri her zamanki gibi fetch ile gönder
+        headers["Content-Type"] = "application/json";
+        const res = await fetch(url, {
+          method, headers, body: JSON.stringify(bodyData)
+        });
+        if (!res.ok) {
+           const errorData = await res.json();
+           throw new Error(errorData.error || "İşlem başarısız");
+        }
       }
-    } catch (error) { 
+
+      setModal({ ...modal, isOpen: false });
+      fetchData(); 
+      setUploadProgress(0); // Çubuğu sıfırla
+      if (modal.type === "USER") alert("Kullanıcı başarıyla oluşturuldu!");
+      if (modal.type === "CONTENT") alert("İçerik başarıyla yüklendi!");
+
+    } catch (error: any) { 
       console.error(error); 
-      alert("Sunucuya bağlanılamadı.");
+      alert("Hata: " + (error.message || "Sunucuya bağlanılamadı."));
+    } finally {
+      setIsSaving(false);
+      setUploadProgress(0);
     }
   };
 
@@ -212,12 +270,10 @@ export default function AdminPanel() {
                 { id: "UNIVERSITY_GENERAL", label: "Üniversite (Genel)", color: "text-indigo-500", border: "border-indigo-500/30" },
                 { id: "OTHER", label: "Seviyesi Belirtilmemiş", color: "text-muted-foreground", border: "border-border" }
               ].map((grade) => {
-                // Bu seviyeye ait olan üniteleri filtrele
                 const gradeUnits = grade.id === "OTHER" 
                   ? units.filter((u: any) => !["PRIMARY", "MIDDLE", "HIGH", "UNIVERSITY_FINANCE", "UNIVERSITY_GENERAL"].includes(u.target_grade))
                   : units.filter((u: any) => u.target_grade === grade.id);
                 
-                // Eğer "Diğer" kategorisinde hiç ünite yoksa o başlığı ekranda gösterme
                 if (grade.id === "OTHER" && gradeUnits.length === 0) return null;
 
                 return (
@@ -352,13 +408,11 @@ export default function AdminPanel() {
                 { id: "TEACHER", label: "Öğretmenler", color: "text-info", border: "border-info/30" },
                 { id: "STUDENT", label: "Öğrenciler", color: "text-success", border: "border-success/30" }
               ].map((roleGroup) => {
-                // Bu role ait kullanıcıları filtrele
                 const roleUsers = users.filter((u: any) => u.role === roleGroup.id);
 
                 return (
                   <div key={roleGroup.id} className="space-y-4">
                     
-                    {/* Rol Başlığı */}
                     <div className={`flex items-center gap-3 pb-2 border-b ${roleGroup.border}`}>
                       <h3 className={`text-lg font-bold ${roleGroup.color}`}>{roleGroup.label}</h3>
                       <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
@@ -477,8 +531,29 @@ export default function AdminPanel() {
                       <Select label="İçerik Tipi" value={formData.contentType} onChange={(e) => setFormData({...formData, contentType: e.target.value})} options={[
                         { value: "VIDEO", label: "Video" }, { value: "GAME", label: "Oyun" }
                       ]} required />
+                      
+                      {/* DOSYA YÜKLEME ALANINA ÇEVRİLEN KISIM */}
                       {formData.contentType === "VIDEO" && (
-                        <Input label="Video URL" placeholder="https://www.youtube.com/watch?v=..." value={formData.videoUrl} onChange={(e) => setFormData({...formData, videoUrl: e.target.value})} required />
+                        <div className="mt-4">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Sisteme Video Yükle (.mp4)
+                          </label>
+                          <input
+                            type="file"
+                            accept="video/mp4,video/x-m4v,video/*"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                setVideoFile(e.target.files[0]);
+                              }
+                            }}
+                            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+                          />
+                          {modal.action === "EDIT" && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Mevcut videoyu değiştirmek istemiyorsanız boş bırakın.
+                            </p>
+                          )}
+                        </div>
                       )}
                     </>
                   )}
@@ -510,9 +585,25 @@ export default function AdminPanel() {
                     </>
                   )}
 
-                  <div className="flex gap-3 pt-4 border-t border-border">
-                    <Button type="submit" variant="primary" fullWidth>
-                      {modal.action === "ADD" ? "Kaydet" : "Güncelle"}
+                  <div className="flex flex-col gap-3 pt-4 border-t border-border">
+                    {/* YENİ: İlerleme Çubuğu Animasyonu */}
+                    {isSaving && uploadProgress > 0 && (
+                      <div className="w-full">
+                        <div className="flex justify-between text-xs mb-1 text-muted-foreground font-semibold">
+                          <span>Video Yükleniyor...</span>
+                          <span>{uploadProgress}%</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden border border-border">
+                          <div 
+                            className="bg-primary h-2.5 transition-all duration-300 ease-out" 
+                            style={{ width: `${uploadProgress}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+
+                    <Button type="submit" variant="primary" fullWidth disabled={isSaving}>
+                      {isSaving ? "İşlem yapılıyor..." : (modal.action === "ADD" ? "Kaydet" : "Güncelle")}
                     </Button>
                   </div>
                 </form>

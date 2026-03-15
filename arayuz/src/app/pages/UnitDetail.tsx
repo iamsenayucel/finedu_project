@@ -5,11 +5,14 @@ import { Card, CardHeader, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
 import {
   ArrowLeft, Video, Gamepad2, CheckCircle2,
-  Award, Clock, Play, Lock, X
+  Award, Lock, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// YouTube linkini site içine gömülebilir (embed) formata çeviren yardımcı fonksiyon
+// YENİ: Kendi yazdığımız özel Video Oynatıcıyı çağırıyoruz
+import { VideoPlayer } from "../components/VideoPlayer";
+
+// Eski YouTube linkleri için yardımcı fonksiyon (Geriye Dönük Uyumluluk)
 const getEmbedUrl = (url: string) => {
   if (!url) return "";
   const videoIdMatch = url.match(/[?&]v=([^&]+)/);
@@ -23,10 +26,9 @@ export default function UnitDetail() {
 
   const [user, setUser] = useState<any>(null);
   const [unit, setUnit] = useState<any>(null);
-  const [completedIds, setCompletedIds] = useState<number[]>([]); // Tamamlanan içeriklerin ID'leri
+  const [completedIds, setCompletedIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Video Modal (Açılır Pencere) State'leri
   const [activeContent, setActiveContent] = useState<any>(null);
   const [isCompleting, setIsCompleting] = useState(false);
 
@@ -39,23 +41,17 @@ export default function UnitDetail() {
 
     const fetchData = async () => {
       try {
-        const headers = {
-          "Authorization": `Token ${token}`,
-          "Content-Type": "application/json"
-        };
+        const headers = { "Authorization": `Token ${token}`, "Content-Type": "application/json" };
 
-        // 1. Kullanıcıyı Çek
         const userRes = await fetch("https://finedu-project.onrender.com/api/me/", { headers });
         const userData = await userRes.json();
         setUser(userData.user);
 
-        // 2. Üniteyi Çek
         const unitRes = await fetch(`https://finedu-project.onrender.com/api/units/${unitId}/`, { headers });
         if (!unitRes.ok) throw new Error("Ünite bulunamadı");
         const unitData = await unitRes.json();
         setUnit(unitData);
 
-        // 3. Öğrencinin İlerlemesini (Tamamladığı ID'leri) Çek
         const progressRes = await fetch("https://finedu-project.onrender.com/api/progress/", { headers });
         const progressData = await progressRes.json();
         setCompletedIds(progressData);
@@ -70,28 +66,25 @@ export default function UnitDetail() {
     fetchData();
   }, [unitId, navigate]);
 
-  // Videoyu tamamlandı olarak işaretleme fonksiyonu
-  const markAsCompleted = async () => {
-    if (!activeContent) return;
+  // Video gerçekten bittiğinde (veya manuel basıldığında) çalışacak olan fonksiyon
+  const markAsCompleted = async (contentId: number) => {
+    // Eğer zaten tamamlanmışsa tekrar istek atma
+    if (completedIds.includes(contentId)) return;
+    
     setIsCompleting(true);
     
     try {
       const token = localStorage.getItem("token");
       const res = await fetch("https://finedu-project.onrender.com/api/progress/", {
         method: "POST",
-        headers: {
-          "Authorization": `Token ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ content_id: activeContent.id })
+        headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ content_id: contentId })
       });
 
       if (res.ok) {
-        // ID'yi listeye ekle ki ekrandaki tik işareti yansısın
-        if (!completedIds.includes(activeContent.id)) {
-          setCompletedIds([...completedIds, activeContent.id]);
-        }
-        setActiveContent(null); // Modalı kapat
+        setCompletedIds(prev => [...prev, contentId]);
+        // Başarı mesajı (Sadece video otomatik bittiğinde gösterilmesi için eklendi)
+        alert("Harika! Bu içeriği başarıyla tamamladın. 🎉"); 
       }
     } catch (error) {
       console.error("Kaydedilemedi", error);
@@ -100,16 +93,11 @@ export default function UnitDetail() {
     }
   };
 
-  if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center font-bold text-primary">İçerikler Yükleniyor...</div>;
-  }
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center font-bold text-primary">İçerikler Yükleniyor...</div>;
   if (!unit) return <div className="text-center p-10">Ünite bulunamadı.</div>;
 
-  // Tüm içerikleri sırayla düz bir listeye alıyoruz (Kilit mantığı için)
   const allContents = unit.subtopics?.flatMap((st: any) => st.contents) || [];
   const totalContents = allContents.length;
-  
-  // Sadece bu üniteye ait tamamlanmış içerik sayısını bul
   const unitCompletedCount = allContents.filter((c: any) => completedIds.includes(c.id)).length;
   const progressPercentage = totalContents === 0 ? 0 : Math.round((unitCompletedCount / totalContents) * 100);
 
@@ -122,24 +110,18 @@ export default function UnitDetail() {
           <ArrowLeft className="size-4 mr-2" /> Panele Dön
         </Button>
 
-        {/* Ünite Başlığı ve İlerleme Çubuğu */}
+        {/* Ünite Başlığı */}
         <Card variant="success" className="mb-8">
           <CardBody>
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              <div className="bg-success/10 p-6 rounded-xl">
-                <Award className="size-12 text-success" />
-              </div>
+              <div className="bg-success/10 p-6 rounded-xl"><Award className="size-12 text-success" /></div>
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-foreground mb-2">{unit.title}</h1>
                 <p className="text-muted-foreground mb-4">{unit.description}</p>
                 <div className="flex items-center gap-4 text-sm">
                   <span className="text-muted-foreground">{unitCompletedCount} / {totalContents} içerik tamamlandı</span>
                   <div className="flex-1 max-w-xs h-2 bg-muted rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progressPercentage}%` }}
-                      className="h-full bg-gradient-to-r from-success to-emerald-500"
-                    />
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${progressPercentage}%` }} className="h-full bg-gradient-to-r from-success to-emerald-500" />
                   </div>
                   <span className="font-semibold text-success">{progressPercentage}%</span>
                 </div>
@@ -148,21 +130,16 @@ export default function UnitDetail() {
           </CardBody>
         </Card>
 
-        {/* Alt Konular ve İçerikler */}
+        {/* İçerik Listesi */}
         <div className="space-y-6">
           {unit.subtopics?.map((subtopic: any, index: number) => (
             <Card key={subtopic.id} variant="info">
-              <CardHeader variant="info">
-                <h3 className="text-lg font-bold">{index + 1}. {subtopic.title}</h3>
-              </CardHeader>
+              <CardHeader variant="info"><h3 className="text-lg font-bold">{index + 1}. {subtopic.title}</h3></CardHeader>
               <CardBody className="p-0">
                 <div className="divide-y divide-border">
                   {subtopic.contents?.map((content: any) => {
-                    // Kilit Mantığı: Bu içeriğin tüm içerikler listesindeki sırasını bul
                     const contentIndex = allContents.findIndex((c: any) => c.id === content.id);
                     const isCompleted = completedIds.includes(content.id);
-                    
-                    // Eğer ilk içerikse veya bir önceki içerik tamamlanmışsa KİLİT AÇIKTIR
                     const isLocked = contentIndex > 0 && !completedIds.includes(allContents[contentIndex - 1].id);
 
                     return (
@@ -173,7 +150,6 @@ export default function UnitDetail() {
                              content.content_type === "VIDEO" ? <Video className={`size-5 ${isCompleted ? "text-success" : "text-primary"}`} /> : 
                              <Gamepad2 className={`size-5 ${isCompleted ? "text-success" : "text-warning"}`} />}
                           </div>
-
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="font-semibold text-foreground">{content.title}</h4>
@@ -183,7 +159,6 @@ export default function UnitDetail() {
                               {content.content_type === "VIDEO" ? "Video İçerik" : "Etkileşimli Oyun"}
                             </div>
                           </div>
-
                           <div>
                             <Button
                               size="sm"
@@ -191,15 +166,13 @@ export default function UnitDetail() {
                               disabled={isLocked}
                               onClick={() => {
                                 if (content.content_type === "VIDEO") {
-                                  setActiveContent(content); // Modalı aç
+                                  setActiveContent(content); 
                                 } else {
                                   alert("Oyun ekranına geçiliyor...");
                                 }
                               }}
                             >
-                              {isLocked ? "Kilitli" : 
-                               (content.content_type === "VIDEO" ? (isCompleted ? "Tekrar İzle" : "İzle") : 
-                               (isCompleted ? "Tekrar Oyna" : "Oyna"))}
+                              {isLocked ? "Kilitli" : (content.content_type === "VIDEO" ? (isCompleted ? "Tekrar İzle" : "İzle") : (isCompleted ? "Tekrar Oyna" : "Oyna"))}
                             </Button>
                           </div>
                         </div>
@@ -213,16 +186,12 @@ export default function UnitDetail() {
         </div>
       </div>
 
-      {/* VİDEO OYNATICI MODALI (AÇILIR PENCERE) */}
+      {/* VİDEO MODALI */}
       <AnimatePresence>
         {activeContent && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
             <div className="bg-background rounded-xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col">
+              
               {/* Modal Başlık */}
               <div className="flex justify-between items-center p-4 border-b border-border">
                 <h3 className="font-bold text-lg flex items-center gap-2">
@@ -234,35 +203,63 @@ export default function UnitDetail() {
                 </button>
               </div>
               
-              {/* Video Alanı */}
-              <div className="aspect-video bg-black w-full relative">
-                {activeContent.video_url ? (
-                  <iframe
-                    src={getEmbedUrl(activeContent.video_url)}
-                    className="absolute inset-0 w-full h-full border-0"
-                    allow="autoplay; encrypted-media; fullscreen"
-                    allowFullScreen
-                    title={activeContent.title}
-                  ></iframe>
-                ) : (
-                  <div className="flex items-center justify-center h-full text-white">Video linki bulunamadı.</div>
+              {/* OYNATICI ALANI (Kritik Değişiklik Burası) */}
+              <div className="w-full bg-black flex flex-col justify-center items-center relative min-h-[300px]">
+                
+                {/* 1. EĞER YENİ SİSTEMLE YÜKLENEN (.mp4 vb.) GERÇEK BİR VİDEO DOSYASI VARSA */}
+                {activeContent.video_file ? (
+                  <div className="w-full h-full p-4">
+                    <VideoPlayer 
+                      // Geliştirme (Local) aşamasında olduğumuz için başına 127.0.0.1 ekliyoruz.
+                      videoUrl={`https://finedu-project.onrender.com${activeContent.video_file}`} 
+                      onComplete={() => {
+                        // Video %100 bittiğinde burası otomatik tetiklenir!
+                        markAsCompleted(activeContent.id);
+                      }}
+                    />
+                  </div>
+                ) : 
+                
+                /* 2. EĞER ESKİ SİSTEM YOUTUBE LİNKİ VARSA */
+                activeContent.video_url ? (
+                  <div className="w-full aspect-video">
+                    <iframe
+                      src={getEmbedUrl(activeContent.video_url)}
+                      className="w-full h-full border-0"
+                      allow="autoplay; encrypted-media; fullscreen"
+                      allowFullScreen
+                      title={activeContent.title}
+                    ></iframe>
+                  </div>
+                ) : 
+                
+                /* 3. İKİSİ DE YOKSA */
+                (
+                  <div className="flex items-center justify-center h-full text-white p-10">Video bulunamadı veya yüklenmemiş.</div>
                 )}
               </div>
 
-              {/* Modal Alt Kontroller */}
-              <div className="p-4 bg-muted/30 flex justify-between items-center">
+              {/* Alt Bilgi & Manuel Buton (Sadece eski YouTube videoları için gösterilir) */}
+              <div className="p-4 bg-muted/30 flex justify-between items-center border-t border-border">
                 <p className="text-sm text-muted-foreground">
-                  Videoyu dikkatlice izledikten sonra tamamla butonuna basabilirsin.
+                  {activeContent.video_file 
+                    ? "Video tamamen bittiğinde ilerlemeniz otomatik olarak kaydedilecektir." 
+                    : "Videoyu dikkatlice izledikten sonra tamamla butonuna basabilirsin."}
                 </p>
-                <Button 
-                  variant="success" 
-                  onClick={markAsCompleted} 
-                  disabled={isCompleting || completedIds.includes(activeContent.id)}
-                >
-                  <CheckCircle2 className="size-5 mr-2" />
-                  {completedIds.includes(activeContent.id) ? "Tamamlandı" : (isCompleting ? "Kaydediliyor..." : "Videoyu Bitirdim")}
-                </Button>
+                
+                {/* Eski YouTube linki varsa manuel "Bitirdim" butonu göster */}
+                {(!activeContent.video_file && activeContent.video_url) && (
+                  <Button 
+                    variant="success" 
+                    onClick={() => markAsCompleted(activeContent.id)} 
+                    disabled={isCompleting || completedIds.includes(activeContent.id)}
+                  >
+                    <CheckCircle2 className="size-5 mr-2" />
+                    {completedIds.includes(activeContent.id) ? "Tamamlandı" : (isCompleting ? "Kaydediliyor..." : "Videoyu Bitirdim")}
+                  </Button>
+                )}
               </div>
+
             </div>
           </motion.div>
         )}

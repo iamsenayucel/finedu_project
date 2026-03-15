@@ -6,11 +6,12 @@ class UserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'grade_level', 'student_code']
 
-# Yeni: İçerikleri (Video/Oyun) JSON'a Çevirici
+
 class ContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Content
-        fields = ['id', 'title', 'content_type', 'video_url', 'game_file_path', 'order']
+        # DİKKAT: 'video_file' buraya eklendi!
+        fields = ['id', 'title', 'content_type', 'video_file', 'game_file_path', 'order']
 
 # Yeni: Alt Başlıkları JSON'a Çevirici
 class SubtopicSerializer(serializers.ModelSerializer):

@@ -47,7 +47,7 @@ class Content(models.Model):
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
     title = models.CharField(max_length=200)
     content_type = models.CharField(max_length=55, choices=CONTENT_TYPES)
-    video_url = models.URLField(null=True, blank=True)
+    video_file = models.FileField(upload_to='videos/', null=True, blank=True)
     game_file_path = models.CharField(max_length=255, null=True, blank=True)
     order = models.IntegerField(default=0)
     def __str__(self):

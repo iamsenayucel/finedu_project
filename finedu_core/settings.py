@@ -139,3 +139,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
 }
+
+# settings.py dosyasının en altı
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

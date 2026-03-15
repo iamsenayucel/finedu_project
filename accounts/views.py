@@ -224,7 +224,7 @@ def api_add_subtopic_view(request):
     except Exception as e:
         return Response({'error': str(e)}, status=400)
 
-# İçerik (Video/Oyun) Ekleme API'si (GÜNCELLENDİ)
+# İçerik (Video/Oyun) Ekleme API'si (GERÇEK DOSYA YÜKLEMELİ)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def api_add_content_view(request):
@@ -233,14 +233,16 @@ def api_add_content_view(request):
     
     data = request.data
     try:
-        # Artık yazıyla değil, doğrudan seçilen ID ile alt başlığı buluyoruz
         subtopic = Subtopic.objects.get(id=data.get('subtopicId'))
+        
+        # YENİ: React'ten gelen gerçek .mp4 dosyasını yakalıyoruz
+        video_file = request.FILES.get('video_file')
         
         Content.objects.create(
             subtopic=subtopic,
             title=data.get('contentTitle'),
             content_type=data.get('contentType'),
-            video_url=data.get('videoUrl', ''),
+            video_file=video_file,  # ESKİ video_url SİLİNDİ, YERİNE BU GELDİ!
             order=1
         )
         return Response({'message': 'İçerik başarıyla eklendi!'}, status=201)
@@ -250,7 +252,7 @@ def api_add_content_view(request):
     except Exception as e:
         return Response({'error': str(e)}, status=400)
     
-
+    
 # Ünite Detay, Düzenleme ve Silme
 @api_view(['GET', 'PUT', 'DELETE']) # GET eklendi
 @permission_classes([IsAuthenticated])
