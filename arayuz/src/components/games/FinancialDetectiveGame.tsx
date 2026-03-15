@@ -1,8 +1,25 @@
 import React, { useState } from 'react';
 
-// TypeScript için Props (Dışarıdan gelen verilerin) tip tanımı
 interface FinancialDetectiveGameProps {
   onComplete?: (score: number) => void;
+}
+
+// Hafıza için Tip Tanımlamaları
+interface AnswerHistory {
+  questionText: string;
+  userAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+}
+
+interface NewsHistory {
+  newsTitle: string;
+  answers: AnswerHistory[];
+  classification: {
+    userClass: string;
+    correctClass: string;
+    isCorrect: boolean;
+  };
 }
 
 const NEWS_DATA = [
@@ -34,21 +51,36 @@ const NEWS_DATA = [
   }
 ];
 
-// Bileşenimize tanımladığımız tipi (FinancialDetectiveGameProps) ekliyoruz
 export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiveGameProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [stage, setStage] = useState<'reading' | 'analyzing' | 'classifying' | 'feedback' | 'finished'>('reading');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
 
+  // KULLANICI YANITLARINI TUTAN YENİ HAFIZA STATE'LERİ
+  const [currentAnswers, setCurrentAnswers] = useState<AnswerHistory[]>([]);
+  const [gameHistory, setGameHistory] = useState<NewsHistory[]>([]);
+
   const currentNews = NEWS_DATA[currentIndex];
 
-  const handleStartAnalysis = () => setStage('analyzing');
+  const handleStartAnalysis = () => {
+    setStage('analyzing');
+    setCurrentAnswers([]); // Yeni habere geçerken geçici hafızayı sıfırla
+  };
 
-  // 'answer' parametresinin tipini string olarak belirtiyoruz
   const handleAnswerQuestion = (answer: string) => {
-    const isCorrect = answer === currentNews.questions[currentQuestionIndex].expected;
-    if (isCorrect) setScore(prev => prev + 10); 
+    const currentQ = currentNews.questions[currentQuestionIndex];
+    const isCorrect = answer === currentQ.expected;
+
+    if (isCorrect) setScore(prev => prev + 10);
+
+    // Öğrencinin yanıtını hafızaya ekle
+    setCurrentAnswers(prev => [...prev, {
+      questionText: currentQ.text,
+      userAnswer: answer,
+      correctAnswer: currentQ.expected,
+      isCorrect: isCorrect
+    }]);
 
     if (currentQuestionIndex < currentNews.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -57,10 +89,21 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
     }
   };
 
-  // 'selectedClass' parametresinin tipini string olarak belirtiyoruz
   const handleClassification = (selectedClass: string) => {
     const isCorrect = selectedClass === currentNews.correctClass;
     if (isCorrect) setScore(prev => prev + 20);
+
+    // Bu haberin tam raporunu ana hafızaya (Korneye) kaydet
+    setGameHistory(prev => [...prev, {
+      newsTitle: currentNews.title,
+      answers: currentAnswers,
+      classification: {
+        userClass: selectedClass,
+        correctClass: currentNews.correctClass,
+        isCorrect: isCorrect
+      }
+    }]);
+
     setStage('feedback');
   };
 
@@ -75,16 +118,75 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
     }
   };
 
+  // --- YENİ EKLENEN MUHTEŞEM SONUÇ EKRANI (KARNE) ---
   if (stage === 'finished') {
     return (
-      <div className="p-8 text-center bg-green-50 rounded-lg border-2 border-green-400">
-        <h2 className="text-3xl font-bold text-green-700 mb-4">Tebrikler Dedektif! 🕵️‍♂️</h2>
-        <p className="text-xl">Tüm haberleri başarıyla analiz ettin.</p>
-        <p className="text-2xl font-bold mt-4">Toplam Puanın: {score}</p>
+      <div className="max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-2xl border border-gray-100">
+        
+        {/* Karne Başlığı */}
+        <div className="text-center mb-10 pb-6 border-b-2 border-dashed border-gray-200">
+          <h2 className="text-4xl font-extrabold text-slate-800 mb-3">Görev Raporu 🕵️‍♂️</h2>
+          <p className="text-lg text-slate-500 mb-6">İncelediğin tüm haberlerin detaylı analizi aşağıdadır.</p>
+          <div className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-3xl font-black py-4 px-10 rounded-full shadow-lg">
+            Toplam Puan: {score}
+          </div>
+        </div>
+
+        {/* Haberlerin Detaylı Listesi */}
+        <div className="space-y-8">
+          {gameHistory.map((historyItem, idx) => (
+            <div key={idx} className="bg-slate-50 rounded-xl p-6 border border-slate-200 shadow-sm transition-all hover:shadow-md">
+              <h3 className="text-2xl font-bold text-slate-800 mb-5 pb-2 border-b border-slate-200">
+                📄 {historyItem.newsTitle}
+              </h3>
+
+              {/* Soru Detayları */}
+              <div className="mb-6">
+                <h4 className="font-bold text-slate-600 mb-3 uppercase tracking-wider text-sm">Soru Analizleri</h4>
+                <ul className="space-y-3">
+                  {historyItem.answers.map((ans, aIdx) => (
+                    <li key={aIdx} className="flex flex-col sm:flex-row justify-between sm:items-center bg-white p-4 rounded-lg border border-slate-100 shadow-sm">
+                      <span className="text-slate-700 font-medium flex-1 mb-2 sm:mb-0 pr-4">{ans.questionText}</span>
+                      <div className="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200">
+                        <span className="text-sm text-slate-500">Senin Yanıtın: 
+                          <strong className={`ml-1 ${ans.isCorrect ? 'text-green-600' : 'text-red-600'}`}>{ans.userAnswer}</strong>
+                        </span>
+                        {ans.isCorrect ? (
+                          <span className="text-green-500 font-bold bg-green-100 p-1 rounded-full">✅</span>
+                        ) : (
+                          <span className="text-red-500 text-sm font-bold bg-red-100 px-2 py-1 rounded">❌ Doğrusu: {ans.correctAnswer}</span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Sınıflandırma Detayı */}
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex flex-col sm:flex-row justify-between sm:items-center">
+                <span className="font-bold text-blue-800 mb-2 sm:mb-0">Haberin Gerçek Türü:</span>
+                <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-md border border-blue-200 shadow-sm">
+                  <span className="text-sm text-slate-600">Seçimin: 
+                    <strong className={`ml-1 ${historyItem.classification.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                      {historyItem.classification.userClass}
+                    </strong>
+                  </span>
+                  {historyItem.classification.isCorrect ? (
+                    <span className="text-green-500 font-bold bg-green-100 p-1 rounded-full">✅</span>
+                  ) : (
+                    <span className="text-red-500 text-sm font-bold bg-red-100 px-2 py-1 rounded">❌ Doğrusu: {historyItem.classification.correctClass}</span>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
+  // --- OYUNUN KENDİ ARAYÜZÜ (DEĞİŞMEDİ) ---
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-200">
       <div className="flex justify-between items-center mb-6 border-b pb-4">

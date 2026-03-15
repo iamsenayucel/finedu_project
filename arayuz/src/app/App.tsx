@@ -1,15 +1,12 @@
-// 1. DÜZELTME: ./ yerine ../ kullanarak bir üst klasöre çıktık
 import FinancialDetectiveGame from '../components/games/FinancialDetectiveGame';
 
 function App() {
   return (
     <div className="min-h-screen bg-slate-100 py-10">
-      
-      {/* 2. DÜZELTME: puan kelimesinin yanına : number yazarak tipini belirttik */}
       <FinancialDetectiveGame 
-        onComplete={(puan: number) => alert(`Oyun bitti! Kazanılan Puan: ${puan}`)} 
+        // alert'i sildik, yerine console.log koyduk
+        onComplete={(puan: number) => console.log(`Oyun bitti, DB'ye gidecek puan: ${puan}`)} 
       />
-
     </div>
   );
 }
