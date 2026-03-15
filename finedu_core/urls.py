@@ -16,8 +16,6 @@ urlpatterns = [
     path('dashboard/', dashboard_view, name='dashboard'),
     path('unit/<int:unit_id>/', unit_detail_view, name='unit_detail'),
     path('api/login/', obtain_auth_token, name='api_token_auth'),
-    path('admin/', admin.site.urls),
-    path('api/', include('accounts.urls')),
 ]
 
 if settings.DEBUG:
