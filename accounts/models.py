@@ -43,13 +43,19 @@ class Subtopic(models.Model):
         return f"{self.unit.title} > {self.title}"
 class Content(models.Model):
     CONTENT_TYPES = (('VIDEO', 'Video'), ('GAME', 'Oyun/Simülasyon'))
+
+    GAME_CHOICES = (
+        ('financial_detective', '🕵️‍♂️ Finansal Haber Dedektifi (10. Sınıf)'),
+        ('drag_drop_needs', '🛒 İstek mi İhtiyaç mı? (İlkokul)'),
+        ('stock_market', '📈 Borsa Simülatörü (Çok Yakında)'),
+    )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
     title = models.CharField(max_length=200)
     content_type = models.CharField(max_length=55, choices=CONTENT_TYPES)
     video_file = models.FileField(upload_to='videos/', null=True, blank=True)
     game_file_path = models.CharField(max_length=255, null=True, blank=True)
-    game_code = models.CharField(max_length=50, blank=True, null=True)
+    game_code = models.CharField(max_length=50, choices=GAME_CHOICES, blank=True, null=True, verbose_name="Oyun Seçimi")
     order = models.IntegerField(default=0)
     def __str__(self):
         return f"{self.subtopic.title} > {self.title}"

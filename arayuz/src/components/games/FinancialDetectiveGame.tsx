@@ -26,7 +26,7 @@ const NEWS_DATA = [
   {
     id: 1,
     title: "Merkez Bankası Faiz Kararı",
-    content: "Türkiye Cumhuriyet Merkez Bankası son Para Politikası Kurulu toplantısının ardından politika faizinin %45 seviyesinde sabit tutulduğunu açıkladı. Merkez Bankası tarafından yayımlanan resmi açıklamada enflasyonla mücadele kapsamında sıkı para politikasının sürdürüleceği ifade edildi.",
+    content: "Türkiye Cumhuriyet Merkez Bankası son Para Politikası Kurulu toplantısının ardından politika faizinin %45 seviyesinde sabit tutulduğunu açıkladı. Merkez Bankası tarafından yayımlanan resmi açıklamada enflasyonla mücadele kapsamında sıkı para politikasının sürdürüleceği ifade edildi. Ekonomistler bu kararın kredi faizleri ve döviz piyasası üzerinde etkili olabileceğini belirtiyor.",
     questions: [
       { id: 'q1', text: "Haberde somut veri veya istatistik var mı?", expected: "Evet" },
       { id: 'q2', text: "Haberde uzman veya kurum kaynağı belirtilmiş mi?", expected: "Evet" },
@@ -38,6 +38,45 @@ const NEWS_DATA = [
   },
   {
     id: 2,
+    title: "Altın Piyasası Yorumu",
+    content: "Son haftalarda altın fiyatlarında hareketlilik yaşanıyor. Finans analisti Mehmet Kaya'ya göre küresel ekonomik belirsizlikler altına olan talebi artırabilir. Uzman, son bir ayda altın fiyatlarının yaklaşık %6 yükseldiğini ifade etti. Ancak fiyatların kısa vadede nasıl değişeceğinin kesin olmadığını belirtti.",
+    questions: [
+      { id: 'q1', text: "Haberde somut veri veya istatistik var mı?", expected: "Evet" },
+      { id: 'q2', text: "Haberde uzman veya kurum kaynağı belirtilmiş mi?", expected: "Evet" },
+      { id: 'q3', text: "Haber başlığı abartılı mı?", expected: "Hayır" },
+      { id: 'q4', text: "Haberde yatırım tavsiyesi var mı?", expected: "Hayır" }
+    ],
+    correctClass: "GÜVENİLİR",
+    feedback: "Haberde veri ve uzman görüşü bulunmaktadır. Kesin kazanç vaadi olmadığı için haber güvenilir kabul edilebilir."
+  },
+  {
+    id: 3,
+    title: "Kripto Para Hızla Yükseliyor",
+    content: "Son günlerde sosyal medyada konuşulan 'NovaCoin' adlı kripto para kısa sürede büyük ilgi gördü. Bazı yatırımcılar bu paranın gelecekte çok değerli olabileceğini söylüyor. Ancak projeyle ilgili henüz herhangi bir resmi kurum açıklaması veya bağımsız analiz raporu bulunmuyor.",
+    questions: [
+      { id: 'q1', text: "Haberde somut veri veya istatistik var mı?", expected: "Hayır" },
+      { id: 'q2', text: "Haberde uzman veya kurum kaynağı belirtilmiş mi?", expected: "Hayır" },
+      { id: 'q3', text: "Haber başlığı abartılı mı?", expected: "Evet" },
+      { id: 'q4', text: "Haberde yatırım tavsiyesi var mı?", expected: "Hayır" }
+    ],
+    correctClass: "ŞÜPHELİ",
+    feedback: "Haberde somut veri veya güvenilir kurum kaynağı bulunmuyor. Bu nedenle haberin doğruluğu kesin değildir ve dikkatle değerlendirilmelidir."
+  },
+  {
+    id: 4,
+    title: "Sosyal Medyada Yatırım Tavsiyesi",
+    content: "Bir sosyal medya fenomeni yaptığı paylaşımda küçük bir teknoloji şirketinin hisselerinin yakında çok yükseleceğini söyledi. Fenomen, takipçilerine bu hisseleri erkenden almanın büyük kazanç sağlayabileceğini ifade etti. Ancak paylaşımda şirket hakkında finansal veri veya resmi kaynak yer almıyor.",
+    questions: [
+      { id: 'q1', text: "Haberde somut veri veya istatistik var mı?", expected: "Hayır" },
+      { id: 'q2', text: "Haberde uzman veya kurum kaynağı belirtilmiş mi?", expected: "Hayır" },
+      { id: 'q3', text: "Haber başlığı abartılı mı?", expected: "Evet" },
+      { id: 'q4', text: "Haberde yatırım tavsiyesi var mı?", expected: "Evet" }
+    ],
+    correctClass: "ŞÜPHELİ",
+    feedback: "Haberde doğrulanabilir veri bulunmamakta ve sosyal medya yorumuna dayanmaktadır. Bu tür içerikler dikkatle değerlendirilmelidir."
+  },
+  {
+    id: 5,
     title: "Yeni Yatırım Platformu Reklamı",
     content: "Bir internet sitesinde yayımlanan haberde 'CryptoMax yatırım platformu' tanıtılıyor. Haberde platformu kullanan herkesin çok kısa sürede yüksek kazanç elde ettiği ve sistemin yatırımcılara garanti gelir sağladığı iddia ediliyor. Ancak haberde herhangi bir finansal kurum, uzman görüşü veya resmi veri yer almıyor.",
     questions: [
