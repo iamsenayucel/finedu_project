@@ -136,21 +136,27 @@ export default function AdminPanel() {
       bodyData = { title: formData.title, unitId: modal.parentId };
     } 
     else if (modal.type === "CONTENT") {
-      isFormData = true; // İçerik ekliyorsak FormData kullanacağız
+      isFormData = true; 
       url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/contents/add/" : `https://finedu-project.onrender.com/api/contents/${modal.data.id}/`;
       
-      formPayload.append("contentTitle", formData.title);
-      formPayload.append("contentType", formData.contentType);
-      if (modal.parentId) formPayload.append("subtopicId", String(modal.parentId));
-      
-      // YENİ: Oyun seçildiyse gameCode'u ekle
+      // YENİ: Başlığı belirleme mantığı
+      let finalTitle = formData.title;
+
       if (formData.contentType === "GAME") {
         if (!formData.gameCode) {
           setIsSaving(false);
           return alert("Lütfen eklemek için bir oyun seçin!");
         }
+        // Seçilen oyunun adını listeden bul ve başlık olarak ayarla
+        const selectedGame = GAME_OPTIONS.find(g => g.value === formData.gameCode);
+        finalTitle = selectedGame ? selectedGame.label : "İnteraktif Oyun";
+        
         formPayload.append("game_code", formData.gameCode);
       }
+      
+      formPayload.append("contentTitle", finalTitle); // Otomatik veya manuel başlığı gönder
+      formPayload.append("contentType", formData.contentType);
+      if (modal.parentId) formPayload.append("subtopicId", String(modal.parentId));
       
       // Video dosyası seçildiyse pakete ekle
       if (formData.contentType === "VIDEO") {
@@ -546,38 +552,39 @@ export default function AdminPanel() {
 
                   {modal.type === "CONTENT" && (
                     <>
-                      <Input label="İçerik Başlığı" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
-                      
-                      {/* SENİN BİLEŞENİNLE İÇERİK TİPİ SEÇİMİ */}
+                      {/* 1. ÖNCE İÇERİK TİPİNİ SOR (En üste aldık) */}
                       <Select label="İçerik Tipi" value={formData.contentType} onChange={(e) => setFormData({...formData, contentType: e.target.value})} options={[
                         { value: "VIDEO", label: "Video" }, { value: "GAME", label: "Oyun" }
                       ]} required />
                       
-                      {/* VİDEO İSE VİDEO YÜKLEME ALANI */}
+                      {/* 2. SADECE VİDEO İSE: BAŞLIK VE DOSYA YÜKLEME ALANI GÖSTER */}
                       {formData.contentType === "VIDEO" && (
-                        <div className="mt-4">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Sisteme Video Yükle (.mp4)
-                          </label>
-                          <input
-                            type="file"
-                            accept="video/mp4,video/x-m4v,video/*"
-                            onChange={(e) => {
-                              if (e.target.files && e.target.files[0]) {
-                                setVideoFile(e.target.files[0]);
-                              }
-                            }}
-                            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
-                          />
-                          {modal.action === "EDIT" && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Mevcut videoyu değiştirmek istemiyorsanız boş bırakın.
-                            </p>
-                          )}
-                        </div>
+                        <>
+                          <Input label="İçerik Başlığı" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
+                          <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Sisteme Video Yükle (.mp4)
+                            </label>
+                            <input
+                              type="file"
+                              accept="video/mp4,video/x-m4v,video/*"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                  setVideoFile(e.target.files[0]);
+                                }
+                              }}
+                              className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+                            />
+                            {modal.action === "EDIT" && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Mevcut videoyu değiştirmek istemiyorsanız boş bırakın.
+                              </p>
+                            )}
+                          </div>
+                        </>
                       )}
 
-                      {/* YENİ: OYUN İSE OYUN SEÇME ALANI */}
+                      {/* 3. SADECE OYUN İSE: SADECE OYUN SEÇİM LİSTESİNİ GÖSTER */}
                       {formData.contentType === "GAME" && (
                         <Select 
                           label="Hangi Oyunu Eklemek İstiyorsunuz?" 

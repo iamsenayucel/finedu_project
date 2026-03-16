@@ -9,10 +9,12 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// YENİ: Kendi yazdığımız özel Video Oynatıcıyı çağırıyoruz
+// Özel Video Oynatıcı
 import { VideoPlayer } from "../components/VideoPlayer";
+// YENİ: Oyun Yönlendiriciyi İçe Aktarıyoruz
+import GameContainer from "../../components/games/GameContainer";
 
-// Eski YouTube linkleri için yardımcı fonksiyon (Geriye Dönük Uyumluluk)
+// Eski YouTube linkleri için yardımcı fonksiyon
 const getEmbedUrl = (url: string) => {
   if (!url) return "";
   const videoIdMatch = url.match(/[?&]v=([^&]+)/);
@@ -66,9 +68,7 @@ export default function UnitDetail() {
     fetchData();
   }, [unitId, navigate]);
 
-  // Video gerçekten bittiğinde (veya manuel basıldığında) çalışacak olan fonksiyon
   const markAsCompleted = async (contentId: number) => {
-    // Eğer zaten tamamlanmışsa tekrar istek atma
     if (completedIds.includes(contentId)) return;
     
     setIsCompleting(true);
@@ -83,7 +83,6 @@ export default function UnitDetail() {
 
       if (res.ok) {
         setCompletedIds(prev => [...prev, contentId]);
-        // Başarı mesajı (Sadece video otomatik bittiğinde gösterilmesi için eklendi)
         alert("Harika! Bu içeriği başarıyla tamamladın. 🎉"); 
       }
     } catch (error) {
@@ -100,6 +99,20 @@ export default function UnitDetail() {
   const totalContents = allContents.length;
   const unitCompletedCount = allContents.filter((c: any) => completedIds.includes(c.id)).length;
   const progressPercentage = totalContents === 0 ? 0 : Math.round((unitCompletedCount / totalContents) * 100);
+
+  // YENİ: EĞER SEÇİLEN İÇERİK BİR OYUN İSE, EKRANI TAMAMEN OYUNA ÇEVİRİYORUZ
+  if (activeContent && activeContent.content_type === "GAME") {
+    return (
+      <GameContainer
+        gameCode={activeContent.game_code}
+        onComplete={(score) => {
+          // Oyun bittiğinde arka planda videoyla aynı API'ye "bitirdi" sinyali gidiyor
+          markAsCompleted(activeContent.id);
+        }}
+        onBack={() => setActiveContent(null)} // Listeye geri dönme butonu
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -165,11 +178,8 @@ export default function UnitDetail() {
                               variant={isCompleted ? "outline" : (content.content_type === "VIDEO" ? "primary" : "warning")}
                               disabled={isLocked}
                               onClick={() => {
-                                if (content.content_type === "VIDEO") {
-                                  setActiveContent(content); 
-                                } else {
-                                  alert("Oyun ekranına geçiliyor...");
-                                }
+                                // YENİ: Artık içerik ne olursa olsun (Video/Oyun) içeriği state'e atıyoruz, alerti sildik!
+                                setActiveContent(content); 
                               }}
                             >
                               {isLocked ? "Kilitli" : (content.content_type === "VIDEO" ? (isCompleted ? "Tekrar İzle" : "İzle") : (isCompleted ? "Tekrar Oyna" : "Oyna"))}
@@ -186,13 +196,12 @@ export default function UnitDetail() {
         </div>
       </div>
 
-      {/* VİDEO MODALI */}
+      {/* VİDEO MODALI (YENİ: Sadece içerik tipi VIDEO ise bu pencere açılır) */}
       <AnimatePresence>
-        {activeContent && (
+        {activeContent && activeContent.content_type === "VIDEO" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
             <div className="bg-background rounded-xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col">
               
-              {/* Modal Başlık */}
               <div className="flex justify-between items-center p-4 border-b border-border">
                 <h3 className="font-bold text-lg flex items-center gap-2">
                   <Video className="size-5 text-primary" />
@@ -203,25 +212,17 @@ export default function UnitDetail() {
                 </button>
               </div>
               
-              {/* OYNATICI ALANI (Kritik Değişiklik Burası) */}
               <div className="w-full bg-black flex flex-col justify-center items-center relative min-h-[300px]">
-                
-                {/* 1. EĞER YENİ SİSTEMLE YÜKLENEN (.mp4 vb.) GERÇEK BİR VİDEO DOSYASI VARSA */}
                 {activeContent.video_file ? (
                   <div className="w-full h-full p-4">
                     <VideoPlayer 
-                      // Geliştirme (Local) aşamasında olduğumuz için başına 127.0.0.1 ekliyoruz.
                       videoUrl={`https://finedu-project.onrender.com${activeContent.video_file}`} 
                       onComplete={() => {
-                        // Video %100 bittiğinde burası otomatik tetiklenir!
                         markAsCompleted(activeContent.id);
                       }}
                     />
                   </div>
-                ) : 
-                
-                /* 2. EĞER ESKİ SİSTEM YOUTUBE LİNKİ VARSA */
-                activeContent.video_url ? (
+                ) : activeContent.video_url ? (
                   <div className="w-full aspect-video">
                     <iframe
                       src={getEmbedUrl(activeContent.video_url)}
@@ -231,23 +232,17 @@ export default function UnitDetail() {
                       title={activeContent.title}
                     ></iframe>
                   </div>
-                ) : 
-                
-                /* 3. İKİSİ DE YOKSA */
-                (
+                ) : (
                   <div className="flex items-center justify-center h-full text-white p-10">Video bulunamadı veya yüklenmemiş.</div>
                 )}
               </div>
 
-              {/* Alt Bilgi & Manuel Buton (Sadece eski YouTube videoları için gösterilir) */}
               <div className="p-4 bg-muted/30 flex justify-between items-center border-t border-border">
                 <p className="text-sm text-muted-foreground">
                   {activeContent.video_file 
                     ? "Video tamamen bittiğinde ilerlemeniz otomatik olarak kaydedilecektir." 
                     : "Videoyu dikkatlice izledikten sonra tamamla butonuna basabilirsin."}
                 </p>
-                
-                {/* Eski YouTube linki varsa manuel "Bitirdim" butonu göster */}
                 {(!activeContent.video_file && activeContent.video_url) && (
                   <Button 
                     variant="success" 
