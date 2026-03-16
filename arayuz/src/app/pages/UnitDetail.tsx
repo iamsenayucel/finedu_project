@@ -105,7 +105,7 @@ export default function UnitDetail() {
     return (
       <GameContainer
         gameCode={activeContent.game_code}
-        onComplete={(score) => {
+        onComplete={(score: number) => {
           // Oyun bittiğinde arka planda videoyla aynı API'ye "bitirdi" sinyali gidiyor
           markAsCompleted(activeContent.id);
         }}
