@@ -10,6 +10,12 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+// YENİ: Sistemdeki oyunların listesi
+const GAME_OPTIONS = [
+  { value: "financial_detective", label: "🕵️‍♂️ Finansal Haber Dedektifi (10. Sınıf)" },
+  { value: "drag_drop_needs", label: "🛒 İstek mi İhtiyaç mı? (İlkokul)" }
+];
+
 export default function AdminPanel() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"units" | "users">("units");
@@ -34,9 +40,10 @@ export default function AdminPanel() {
     data: null as any
   });
 
-  // Modal form state
+  // Modal form state (YENİ: gameCode eklendi)
   const [formData, setFormData] = useState({
     title: "", target_grade: "", badge_name: "", contentType: "VIDEO", videoUrl: "",
+    gameCode: "", // YENİ: Oyun kodunu tutacak
     email: "", firstName: "", lastName: "", password: "", role: "STUDENT"
   });
 
@@ -73,7 +80,7 @@ export default function AdminPanel() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // MODAL AÇMA YARDIMCISI
+  // MODAL AÇMA YARDIMCISI (YENİ: gameCode güncellendi)
   const openModal = (type: string, action: string, parentId: number | null = null, data: any = null) => {
     setModal({ isOpen: true, type, action, parentId, data });
     setVideoFile(null); // Modalı açarken eski seçili dosyayı temizle
@@ -85,11 +92,12 @@ export default function AdminPanel() {
         badge_name: data.badge_name || "",
         contentType: data.content_type || "VIDEO",
         videoUrl: data.video_url || "",
+        gameCode: data.game_code || "", // YENİ: Edit modunda eski oyunu getir
         email: "", firstName: "", lastName: "", password: "", role: "STUDENT"
       });
     } else {
       setFormData({ 
-        title: "", target_grade: "", badge_name: "", contentType: "VIDEO", videoUrl: "",
+        title: "", target_grade: "", badge_name: "", contentType: "VIDEO", videoUrl: "", gameCode: "",
         email: "", firstName: "", lastName: "", password: "", role: "STUDENT"
       });
     }
@@ -107,6 +115,8 @@ export default function AdminPanel() {
         return alert("Lütfen öğrenci için bir Eğitim Seviyesi seçin!");
       }
     }
+
+    setIsSaving(true); // İşlem başladığını belirt
 
     const token = localStorage.getItem("token");
     let url = "";
@@ -133,11 +143,21 @@ export default function AdminPanel() {
       formPayload.append("contentType", formData.contentType);
       if (modal.parentId) formPayload.append("subtopicId", String(modal.parentId));
       
+      // YENİ: Oyun seçildiyse gameCode'u ekle
+      if (formData.contentType === "GAME") {
+        if (!formData.gameCode) {
+          setIsSaving(false);
+          return alert("Lütfen eklemek için bir oyun seçin!");
+        }
+        formPayload.append("game_code", formData.gameCode);
+      }
+      
       // Video dosyası seçildiyse pakete ekle
       if (formData.contentType === "VIDEO") {
         if (videoFile) {
           formPayload.append("video_file", videoFile);
         } else if (modal.action === "ADD") {
+          setIsSaving(false);
           return alert("Lütfen yüklemek için bir video dosyası seçin!");
         }
       }
@@ -159,13 +179,12 @@ export default function AdminPanel() {
       const headers: any = { "Authorization": `Token ${token}` };
       
       if (isFormData) {
-        // VİDEO YÜKLENİYORSA: Gerçek zamanlı ilerleme çubuğu (Progress Bar) için XMLHttpRequest kullanıyoruz
+        // VİDEO VEYA OYUN YÜKLENİYORSA: FormData ile gönder (Oyunlar saniyesinde yüklenir, bar görünmeyebilir)
         await new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open(method, url, true);
           xhr.setRequestHeader("Authorization", `Token ${token}`);
           
-          // Yükleme sırasında yüzdelik dilimi hesapla ve state'e yaz
           xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
               const percentCompleted = Math.round((event.loaded * 100) / event.total);
@@ -528,11 +547,13 @@ export default function AdminPanel() {
                   {modal.type === "CONTENT" && (
                     <>
                       <Input label="İçerik Başlığı" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
+                      
+                      {/* SENİN BİLEŞENİNLE İÇERİK TİPİ SEÇİMİ */}
                       <Select label="İçerik Tipi" value={formData.contentType} onChange={(e) => setFormData({...formData, contentType: e.target.value})} options={[
                         { value: "VIDEO", label: "Video" }, { value: "GAME", label: "Oyun" }
                       ]} required />
                       
-                      {/* DOSYA YÜKLEME ALANINA ÇEVRİLEN KISIM */}
+                      {/* VİDEO İSE VİDEO YÜKLEME ALANI */}
                       {formData.contentType === "VIDEO" && (
                         <div className="mt-4">
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -554,6 +575,20 @@ export default function AdminPanel() {
                             </p>
                           )}
                         </div>
+                      )}
+
+                      {/* YENİ: OYUN İSE OYUN SEÇME ALANI */}
+                      {formData.contentType === "GAME" && (
+                        <Select 
+                          label="Hangi Oyunu Eklemek İstiyorsunuz?" 
+                          value={formData.gameCode} 
+                          onChange={(e) => setFormData({...formData, gameCode: e.target.value})} 
+                          options={[
+                            { value: "", label: "Lütfen bir oyun seçin..." },
+                            ...GAME_OPTIONS
+                          ]} 
+                          required 
+                        />
                       )}
                     </>
                   )}
@@ -587,7 +622,7 @@ export default function AdminPanel() {
 
                   <div className="flex flex-col gap-3 pt-4 border-t border-border">
                     {/* YENİ: İlerleme Çubuğu Animasyonu */}
-                    {isSaving && uploadProgress > 0 && (
+                    {isSaving && uploadProgress > 0 && formData.contentType === "VIDEO" && (
                       <div className="w-full">
                         <div className="flex justify-between text-xs mb-1 text-muted-foreground font-semibold">
                           <span>Video Yükleniyor...</span>
