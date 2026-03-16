@@ -234,15 +234,15 @@ def api_add_content_view(request):
     data = request.data
     try:
         subtopic = Subtopic.objects.get(id=data.get('subtopicId'))
-        
-        # YENİ: React'ten gelen gerçek .mp4 dosyasını yakalıyoruz
         video_file = request.FILES.get('video_file')
-        
+        game_code = data.get('game_code')
+
         Content.objects.create(
             subtopic=subtopic,
             title=data.get('contentTitle'),
             content_type=data.get('contentType'),
-            video_file=video_file,  # ESKİ video_url SİLİNDİ, YERİNE BU GELDİ!
+            video_file=video_file,  
+            game_code=game_code,
             order=1
         )
         return Response({'message': 'İçerik başarıyla eklendi!'}, status=201)
@@ -306,6 +306,8 @@ def api_content_detail_view(request, pk):
         content.title = request.data.get('contentTitle', content.title)
         content.content_type = request.data.get('contentType', content.content_type)
         content.video_url = request.data.get('videoUrl', content.video_url)
+        # YENİ: Düzenleme yaparken de oyun kodunu güncelle
+        content.game_code = request.data.get('game_code', content.game_code)
         content.save()
         return Response({'message': 'İçerik güncellendi'})
         
