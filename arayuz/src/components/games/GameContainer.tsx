@@ -1,6 +1,6 @@
 import React from 'react';
 import FinancialDetectiveGame from './FinancialDetectiveGame';
-// İleride buraya başka oyunlar da eklenecek (örn: DragDropGame)
+import DragDropNeedsGame from './DragDropNeedsGame';
 
 interface GameContainerProps {
   gameCode: string;
@@ -16,9 +16,8 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
       case 'financial_detective':
         return <FinancialDetectiveGame onComplete={onComplete} />;
       
-      // İleride yeni oyunlar ekledikçe buraya case'ler eklenecek
-      // case 'drag_drop_needs':
-      //   return <DragDropNeedsGame onComplete={onComplete} />;
+      case 'drag_drop_needs':
+        return <DragDropNeedsGame onComplete={onComplete} />;
         
       default:
         return (
