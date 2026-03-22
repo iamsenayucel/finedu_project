@@ -228,9 +228,16 @@ export default function UnitDetail() {
               
               {/* OYNATICI ALANI */}
               <div className="w-full bg-black flex flex-col justify-center items-center relative min-h-[300px]">
+                
+                {/* HATA AYIKLAMA: Videonun nereden geldiğini ekranda görelim */}
+                <div className="absolute top-0 left-0 bg-black/50 text-white text-xs p-1 z-50">
+                  Gelen Link: {activeContent.video_file}
+                </div>
+
                 {activeContent.video_file ? (
                   <div className="w-full h-full p-4">
                     <VideoPlayer 
+                      // AKILLI URL KONTROLÜ (Burası silinmiş olabilir, geri getirdik!)
                       videoUrl={
                         activeContent.video_file.startsWith('http') 
                           ? activeContent.video_file 
@@ -252,7 +259,7 @@ export default function UnitDetail() {
                     ></iframe>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-white p-10">Video bulunamadı veya yüklenmemiş.</div>
+                  <div className="flex items-center justify-center h-full text-white p-10">Video bulunamadı.</div>
                 )}
               </div>
 
