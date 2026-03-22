@@ -41,5 +41,5 @@ urlpatterns = [
     path('classrooms/<int:pk>/add_student/', api_add_student_to_class, name='api_add_student'),
     path('student/<int:student_id>/detail/', api_student_detail_view, name='api_student_detail'),
 
-    path('api/reorder/', api_reorder_view, name='api_reorder'),
+    path('reorder/', api_reorder_view, name='api_reorder'),
 ]
