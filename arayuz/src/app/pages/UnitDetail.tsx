@@ -217,7 +217,11 @@ export default function UnitDetail() {
                 {activeContent.video_file ? (
                   <div className="w-full h-full p-4">
                     <VideoPlayer 
-                      videoUrl={activeContent.video_file} 
+                      videoUrl={
+                        activeContent.video_file.startsWith('http') 
+                          ? activeContent.video_file 
+                          : `https://finedu-project.onrender.com${activeContent.video_file}`
+                      } 
                       onComplete={() => {
                         markAsCompleted(activeContent.id);
                       }}
