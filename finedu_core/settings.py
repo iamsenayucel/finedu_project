@@ -156,4 +156,13 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.VideoMediaCloudinaryStorage'
+STORAGES = {
+    "default": {
+        # Videoları ve medyaları Cloudinary'ye gönderir
+        "BACKEND": "cloudinary_storage.storage.VideoMediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        # Statik dosyaları (CSS, JS) normal klasörde tutar
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
