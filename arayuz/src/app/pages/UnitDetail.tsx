@@ -217,7 +217,6 @@ export default function UnitDetail() {
                 {activeContent.video_file ? (
                   <div className="w-full h-full p-4">
                     <VideoPlayer 
-                      // Render eklentisi SİLİNDİ! Sadece Cloudinary'den gelen temiz link kullanılıyor.
                       videoUrl={activeContent.video_file} 
                       onComplete={() => {
                         markAsCompleted(activeContent.id);

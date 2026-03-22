@@ -1,18 +1,17 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router"; // react-router-dom olabilir, projendeki versiyona göre ayarlarsın
-import { GraduationCap, LogIn, User, Lock, AlertCircle } from "lucide-react"; // Mail yerine User ikonu daha uygun olabilir
+import { Link, useNavigate } from "react-router"; 
+import { GraduationCap, LogIn, User, Lock, AlertCircle } from "lucide-react"; 
 import { Button } from "../components/Button";
 import { Card, CardBody } from "../components/Card";
-import { motion } from "framer-motion"; // "motion/react" yerine genelde "framer-motion" kullanılır
+import { motion } from "framer-motion"; 
 
 export default function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: "", // Django varsayılan olarak username bekler
+    username: "", 
     password: "",
   });
   
-  // Hata ve Yüklenme durumlarını yöneteceğimiz state'ler
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,7 +21,6 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // Django'daki Token alma ucuna istek atıyoruz
       const response = await fetch("https://finedu-project.onrender.com/api/login/", {
         method: "POST",
         headers: {
@@ -31,21 +29,32 @@ export default function Login() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      // DİKKAT: Önce gelen veriyi düz metin (text) olarak alıyoruz ki çökmesin!
+      const textData = await response.text();
+      let data;
+      
+      try {
+        // Sonra onu JSON'a çevirmeyi deniyoruz
+        data = JSON.parse(textData);
+      } catch (parseError) {
+        // EĞER JSON DEĞİLSE (Örn: HTML veya 404 döndüyse) BURADA YAKALARIZ
+        console.error("Sunucudan Gelen Beklenmeyen Yanıt:", textData);
+        throw new Error("Sunucu JSON yerine geçersiz bir yanıt (HTML) döndürdü. Konsola (F12) bakın.");
+      }
 
       if (response.ok) {
-        // Şifre doğruysa gelen Token'ı tarayıcıya kaydet
         localStorage.setItem("token", data.token);
-        
-        // Başarılı giriş sonrası paneli aç
         navigate("/dashboard");
       } else {
-        // Django'dan dönen hatayı veya genel bir mesajı göster
-        setError("Kullanıcı adı veya şifre hatalı!");
+        // Django'dan dönen hata mesajını yakala (non_field_errors genellikle DRF'in şifre yanlış mesajıdır)
+        const errorMsg = data.non_field_errors ? data.non_field_errors[0] : 
+                       data.error ? data.error : "Kullanıcı adı veya şifre hatalı!";
+        setError(errorMsg);
       }
-    } catch (err) {
-      console.error(err);
-      setError("Sunucuya bağlanılamadı. Backend'in çalıştığından emin olun.");
+      
+    } catch (err: any) {
+      console.error("Giriş Hatası:", err);
+      setError(err.message || "Sunucuya bağlanılamadı. Lütfen tekrar deneyin.");
     } finally {
       setIsLoading(false);
     }
@@ -59,7 +68,6 @@ export default function Login() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        {/* Logo ve Başlık */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
             <div className="bg-gradient-to-br from-primary to-indigo-600 p-4 rounded-2xl shadow-lg">
@@ -74,22 +82,20 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Login Form */}
         <Card>
           <CardBody>
             <form onSubmit={handleSubmit} className="space-y-5">
               
-              {/* Hata Mesajı Kutusu */}
               {error && (
-                <div className="bg-red-50 text-red-600 p-3 rounded-lg flex items-center gap-2 text-sm">
-                  <AlertCircle className="size-4" />
-                  {error}
+                <div className="bg-red-50 text-red-600 p-3 rounded-lg flex items-center gap-2 text-sm font-medium">
+                  <AlertCircle className="size-5 flex-shrink-0" />
+                  <span>{error}</span>
                 </div>
               )}
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-foreground">
-                  Kullanıcı Adı
+                  Kullanıcı Adı (veya E-posta)
                 </label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
@@ -146,7 +152,7 @@ export default function Login() {
                   to="/register"
                   className="text-primary font-medium hover:underline"
                 >
-                  Kayıt Ol
+                  Kayııt Ol
                 </Link>
               </p>
             </div>
