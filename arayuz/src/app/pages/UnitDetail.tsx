@@ -69,6 +69,7 @@ export default function UnitDetail() {
   }, [unitId, navigate]);
 
   const markAsCompleted = async (contentId: number) => {
+    // Zaten tamamlanmışsa tekrar işlem yapma
     if (completedIds.includes(contentId)) return;
     
     setIsCompleting(true);
@@ -82,11 +83,24 @@ export default function UnitDetail() {
       });
 
       if (res.ok) {
+        // Backend başarıyla kaydetti, yeşil tiki at!
         setCompletedIds(prev => [...prev, contentId]);
         alert("Harika! Bu içeriği başarıyla tamamladın. 🎉"); 
+      } else {
+        // YENİ: EĞER BACKEND HATA VERİRSE ARTIK GİZLENMEYECEK, BİZE SÖYLEYECEK!
+        const errorData = await res.json().catch(() => ({}));
+        console.error("Backend Kayıt Hatası:", errorData);
+        alert("İlerlemen kaydedilirken sunucuda bir pürüz çıktı!\nHata: " + JSON.stringify(errorData));
+        
+        // CANKURTARAN HAMLESİ: Backend hata verse bile, öğrencinin hevesi kırılmasın 
+        // ve oyun kilitli kalmasın diye yeşil tiki arayüzde zorla atıyoruz!
+        setCompletedIds(prev => [...prev, contentId]);
       }
     } catch (error) {
-      console.error("Kaydedilemedi", error);
+      console.error("Bağlantı koptu", error);
+      alert("Sunucuya ulaşılamadı ancak bu bölümü geçtiğinizi varsayıyoruz! 🚀");
+      // İnternet kopsa bile kilit açılsın
+      setCompletedIds(prev => [...prev, contentId]);
     } finally {
       setIsCompleting(false);
     }
