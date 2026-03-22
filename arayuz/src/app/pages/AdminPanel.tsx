@@ -6,11 +6,11 @@ import { Button } from "../components/Button";
 import { Input, Select } from "../components/Input";
 import {
   Plus, BookOpen, Video, Gamepad2, Users,
-  Trash2, Edit, ChevronDown, ChevronRight, Layers, X, UserPlus
+  Trash2, Edit, ChevronDown, ChevronRight, Layers, X, UserPlus,
+  ArrowUp, ArrowDown // YENİ: Ok ikonlarını ekledik!
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// YENİ: Sistemdeki oyunların listesi
 const GAME_OPTIONS = [
   { value: "financial_detective", label: "🕵️‍♂️ Finansal Haber Dedektifi (10. Sınıf)" },
   { value: "drag_drop_needs", label: "🛒 İstek mi İhtiyaç mı? (İlkokul)" }
@@ -27,27 +27,22 @@ export default function AdminPanel() {
   const [isSaving, setIsSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // AĞAÇ YAPISI İÇİN GENİŞLETME DURUMLARI
   const [expandedUnitId, setExpandedUnitId] = useState<number | null>(null);
   const [expandedSubtopicId, setExpandedSubtopicId] = useState<number | null>(null);
 
-  // TEK BİR MODAL YÖNETİMİ
   const [modal, setModal] = useState({
     isOpen: false,
-    type: "UNIT", // 'UNIT' | 'SUBTOPIC' | 'CONTENT' | 'USER'
-    action: "ADD", // 'ADD' | 'EDIT'
+    type: "UNIT",
+    action: "ADD",
     parentId: null as number | null, 
     data: null as any
   });
 
-  // Modal form state (YENİ: gameCode eklendi)
   const [formData, setFormData] = useState({
     title: "", target_grade: "", badge_name: "", contentType: "VIDEO", videoUrl: "",
-    gameCode: "", // YENİ: Oyun kodunu tutacak
-    email: "", firstName: "", lastName: "", password: "", role: "STUDENT"
+    gameCode: "", email: "", firstName: "", lastName: "", password: "", role: "STUDENT"
   });
 
-  // YENİ: Video dosyasını hafızada tutacak state
   const [videoFile, setVideoFile] = useState<File | null>(null);
 
   const fetchData = async () => {
@@ -64,12 +59,24 @@ export default function AdminPanel() {
 
       const meData = await meRes.json();
       if (meData.user.role !== "ADMIN") {
-        alert("Yetkisiz giriş!");
         return navigate("/dashboard");
       }
       
       setCurrentUser(meData.user);
-      setUnits(await unitsRes.json());
+      
+      // Gelen verileri kendi içlerindeki 'order' alanına göre sıralayarak alıyoruz
+      const fetchedUnits = await unitsRes.json();
+      fetchedUnits.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+      fetchedUnits.forEach((u: any) => {
+        if(u.subtopics) {
+          u.subtopics.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+          u.subtopics.forEach((s: any) => {
+            if(s.contents) s.contents.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+          });
+        }
+      });
+
+      setUnits(fetchedUnits);
       setUsers(await usersRes.json());
     } catch (error) { 
       console.error(error); 
@@ -80,10 +87,41 @@ export default function AdminPanel() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // MODAL AÇMA YARDIMCISI (YENİ: gameCode güncellendi)
+  // YENİ: YUKARI/AŞAĞI TAŞIMA (SIRALAMA) FONKSİYONU
+  const handleMove = async (type: "UNIT" | "SUBTOPIC" | "CONTENT", list: any[], index: number, direction: "UP" | "DOWN") => {
+    // Sınır kontrolleri (İlk eleman yukarı gidemez, son eleman aşağı gidemez)
+    if ((direction === "UP" && index === 0) || (direction === "DOWN" && index === list.length - 1)) return;
+
+    // Listeyi kopyala ve elemanları yer değiştir
+    const newList = [...list];
+    const swapIndex = direction === "UP" ? index - 1 : index + 1;
+    [newList[index], newList[swapIndex]] = [newList[swapIndex], newList[index]];
+
+    // Yeni listeye göre 1'den başlayarak yeni sıra numaralarını belirle
+    const itemsPayload = newList.map((item, i) => ({ id: item.id, order: i + 1 }));
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("https://finedu-project.onrender.com/api/reorder/", {
+        method: "POST",
+        headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ type, items: itemsPayload })
+      });
+
+      if (res.ok) {
+        fetchData(); // Başarılıysa ekranı yenile ki yeni sıra görünsün
+      } else {
+        console.error("Sıralama kaydedilemedi.");
+      }
+    } catch (error) {
+      console.error("Bağlantı hatası", error);
+    }
+  };
+
+
   const openModal = (type: string, action: string, parentId: number | null = null, data: any = null) => {
     setModal({ isOpen: true, type, action, parentId, data });
-    setVideoFile(null); // Modalı açarken eski seçili dosyayı temizle
+    setVideoFile(null); 
     
     if (action === "EDIT" && data && type !== "USER") {
       setFormData({
@@ -92,7 +130,7 @@ export default function AdminPanel() {
         badge_name: data.badge_name || "",
         contentType: data.content_type || "VIDEO",
         videoUrl: data.video_url || "",
-        gameCode: data.game_code || "", // YENİ: Edit modunda eski oyunu getir
+        gameCode: data.game_code || "",
         email: "", firstName: "", lastName: "", password: "", role: "STUDENT"
       });
     } else {
@@ -103,26 +141,17 @@ export default function AdminPanel() {
     }
   };
 
-  // EKLEME VE DÜZENLEME İŞLEMİ (Kaydet Butonu)
   const handleModalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (modal.type === "USER") {
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-        return alert("Lütfen Ad, Soyad, E-posta ve Şifre alanlarının hepsini doldurun!");
-      }
-      if (formData.role === "STUDENT" && !formData.target_grade) {
-        return alert("Lütfen öğrenci için bir Eğitim Seviyesi seçin!");
-      }
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) return;
+      if (formData.role === "STUDENT" && !formData.target_grade) return;
     }
 
-    setIsSaving(true); // İşlem başladığını belirt
-
+    setIsSaving(true); 
     const token = localStorage.getItem("token");
     let url = "";
     let method = modal.action === "ADD" ? "POST" : "PUT";
-    
-    // İstek türü (JSON mu FormData mı?)
     let isFormData = false;
     let bodyData: any = {};
     let formPayload = new FormData();
@@ -130,129 +159,79 @@ export default function AdminPanel() {
     if (modal.type === "UNIT") {
       url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/units/" : `https://finedu-project.onrender.com/api/units/${modal.data.id}/`;
       bodyData = { title: formData.title, badge_name: formData.badge_name, target_grade: formData.target_grade };
-    } 
-    else if (modal.type === "SUBTOPIC") {
+    } else if (modal.type === "SUBTOPIC") {
       url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/subtopics/add/" : `https://finedu-project.onrender.com/api/subtopics/${modal.data.id}/`;
       bodyData = { title: formData.title, unitId: modal.parentId };
-    } 
-    else if (modal.type === "CONTENT") {
+    } else if (modal.type === "CONTENT") {
       isFormData = true; 
       url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/contents/add/" : `https://finedu-project.onrender.com/api/contents/${modal.data.id}/`;
-      
-      // YENİ: Başlığı belirleme mantığı
       let finalTitle = formData.title;
-
       if (formData.contentType === "GAME") {
-        if (!formData.gameCode) {
-          setIsSaving(false);
-          return alert("Lütfen eklemek için bir oyun seçin!");
-        }
-        // Seçilen oyunun adını listeden bul ve başlık olarak ayarla
+        if (!formData.gameCode) { setIsSaving(false); return; }
         const selectedGame = GAME_OPTIONS.find(g => g.value === formData.gameCode);
         finalTitle = selectedGame ? selectedGame.label : "İnteraktif Oyun";
-        
         formPayload.append("game_code", formData.gameCode);
       }
-      
-      formPayload.append("contentTitle", finalTitle); // Otomatik veya manuel başlığı gönder
+      formPayload.append("contentTitle", finalTitle); 
       formPayload.append("contentType", formData.contentType);
       if (modal.parentId) formPayload.append("subtopicId", String(modal.parentId));
       
-      // Video dosyası seçildiyse pakete ekle
       if (formData.contentType === "VIDEO") {
-        if (videoFile) {
-          formPayload.append("video_file", videoFile);
-        } else if (modal.action === "ADD") {
-          setIsSaving(false);
-          return alert("Lütfen yüklemek için bir video dosyası seçin!");
-        }
+        if (videoFile) formPayload.append("video_file", videoFile);
+        else if (modal.action === "ADD") { setIsSaving(false); return; }
       }
-    }
-    else if (modal.type === "USER") {
+    } else if (modal.type === "USER") {
       url = "https://finedu-project.onrender.com/api/register/";
       bodyData = {
-        username: formData.email,
-        email: formData.email,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        password: formData.password,
-        role: formData.role,
+        username: formData.email, email: formData.email, first_name: formData.firstName,
+        last_name: formData.lastName, password: formData.password, role: formData.role,
         grade_level: formData.role === "STUDENT" ? formData.target_grade : null,
       };
     }
 
     try {
       const headers: any = { "Authorization": `Token ${token}` };
-      
       if (isFormData) {
-        // VİDEO VEYA OYUN YÜKLENİYORSA: FormData ile gönder (Oyunlar saniyesinde yüklenir, bar görünmeyebilir)
         await new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open(method, url, true);
           xhr.setRequestHeader("Authorization", `Token ${token}`);
-          
           xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-              const percentCompleted = Math.round((event.loaded * 100) / event.total);
-              setUploadProgress(percentCompleted);
-            }
+            if (event.lengthComputable) setUploadProgress(Math.round((event.loaded * 100) / event.total));
           };
-
           xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) resolve(JSON.parse(xhr.responseText));
             else reject(JSON.parse(xhr.responseText));
           };
-          
           xhr.onerror = () => reject("Network Error");
           xhr.send(formPayload);
         });
-
       } else {
-        // VİDEO YOKSA: Normal metinleri her zamanki gibi fetch ile gönder
         headers["Content-Type"] = "application/json";
-        const res = await fetch(url, {
-          method, headers, body: JSON.stringify(bodyData)
-        });
-        if (!res.ok) {
-           const errorData = await res.json();
-           throw new Error(errorData.error || "İşlem başarısız");
-        }
+        const res = await fetch(url, { method, headers, body: JSON.stringify(bodyData) });
+        if (!res.ok) throw new Error("İşlem başarısız");
       }
-
       setModal({ ...modal, isOpen: false });
       fetchData(); 
-      setUploadProgress(0); // Çubuğu sıfırla
-      if (modal.type === "USER") alert("Kullanıcı başarıyla oluşturuldu!");
-      if (modal.type === "CONTENT") alert("İçerik başarıyla yüklendi!");
-
+      setUploadProgress(0); 
     } catch (error: any) { 
-      console.error(error); 
-      alert("Hata: " + (error.message || "Sunucuya bağlanılamadı."));
+      console.error(error);
     } finally {
       setIsSaving(false);
       setUploadProgress(0);
     }
   };
 
-  // SİLME İŞLEMİ
   const handleDelete = async (type: string, id: number) => {
     if (!window.confirm("Bunu kalıcı olarak silmek istediğinize emin misiniz?")) return;
     const token = localStorage.getItem("token");
     const endpoints: any = { "UNIT": "units", "SUBTOPIC": "subtopics", "CONTENT": "contents", "USER": "users" };
-    
     try {
       const res = await fetch(`https://finedu-project.onrender.com/api/${endpoints[type]}/${id}/`, {
         method: "DELETE", headers: { "Authorization": `Token ${token}` }
       });
-      if (res.ok) {
-        fetchData();
-      } else {
-        const errorData = await res.json();
-        alert(errorData.error || "Silme işlemi başarısız.");
-      }
-    } catch (error) { 
-      console.error(error); 
-    }
+      if (res.ok) fetchData();
+    } catch (error) { console.error(error); }
   };
 
   if (isLoading) return <div className="p-10 text-center font-bold text-primary">Yükleniyor...</div>;
@@ -266,16 +245,13 @@ export default function AdminPanel() {
 
         <div className="flex gap-2 mb-6 border-b border-border">
           <button onClick={() => setActiveTab("units")} className={`px-6 py-3 font-medium transition-colors border-b-2 ${activeTab === "units" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-            <BookOpen className="size-4 inline mr-2" />
-            Eğitim İçerikleri
+            <BookOpen className="size-4 inline mr-2" /> Eğitim İçerikleri
           </button>
           <button onClick={() => setActiveTab("users")} className={`px-6 py-3 font-medium transition-colors border-b-2 ${activeTab === "users" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-            <Users className="size-4 inline mr-2" />
-            Kullanıcılar
+            <Users className="size-4 inline mr-2" /> Kullanıcılar
           </button>
         </div>
 
-        {/* ÜNİTELER SEKMESİ */}
         {activeTab === "units" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center mb-6">
@@ -285,7 +261,6 @@ export default function AdminPanel() {
               </Button>
             </div>
 
-            {/* SEVİYELERE GÖRE GRUPLANMIŞ AĞAÇ YAPISI */}
             <div className="space-y-10">
               {[
                 { id: "PRIMARY", label: "İlkokul Seviyesi", color: "text-success", border: "border-success/30" },
@@ -303,23 +278,18 @@ export default function AdminPanel() {
 
                 return (
                   <div key={grade.id} className="space-y-4">
-                    
-                    {/* Seviye Başlığı */}
                     <div className={`flex items-center gap-3 pb-2 border-b ${grade.border}`}>
                       <h3 className={`text-lg font-bold ${grade.color}`}>{grade.label}</h3>
-                      <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
-                        {gradeUnits.length} Ünite
-                      </span>
+                      <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">{gradeUnits.length} Ünite</span>
                     </div>
 
                     {gradeUnits.length === 0 ? (
                       <p className="text-sm text-muted-foreground italic py-2 pl-2">Bu seviyeye henüz ünite eklenmemiş.</p>
                     ) : (
                       <div className="space-y-4 pl-1">
-                        {gradeUnits.map((unit: any) => (
+                        {/* ÜNİTE LİSTESİ */}
+                        {gradeUnits.map((unit: any, index: number) => (
                           <div key={unit.id} className="border border-border rounded-xl overflow-hidden bg-card shadow-sm">
-                            
-                            {/* ÜNİTE BAŞLIĞI */}
                             <div className={`flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors ${expandedUnitId === unit.id ? 'bg-muted/20' : ''}`}
                                  onClick={() => setExpandedUnitId(expandedUnitId === unit.id ? null : unit.id)}>
                               <div className="flex items-center gap-3">
@@ -330,18 +300,20 @@ export default function AdminPanel() {
                                   <p className="text-xs text-muted-foreground">{unit.subtopics?.length || 0} Alt Başlık</p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                {/* ÜNİTE YÖN OKLARI */}
+                                <Button variant="ghost" size="sm" onClick={() => handleMove("UNIT", gradeUnits, index, "UP")} disabled={index === 0}><ArrowUp className="size-4" /></Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleMove("UNIT", gradeUnits, index, "DOWN")} disabled={index === gradeUnits.length - 1}><ArrowDown className="size-4" /></Button>
+                                <div className="w-px h-6 bg-border mx-1"></div> {/* Ayrıştırıcı Çizgi */}
                                 <Button variant="outline" size="sm" onClick={() => openModal("UNIT", "EDIT", null, unit)}><Edit className="size-4" /></Button>
                                 <Button variant="destructive" size="sm" onClick={() => handleDelete("UNIT", unit.id)}><Trash2 className="size-4" /></Button>
                               </div>
                             </div>
 
-                            {/* ALT BAŞLIKLAR (Ünite Genişletildiyse) */}
                             <AnimatePresence>
                               {expandedUnitId === unit.id && (
                                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-border bg-muted/5">
                                   <div className="p-4 pl-12 space-y-3">
-                                    
                                     <div className="flex justify-between items-center mb-2">
                                       <span className="text-sm font-semibold text-muted-foreground">Alt Başlıklar</span>
                                       <Button variant="info" size="sm" onClick={() => openModal("SUBTOPIC", "ADD", unit.id)}>
@@ -351,10 +323,9 @@ export default function AdminPanel() {
 
                                     {unit.subtopics?.length === 0 && <p className="text-sm text-muted-foreground italic">Henüz alt başlık yok.</p>}
 
-                                    {unit.subtopics?.map((sub: any) => (
+                                    {/* ALT BAŞLIK LİSTESİ */}
+                                    {unit.subtopics?.map((sub: any, subIndex: number) => (
                                       <div key={sub.id} className="border border-info/20 rounded-lg overflow-hidden bg-background">
-                                        
-                                        {/* ALT BAŞLIK BAŞLIĞI */}
                                         <div className={`flex items-center justify-between p-3 cursor-pointer hover:bg-info/5 ${expandedSubtopicId === sub.id ? 'bg-info/10' : ''}`}
                                              onClick={() => setExpandedSubtopicId(expandedSubtopicId === sub.id ? null : sub.id)}>
                                           <div className="flex items-center gap-2">
@@ -362,13 +333,16 @@ export default function AdminPanel() {
                                             <Layers className="size-4 text-info" />
                                             <span className="font-semibold">{sub.title}</span>
                                           </div>
-                                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                            {/* ALT BAŞLIK YÖN OKLARI */}
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleMove("SUBTOPIC", unit.subtopics, subIndex, "UP")} disabled={subIndex === 0}><ArrowUp className="size-3.5" /></Button>
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleMove("SUBTOPIC", unit.subtopics, subIndex, "DOWN")} disabled={subIndex === unit.subtopics.length - 1}><ArrowDown className="size-3.5" /></Button>
+                                            <div className="w-px h-5 bg-border mx-1"></div>
                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openModal("SUBTOPIC", "EDIT", null, sub)}><Edit className="size-3.5" /></Button>
                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10" onClick={() => handleDelete("SUBTOPIC", sub.id)}><Trash2 className="size-3.5" /></Button>
                                           </div>
                                         </div>
 
-                                        {/* İÇERİKLER (Alt Başlık Genişletildiyse) */}
                                         <AnimatePresence>
                                           {expandedSubtopicId === sub.id && (
                                             <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="border-t border-info/20 bg-info/5">
@@ -382,13 +356,18 @@ export default function AdminPanel() {
                                                 
                                                 {sub.contents?.length === 0 && <p className="text-xs text-muted-foreground italic">İçerik yok.</p>}
 
-                                                {sub.contents?.map((content: any) => (
+                                                {/* İÇERİK LİSTESİ */}
+                                                {sub.contents?.map((content: any, contentIndex: number) => (
                                                   <div key={content.id} className="flex items-center justify-between p-2 bg-background rounded border border-border">
                                                     <div className="flex items-center gap-2">
                                                       {content.content_type === "VIDEO" ? <Video className="size-4 text-success" /> : <Gamepad2 className="size-4 text-warning" />}
                                                       <span className="text-sm font-medium">{content.title}</span>
                                                     </div>
-                                                    <div className="flex gap-1">
+                                                    <div className="flex items-center gap-1">
+                                                      {/* İÇERİK YÖN OKLARI */}
+                                                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleMove("CONTENT", sub.contents, contentIndex, "UP")} disabled={contentIndex === 0}><ArrowUp className="size-3" /></Button>
+                                                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleMove("CONTENT", sub.contents, contentIndex, "DOWN")} disabled={contentIndex === sub.contents.length - 1}><ArrowDown className="size-3" /></Button>
+                                                      <div className="w-px h-4 bg-border mx-1"></div>
                                                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openModal("CONTENT", "EDIT", null, content)}><Edit className="size-3" /></Button>
                                                       <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => handleDelete("CONTENT", content.id)}><Trash2 className="size-3" /></Button>
                                                     </div>
@@ -412,11 +391,10 @@ export default function AdminPanel() {
                 );
               })}
             </div>
-
           </div>
         )}
 
-        {/* KULLANICILAR SEKMESİ */}
+        {/* KULLANICILAR SEKMESİ (Aynı kaldı) */}
         {activeTab === "users" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center mb-6">
@@ -426,7 +404,6 @@ export default function AdminPanel() {
               </Button>
             </div>
             
-            {/* ROLLERE GÖRE GRUPLANMIŞ KULLANICI LİSTESİ */}
             <div className="space-y-10">
               {[
                 { id: "ADMIN", label: "Yöneticiler", color: "text-warning", border: "border-warning/30" },
@@ -437,7 +414,6 @@ export default function AdminPanel() {
 
                 return (
                   <div key={roleGroup.id} className="space-y-4">
-                    
                     <div className={`flex items-center gap-3 pb-2 border-b ${roleGroup.border}`}>
                       <h3 className={`text-lg font-bold ${roleGroup.color}`}>{roleGroup.label}</h3>
                       <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
@@ -509,7 +485,7 @@ export default function AdminPanel() {
         )}
       </div>
 
-      {/* ORTAK AÇILIR PENCERE (MODAL) FORM */}
+      {/* ORTAK AÇILIR PENCERE (MODAL) FORM (Aynı kaldı) */}
       <AnimatePresence>
         {modal.isOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
@@ -552,12 +528,10 @@ export default function AdminPanel() {
 
                   {modal.type === "CONTENT" && (
                     <>
-                      {/* 1. ÖNCE İÇERİK TİPİNİ SOR (En üste aldık) */}
                       <Select label="İçerik Tipi" value={formData.contentType} onChange={(e) => setFormData({...formData, contentType: e.target.value})} options={[
                         { value: "VIDEO", label: "Video" }, { value: "GAME", label: "Oyun" }
                       ]} required />
                       
-                      {/* 2. SADECE VİDEO İSE: BAŞLIK VE DOSYA YÜKLEME ALANI GÖSTER */}
                       {formData.contentType === "VIDEO" && (
                         <>
                           <Input label="İçerik Başlığı" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
@@ -584,7 +558,6 @@ export default function AdminPanel() {
                         </>
                       )}
 
-                      {/* 3. SADECE OYUN İSE: SADECE OYUN SEÇİM LİSTESİNİ GÖSTER */}
                       {formData.contentType === "GAME" && (
                         <Select 
                           label="Hangi Oyunu Eklemek İstiyorsunuz?" 
@@ -628,7 +601,6 @@ export default function AdminPanel() {
                   )}
 
                   <div className="flex flex-col gap-3 pt-4 border-t border-border">
-                    {/* YENİ: İlerleme Çubuğu Animasyonu */}
                     {isSaving && uploadProgress > 0 && formData.contentType === "VIDEO" && (
                       <div className="w-full">
                         <div className="flex justify-between text-xs mb-1 text-muted-foreground font-semibold">

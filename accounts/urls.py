@@ -13,7 +13,8 @@ from .views import (
     api_user_detail_view,
     api_classrooms_view, 
     api_add_student_to_class, 
-    api_student_detail_view
+    api_student_detail_view,
+    api_reorder_view
 )
 
 # Router ve ViewSet'leri tamamen sildik, çünkü kendi özel API'lerimizi kullanıyoruz.
@@ -39,4 +40,6 @@ urlpatterns = [
     path('classrooms/', api_classrooms_view, name='api_classrooms'),
     path('classrooms/<int:pk>/add_student/', api_add_student_to_class, name='api_add_student'),
     path('student/<int:student_id>/detail/', api_student_detail_view, name='api_student_detail'),
+
+    path('api/reorder/', api_reorder_view, name='api_reorder'),
 ]

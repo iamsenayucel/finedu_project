@@ -423,3 +423,27 @@ def api_student_detail_view(request, student_id):
         'completed_contents': completed_titles, 'last_watched': last_watched,
         'earned_badges': earned_badges, 'progress_percent': progress_percent
     })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def api_reorder_view(request):
+    if request.user.role != 'ADMIN':
+        return Response({'error': 'Yetkiniz yok'}, status=403)
+    
+    # Hangi listenin sırası değişiyor? (UNIT, SUBTOPIC veya CONTENT)
+    item_type = request.data.get('type') 
+    # Gelen yeni sıralama listesi. Örn: [{"id": 5, "order": 1}, {"id": 2, "order": 2}]
+    items = request.data.get('items', []) 
+    
+    try:
+        for item in items:
+            if item_type == 'UNIT':
+                Unit.objects.filter(id=item['id']).update(order=item['order'])
+            elif item_type == 'SUBTOPIC':
+                Subtopic.objects.filter(id=item['id']).update(order=item['order'])
+            elif item_type == 'CONTENT':
+                Content.objects.filter(id=item['id']).update(order=item['order'])
+                
+        return Response({'message': 'Sıralama başarıyla kaydedildi!'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=400)

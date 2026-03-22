@@ -100,7 +100,7 @@ export default function Dashboard() {
     if (res.ok) {
       setShowClassModal(false); setClassForm({ name: "", grade_level: "" });
       fetchClassrooms({ "Authorization": `Token ${token}`, "Content-Type": "application/json" });
-    } else alert("Sınıf oluşturulurken hata oluştu.");
+    }
   };
 
   const handleAddStudent = async (e: React.FormEvent) => {
@@ -112,9 +112,8 @@ export default function Dashboard() {
     });
     const data = await res.json();
     if (res.ok) {
-      alert(data.message); setShowStudentModal(false); setStudentCode("");
       fetchClassrooms({ "Authorization": `Token ${token}`, "Content-Type": "application/json" });
-    } else alert(data.error);
+    } 
   };
 
   const handleStudentClick = async (studentId: number) => {

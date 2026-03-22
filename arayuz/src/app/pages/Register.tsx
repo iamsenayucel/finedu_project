@@ -63,7 +63,6 @@ export default function Register() {
 
       if (response.ok) {
         // Kayıt başarılıysa giriş sayfasına yönlendir
-        alert("Kayıt başarılı! Lütfen giriş yapın.");
         navigate("/login");
       } else {
         const data = await response.json();

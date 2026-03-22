@@ -84,13 +84,11 @@ export default function UnitDetail() {
 
       if (res.ok) {
         // Backend başarıyla kaydetti, yeşil tiki at!
-        setCompletedIds(prev => [...prev, contentId]);
-        alert("Harika! Bu içeriği başarıyla tamamladın. 🎉"); 
+        setCompletedIds(prev => [...prev, contentId]); 
       } else {
         // YENİ: EĞER BACKEND HATA VERİRSE ARTIK GİZLENMEYECEK, BİZE SÖYLEYECEK!
         const errorData = await res.json().catch(() => ({}));
-        console.error("Backend Kayıt Hatası:", errorData);
-        alert("İlerlemen kaydedilirken sunucuda bir pürüz çıktı!\nHata: " + JSON.stringify(errorData));
+        console.error("Backend Kayıt Hatası:", errorData)
         
         // CANKURTARAN HAMLESİ: Backend hata verse bile, öğrencinin hevesi kırılmasın 
         // ve oyun kilitli kalmasın diye yeşil tiki arayüzde zorla atıyoruz!
@@ -98,7 +96,6 @@ export default function UnitDetail() {
       }
     } catch (error) {
       console.error("Bağlantı koptu", error);
-      alert("Sunucuya ulaşılamadı ancak bu bölümü geçtiğinizi varsayıyoruz! 🚀");
       // İnternet kopsa bile kilit açılsın
       setCompletedIds(prev => [...prev, contentId]);
     } finally {
@@ -228,12 +225,6 @@ export default function UnitDetail() {
               
               {/* OYNATICI ALANI */}
               <div className="w-full bg-black flex flex-col justify-center items-center relative min-h-[300px]">
-                
-                {/* HATA AYIKLAMA: Videonun nereden geldiğini ekranda görelim */}
-                <div className="absolute top-0 left-0 bg-black/50 text-white text-xs p-1 z-50">
-                  Gelen Link: {activeContent.video_file}
-                </div>
-
                 {activeContent.video_file ? (
                   <div className="w-full h-full p-4">
                     <VideoPlayer 
