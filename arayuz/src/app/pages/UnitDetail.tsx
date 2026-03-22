@@ -212,11 +212,13 @@ export default function UnitDetail() {
                 </button>
               </div>
               
+              {/* OYNATICI ALANI */}
               <div className="w-full bg-black flex flex-col justify-center items-center relative min-h-[300px]">
                 {activeContent.video_file ? (
                   <div className="w-full h-full p-4">
                     <VideoPlayer 
-                      videoUrl={`https://finedu-project.onrender.com${activeContent.video_file}`} 
+                      // Render eklentisi SİLİNDİ! Sadece Cloudinary'den gelen temiz link kullanılıyor.
+                      videoUrl={activeContent.video_file} 
                       onComplete={() => {
                         markAsCompleted(activeContent.id);
                       }}
