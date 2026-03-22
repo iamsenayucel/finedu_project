@@ -31,6 +31,7 @@ class CustomUser(AbstractUser):
 class Unit(models.Model):
     title = models.CharField(max_length=200)
     target_grade = models.CharField(max_length=55, choices=CustomUser.GRADE_CHOICES)
+    order = models.IntegerField(default=1)
     badge_name = models.CharField(max_length=100)
     badge_image = models.ImageField(upload_to='badges/', null=True, blank=True)
     def __str__(self):
