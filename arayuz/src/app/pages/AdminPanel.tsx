@@ -7,7 +7,7 @@ import { Input, Select } from "../components/Input";
 import {
   Plus, BookOpen, Video, Gamepad2, Users,
   Trash2, Edit, ChevronDown, ChevronRight, Layers, X, UserPlus,
-  ArrowUp, ArrowDown // YENİ: Ok ikonlarını ekledik!
+  ArrowUp, ArrowDown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -64,7 +64,6 @@ export default function AdminPanel() {
       
       setCurrentUser(meData.user);
       
-      // Gelen verileri kendi içlerindeki 'order' alanına göre sıralayarak alıyoruz
       const fetchedUnits = await unitsRes.json();
       fetchedUnits.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
       fetchedUnits.forEach((u: any) => {
@@ -87,17 +86,13 @@ export default function AdminPanel() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // YENİ: YUKARI/AŞAĞI TAŞIMA (SIRALAMA) FONKSİYONU
   const handleMove = async (type: "UNIT" | "SUBTOPIC" | "CONTENT", list: any[], index: number, direction: "UP" | "DOWN") => {
-    // Sınır kontrolleri (İlk eleman yukarı gidemez, son eleman aşağı gidemez)
     if ((direction === "UP" && index === 0) || (direction === "DOWN" && index === list.length - 1)) return;
 
-    // Listeyi kopyala ve elemanları yer değiştir
     const newList = [...list];
     const swapIndex = direction === "UP" ? index - 1 : index + 1;
     [newList[index], newList[swapIndex]] = [newList[swapIndex], newList[index]];
 
-    // Yeni listeye göre 1'den başlayarak yeni sıra numaralarını belirle
     const itemsPayload = newList.map((item, i) => ({ id: item.id, order: i + 1 }));
 
     try {
@@ -109,7 +104,7 @@ export default function AdminPanel() {
       });
 
       if (res.ok) {
-        fetchData(); // Başarılıysa ekranı yenile ki yeni sıra görünsün
+        fetchData(); 
       } else {
         console.error("Sıralama kaydedilemedi.");
       }
@@ -287,7 +282,6 @@ export default function AdminPanel() {
                       <p className="text-sm text-muted-foreground italic py-2 pl-2">Bu seviyeye henüz ünite eklenmemiş.</p>
                     ) : (
                       <div className="space-y-4 pl-1">
-                        {/* ÜNİTE LİSTESİ */}
                         {gradeUnits.map((unit: any, index: number) => (
                           <div key={unit.id} className="border border-border rounded-xl overflow-hidden bg-card shadow-sm">
                             <div className={`flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors ${expandedUnitId === unit.id ? 'bg-muted/20' : ''}`}
@@ -300,13 +294,23 @@ export default function AdminPanel() {
                                   <p className="text-xs text-muted-foreground">{unit.subtopics?.length || 0} Alt Başlık</p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                {/* ÜNİTE YÖN OKLARI */}
-                                <Button variant="ghost" size="sm" onClick={() => handleMove("UNIT", gradeUnits, index, "UP")} disabled={index === 0}><ArrowUp className="size-4" /></Button>
-                                <Button variant="ghost" size="sm" onClick={() => handleMove("UNIT", gradeUnits, index, "DOWN")} disabled={index === gradeUnits.length - 1}><ArrowDown className="size-4" /></Button>
-                                <div className="w-px h-6 bg-border mx-1"></div> {/* Ayrıştırıcı Çizgi */}
-                                <Button variant="outline" size="sm" onClick={() => openModal("UNIT", "EDIT", null, unit)}><Edit className="size-4" /></Button>
-                                <Button variant="destructive" size="sm" onClick={() => handleDelete("UNIT", unit.id)}><Trash2 className="size-4" /></Button>
+                              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                                {/* ÜNİTE YÖN OKLARI (BÜYÜTÜLDÜ) */}
+                                <Button variant="ghost" size="sm" className="h-10 w-10 p-0" onClick={() => handleMove("UNIT", gradeUnits, index, "UP")} disabled={index === 0}>
+                                  <ArrowUp className="size-5 text-primary" />
+                                </Button>
+                                <Button variant="ghost" size="sm" className="h-10 w-10 p-0" onClick={() => handleMove("UNIT", gradeUnits, index, "DOWN")} disabled={index === gradeUnits.length - 1}>
+                                  <ArrowDown className="size-5 text-primary" />
+                                </Button>
+                                
+                                <div className="w-px h-6 bg-border mx-1"></div> 
+                                
+                                <Button variant="outline" size="sm" className="h-10 w-10 p-0" onClick={() => openModal("UNIT", "EDIT", null, unit)}>
+                                  <Edit className="size-5" />
+                                </Button>
+                                <Button variant="destructive" size="sm" className="h-10 w-10 p-0" onClick={() => handleDelete("UNIT", unit.id)}>
+                                  <Trash2 className="size-5" />
+                                </Button>
                               </div>
                             </div>
 
@@ -323,7 +327,6 @@ export default function AdminPanel() {
 
                                     {unit.subtopics?.length === 0 && <p className="text-sm text-muted-foreground italic">Henüz alt başlık yok.</p>}
 
-                                    {/* ALT BAŞLIK LİSTESİ */}
                                     {unit.subtopics?.map((sub: any, subIndex: number) => (
                                       <div key={sub.id} className="border border-info/20 rounded-lg overflow-hidden bg-background">
                                         <div className={`flex items-center justify-between p-3 cursor-pointer hover:bg-info/5 ${expandedSubtopicId === sub.id ? 'bg-info/10' : ''}`}
@@ -333,13 +336,23 @@ export default function AdminPanel() {
                                             <Layers className="size-4 text-info" />
                                             <span className="font-semibold">{sub.title}</span>
                                           </div>
-                                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                            {/* ALT BAŞLIK YÖN OKLARI */}
-                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleMove("SUBTOPIC", unit.subtopics, subIndex, "UP")} disabled={subIndex === 0}><ArrowUp className="size-3.5" /></Button>
-                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleMove("SUBTOPIC", unit.subtopics, subIndex, "DOWN")} disabled={subIndex === unit.subtopics.length - 1}><ArrowDown className="size-3.5" /></Button>
-                                            <div className="w-px h-5 bg-border mx-1"></div>
-                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => openModal("SUBTOPIC", "EDIT", null, sub)}><Edit className="size-3.5" /></Button>
-                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10" onClick={() => handleDelete("SUBTOPIC", sub.id)}><Trash2 className="size-3.5" /></Button>
+                                          <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                            {/* ALT BAŞLIK YÖN OKLARI (BÜYÜTÜLDÜ) */}
+                                            <Button variant="ghost" size="sm" className="h-10 w-10 p-0" onClick={() => handleMove("SUBTOPIC", unit.subtopics, subIndex, "UP")} disabled={subIndex === 0}>
+                                              <ArrowUp className="size-5 text-info" />
+                                            </Button>
+                                            <Button variant="ghost" size="sm" className="h-10 w-10 p-0" onClick={() => handleMove("SUBTOPIC", unit.subtopics, subIndex, "DOWN")} disabled={subIndex === unit.subtopics.length - 1}>
+                                              <ArrowDown className="size-5 text-info" />
+                                            </Button>
+                                            
+                                            <div className="w-px h-5 bg-border mx-1"></div> 
+                                            
+                                            <Button variant="ghost" size="sm" className="h-10 w-10 p-0" onClick={() => openModal("SUBTOPIC", "EDIT", null, sub)}>
+                                              <Edit className="size-5 text-info" />
+                                            </Button>
+                                            <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-destructive hover:bg-destructive/10" onClick={() => handleDelete("SUBTOPIC", sub.id)}>
+                                              <Trash2 className="size-5 text-destructive" />
+                                            </Button>
                                           </div>
                                         </div>
 
@@ -356,7 +369,6 @@ export default function AdminPanel() {
                                                 
                                                 {sub.contents?.length === 0 && <p className="text-xs text-muted-foreground italic">İçerik yok.</p>}
 
-                                                {/* İÇERİK LİSTESİ */}
                                                 {sub.contents?.map((content: any, contentIndex: number) => (
                                                   <div key={content.id} className="flex items-center justify-between p-2 bg-background rounded border border-border">
                                                     <div className="flex items-center gap-2">
@@ -364,12 +376,22 @@ export default function AdminPanel() {
                                                       <span className="text-sm font-medium">{content.title}</span>
                                                     </div>
                                                     <div className="flex items-center gap-1">
-                                                      {/* İÇERİK YÖN OKLARI */}
-                                                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleMove("CONTENT", sub.contents, contentIndex, "UP")} disabled={contentIndex === 0}><ArrowUp className="size-3" /></Button>
-                                                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => handleMove("CONTENT", sub.contents, contentIndex, "DOWN")} disabled={contentIndex === sub.contents.length - 1}><ArrowDown className="size-3" /></Button>
-                                                      <div className="w-px h-4 bg-border mx-1"></div>
-                                                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openModal("CONTENT", "EDIT", null, content)}><Edit className="size-3" /></Button>
-                                                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => handleDelete("CONTENT", content.id)}><Trash2 className="size-3" /></Button>
+                                                      {/* İÇERİK YÖN OKLARI (BÜYÜTÜLDÜ) */}
+                                                      <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => handleMove("CONTENT", sub.contents, contentIndex, "UP")} disabled={contentIndex === 0}>
+                                                        <ArrowUp className="size-4 text-success" />
+                                                      </Button>
+                                                      <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => handleMove("CONTENT", sub.contents, contentIndex, "DOWN")} disabled={contentIndex === sub.contents.length - 1}>
+                                                        <ArrowDown className="size-4 text-success" />
+                                                      </Button>
+                                                      
+                                                      <div className="w-px h-4 bg-border mx-1"></div> 
+                                                      
+                                                      <Button variant="ghost" size="sm" className="h-9 w-9 p-0" onClick={() => openModal("CONTENT", "EDIT", null, content)}>
+                                                        <Edit className="size-4" />
+                                                      </Button>
+                                                      <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-destructive" onClick={() => handleDelete("CONTENT", content.id)}>
+                                                        <Trash2 className="size-4" />
+                                                      </Button>
                                                     </div>
                                                   </div>
                                                 ))}
@@ -394,7 +416,7 @@ export default function AdminPanel() {
           </div>
         )}
 
-        {/* KULLANICILAR SEKMESİ (Aynı kaldı) */}
+        {/* KULLANICILAR SEKMESİ */}
         {activeTab === "users" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center mb-6">
@@ -485,7 +507,7 @@ export default function AdminPanel() {
         )}
       </div>
 
-      {/* ORTAK AÇILIR PENCERE (MODAL) FORM (Aynı kaldı) */}
+      {/* ORTAK AÇILIR PENCERE (MODAL) FORM */}
       <AnimatePresence>
         {modal.isOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
