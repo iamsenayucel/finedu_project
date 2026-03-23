@@ -131,8 +131,8 @@ def unit_detail_view(request, unit_id):
 def current_user_dashboard_api(request):
     user = request.user
     
-    # Serializer'a ek olarak total_score ve earned_badges özelliklerini de manuel yolluyoruz
-    user_data = UserSerializer(user).data
+    user_data = dict(UserSerializer(user).data) 
+    
     user_data['total_score'] = user.total_score
     user_data['earned_badges'] = user.earned_badges
     
