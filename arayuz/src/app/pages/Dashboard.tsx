@@ -6,7 +6,7 @@ import { Button } from "../components/Button";
 import { Input, Select } from "../components/Input";
 import {
   BookOpen, Award, Users, Settings, TrendingUp,
-  Target, Play, Lock, Plus, UserPlus, X, GraduationCap, CheckCircle2
+  Target, Play, Lock, Plus, UserPlus, X, GraduationCap, CheckCircle2, Gamepad2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -15,8 +15,13 @@ export default function Dashboard() {
   
   const [user, setUser] = useState<any>(null);
   const [units, setUnits] = useState<any[]>([]);
-  // Kullanıcının tamamladığı içeriklerin ID'lerini tutacağız
   const [completedContents, setCompletedContents] = useState<number[]>([]);
+  
+  // YENİ: Oyunlaştırma Modalları ve Puan Detayları İçin State'ler
+  const [progressDetails, setProgressDetails] = useState<any[]>([]);
+  const [showBadgesModal, setShowBadgesModal] = useState(false);
+  const [showScoresModal, setShowScoresModal] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
 
   // --- ÖĞRETMEN STATE'LERİ ---
@@ -52,6 +57,9 @@ export default function Dashboard() {
 
       if (progRes.ok) {
         const progData = await progRes.json();
+        // YENİ: Puan detaylarını kaydet
+        setProgressDetails(progData); 
+
         let ids: number[] = [];
         if (Array.isArray(progData)) {
           ids = progData.map((p: any) => Number(typeof p === 'object' ? (p.content || p.content_id) : p));
@@ -61,7 +69,6 @@ export default function Dashboard() {
         setCompletedContents(ids);
       }
 
-      // Eğer giren öğretmen ise sınıflarını da getir
       if (meData.user.role === "TEACHER") {
         fetchClassrooms(headers);
       }
@@ -110,9 +117,9 @@ export default function Dashboard() {
       method: "POST", headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ student_code: studentCode })
     });
-    const data = await res.json();
     if (res.ok) {
       fetchClassrooms({ "Authorization": `Token ${token}`, "Content-Type": "application/json" });
+      setShowStudentModal(false);
     } 
   };
 
@@ -131,7 +138,7 @@ export default function Dashboard() {
     return <div className="min-h-screen flex items-center justify-center text-primary font-bold">Verileriniz yükleniyor...</div>;
   }
 
-  // --- 1. ÖĞRENCİ PANELİ (Bozulmadan Korundu) ---
+  // --- 1. ÖĞRENCİ PANELİ ---
   if (user?.role === "STUDENT") {
     
     let globalTotal = 0;
@@ -147,15 +154,15 @@ export default function Dashboard() {
     const overallProgress = globalTotal === 0 ? 0 : Math.round((globalCompleted / globalTotal) * 100);
 
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background relative">
         <Navbar userName={user.first_name || "Öğrenci"} onLogout={handleLogout} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Hoş geldin Kartı */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-            <Card variant="success" className="mb-8">
+            <Card variant="success" className="mb-8 overflow-visible">
               <CardBody className="flex flex-col md:flex-row items-center gap-6">
-                <div className="bg-success/10 p-6 rounded-full">
+                <div className="bg-success/10 p-6 rounded-full shadow-inner">
                   <Award className="size-16 text-success" />
                 </div>
                 <div className="flex-1 text-center md:text-left">
@@ -175,14 +182,27 @@ export default function Dashboard() {
                     Öğrenci Kodun: <span className="font-mono font-semibold text-foreground">{user.student_code}</span>
                   </p>
                 </div>
+
+                {/* YENİ: TIKLANABİLİR ROZET VE PUAN ALANI */}
                 <div className="flex gap-4">
-                  <div className="text-center">
-                    <div className="bg-success text-success-foreground rounded-lg px-4 py-2 font-bold text-2xl mb-1">0</div>
-                    <p className="text-xs text-muted-foreground">Rozet</p>
+                  <div 
+                    onClick={() => setShowBadgesModal(true)}
+                    className="text-center cursor-pointer hover:scale-105 transition-transform group"
+                  >
+                    <div className="bg-success text-success-foreground rounded-xl px-5 py-3 font-black text-3xl mb-1 shadow-md group-hover:shadow-lg transition-all">
+                      {user?.earned_badges?.length || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground font-bold group-hover:text-success transition-colors">Rozet</p>
                   </div>
-                  <div className="text-center">
-                    <div className="bg-primary text-primary-foreground rounded-lg px-4 py-2 font-bold text-2xl mb-1">0</div>
-                    <p className="text-xs text-muted-foreground">Puan</p>
+                  
+                  <div 
+                    onClick={() => setShowScoresModal(true)}
+                    className="text-center cursor-pointer hover:scale-105 transition-transform group"
+                  >
+                    <div className="bg-primary text-primary-foreground rounded-xl px-5 py-3 font-black text-3xl mb-1 shadow-md group-hover:shadow-lg transition-all">
+                      {user?.total_score || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground font-bold group-hover:text-primary transition-colors">Puan</p>
                   </div>
                 </div>
               </CardBody>
@@ -194,9 +214,7 @@ export default function Dashboard() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
               <Card>
                 <CardBody className="flex items-center gap-4">
-                  <div className="bg-primary/10 p-3 rounded-lg">
-                    <BookOpen className="size-6 text-primary" />
-                  </div>
+                  <div className="bg-primary/10 p-3 rounded-lg"><BookOpen className="size-6 text-primary" /></div>
                   <div>
                     <p className="text-sm text-muted-foreground">Toplam Ünite</p>
                     <p className="text-2xl font-bold text-foreground">{units.length}</p>
@@ -208,9 +226,7 @@ export default function Dashboard() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
               <Card>
                 <CardBody className="flex items-center gap-4">
-                  <div className="bg-warning/10 p-3 rounded-lg">
-                    <Target className="size-6 text-warning" />
-                  </div>
+                  <div className="bg-warning/10 p-3 rounded-lg"><Target className="size-6 text-warning" /></div>
                   <div>
                     <p className="text-sm text-muted-foreground">Tamamlama</p>
                     <p className="text-2xl font-bold text-foreground">{overallProgress}%</p>
@@ -222,9 +238,7 @@ export default function Dashboard() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
               <Card>
                 <CardBody className="flex items-center gap-4">
-                  <div className="bg-info/10 p-3 rounded-lg">
-                    <TrendingUp className="size-6 text-info" />
-                  </div>
+                  <div className="bg-info/10 p-3 rounded-lg"><TrendingUp className="size-6 text-info" /></div>
                   <div>
                     <p className="text-sm text-muted-foreground">Haftalık İlerleme</p>
                     <p className="text-2xl font-bold text-foreground">{globalCompleted > 0 ? "Devam Ediyor" : "Yeni Başladı"}</p>
@@ -270,9 +284,9 @@ export default function Dashboard() {
                             <div className="flex-1">
                               <h4 className="font-bold text-foreground mb-1">{unit.title}</h4>
                               <p className="text-sm text-muted-foreground mb-2">Bu ünitedeki konuları tamamla ve rozeti kap!</p>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-2 text-xs font-semibold text-warning">
                                 <Award className="size-4" />
-                                <span>Kazanılacak Rozet: {unit.badge_name || "Bilinmiyor"}</span>
+                                <span>{unit.badge_name || "Gizli Rozet"}</span>
                               </div>
                             </div>
                           </div>
@@ -280,11 +294,11 @@ export default function Dashboard() {
                           {!isLocked && (
                             <>
                               <div className="mb-4">
-                                <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                <div className="flex justify-between text-xs text-muted-foreground font-bold mb-1">
                                   <span>İlerleme</span>
                                   <span>{progress}%</span>
                                 </div>
-                                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                <div className="h-2.5 bg-muted rounded-full overflow-hidden">
                                   <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1, delay: 0.5 }} className="h-full bg-gradient-to-r from-primary to-indigo-500" />
                                 </div>
                               </div>
@@ -302,11 +316,79 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
+        {/* YENİ: ROZET VE PUAN MODALLARI */}
+        <AnimatePresence>
+          {/* ROZETLERİM MODALI */}
+          {showBadgesModal && (
+            <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="bg-background rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-border">
+                <div className="flex justify-between items-center p-5 border-b border-border bg-success/10">
+                  <h3 className="font-bold text-success flex items-center gap-2 text-xl"><Award className="size-6" /> Rozetlerim</h3>
+                  <button onClick={() => setShowBadgesModal(false)} className="p-1 hover:bg-success/20 rounded-full transition-colors text-success"><X className="size-6" /></button>
+                </div>
+                <div className="p-6 bg-muted/10">
+                  {!user?.earned_badges || user.earned_badges.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-10">
+                      <Award className="size-16 mx-auto mb-4 opacity-20" />
+                      <p className="text-sm font-medium">Henüz bir rozet kazanamadın.<br/>Eğitim ünitelerini %100 tamamlayarak ilk rozetini kap!</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto pr-2">
+                      {user.earned_badges.map((badge: string, i: number) => (
+                        <div key={i} className="flex flex-col items-center justify-center p-5 bg-background border-2 border-warning/30 rounded-2xl shadow-sm text-center hover:border-warning hover:shadow-md transition-all">
+                           <div className="text-5xl mb-3 drop-shadow-md">🏆</div>
+                           <p className="font-bold text-sm text-foreground">{badge}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+
+          {/* PUAN GEÇMİŞİM MODALI */}
+          {showScoresModal && (
+            <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="bg-background rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-border">
+                <div className="flex justify-between items-center p-5 border-b border-border bg-primary/10">
+                  <h3 className="font-bold text-primary flex items-center gap-2 text-xl"><Target className="size-6" /> Puan Geçmişim</h3>
+                  <button onClick={() => setShowScoresModal(false)} className="p-1 hover:bg-primary/20 rounded-full transition-colors text-primary"><X className="size-6" /></button>
+                </div>
+                <div className="p-0">
+                  {progressDetails.filter(p => p.score && p.score > 0).length === 0 ? (
+                    <div className="text-center text-muted-foreground py-12 px-6">
+                      <Gamepad2 className="size-16 mx-auto mb-4 opacity-20" />
+                      <p className="text-sm font-medium">Henüz puan kazanmadın.<br/>Eğitimdeki etkileşimli oyunları oynayarak hemen puan toplamaya başla!</p>
+                    </div>
+                  ) : (
+                    <ul className="divide-y divide-border max-h-[50vh] overflow-y-auto">
+                      {progressDetails.filter(p => p.score && p.score > 0).map((p, i) => (
+                        <li key={i} className="p-5 flex justify-between items-center hover:bg-muted/30 transition-colors">
+                          <div className="flex items-center gap-4">
+                             <div className="bg-warning/20 p-2.5 rounded-xl border border-warning/30"><Gamepad2 className="size-5 text-warning"/></div>
+                             <span className="font-semibold text-sm text-foreground leading-tight">{p.content__title || "İnteraktif Oyun"}</span>
+                          </div>
+                          <div className="font-black text-2xl text-success drop-shadow-sm">+{p.score}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="p-5 bg-muted/50 border-t border-border flex justify-between items-center shadow-inner">
+                     <span className="font-bold text-muted-foreground">TOPLAM PUAN</span>
+                     <span className="font-black text-3xl text-primary drop-shadow-md">{user?.total_score || 0}</span>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
 
-  // --- 2. YENİ ÖĞRETMEN PANELİ ---
+  // --- 2. ÖĞRETMEN PANELİ ---
   if (user?.role === "TEACHER") {
     return (
       <div className="min-h-screen bg-background">
@@ -381,9 +463,8 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* MODALLAR */}
+        {/* ÖĞRETMEN MODALLARI */}
         <AnimatePresence>
-          {/* SINIF EKLE MODALI */}
           {showClassModal && (
             <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="bg-background rounded-xl w-full max-w-sm shadow-2xl overflow-hidden">
@@ -407,7 +488,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ÖĞRENCİ EKLE MODALI */}
           {showStudentModal && (
             <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="bg-background rounded-xl w-full max-w-sm shadow-2xl overflow-hidden">
@@ -423,7 +503,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* ÖĞRENCİ DETAY (ANALİZ) MODALI */}
           {showDetailModal && studentDetail && (
             <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="bg-background rounded-xl w-full max-w-md shadow-2xl overflow-hidden">
@@ -433,7 +512,6 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="p-6 space-y-6">
-                  {/* İlerleme Barı */}
                   <div>
                     <div className="flex justify-between text-sm font-bold mb-2">
                       <span className="text-muted-foreground">Genel Eğitim İlerlemesi</span>
@@ -444,7 +522,6 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Son İzlenen Video */}
                   <div className="bg-muted/40 p-4 rounded-xl border border-border flex items-center gap-4">
                     <div className="bg-background p-2 rounded-full shadow-sm"><Play className="size-5 text-info" /></div>
                     <div>
@@ -453,7 +530,6 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Kazanılan Rozetler */}
                   <div>
                     <h4 className="font-bold text-sm mb-3 flex items-center gap-2"><Award className="size-4 text-warning" /> Kazanılan Rozetler</h4>
                     {studentDetail.earned_badges.length === 0 ? (
@@ -469,7 +545,6 @@ export default function Dashboard() {
                     )}
                   </div>
 
-                  {/* Tamamlananlar Listesi */}
                   <div>
                     <h4 className="font-bold text-sm mb-3 flex items-center gap-2"><CheckCircle2 className="size-4 text-success" /> Tamamladığı Bölümler</h4>
                     {studentDetail.completed_contents.length === 0 ? (
@@ -495,7 +570,7 @@ export default function Dashboard() {
     );
   }
 
-  // --- 3. ADMIN PANELİ (Bozulmadan Korundu) ---
+  // --- 3. ADMIN PANELİ ---
   return (
     <div className="min-h-screen bg-background">
       <Navbar userName={user?.first_name || "Yönetici"} onLogout={handleLogout} />
