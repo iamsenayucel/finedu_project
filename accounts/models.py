@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import uuid
+from django.db.models import Sum
 
 # 1. KULLANICI MODELLERİ
 class CustomUser(AbstractUser):
@@ -26,6 +27,16 @@ class CustomUser(AbstractUser):
             self.student_code = str(uuid.uuid4()).upper()[:8] # Örn: 8A2B9C1D
         super().save(*args, **kwargs)
 
+    @property
+    def total_score(self):
+        # UserProgress tablosunda bu öğrenciye ait 'score' alanlarını topla
+        total = self.userprogress_set.aggregate(models.Sum('score'))['score__sum']
+        return total or 0
+
+    @property
+    def earned_badges(self):
+        # UserBadge tablosundan bu öğrenciye ait rozetlerin isimlerini liste yap
+        return list(self.userbadge_set.values_list('unit__badge_name', flat=True))
 
 # 3. İÇERİK MİMARİSİ
 class Unit(models.Model):

@@ -8,7 +8,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm 
 from .forms import CustomUserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import CustomUser, Unit, Subtopic, Content, UserProgress, Classroom
+from .models import CustomUser, Unit, Subtopic, Content, UserProgress, Classroom, UserBadge
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -16,6 +16,7 @@ from .serializers import UserSerializer, UnitSerializer
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import AllowAny
 from django.db.models import Count
+from django.db.models import Sum
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
@@ -126,51 +127,84 @@ def unit_detail_view(request, unit_id):
     return render(request, 'unit_detail.html', context)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated]) # Sadece giriş yapmış (Token'ı olan) kişiler görebilir
+@permission_classes([IsAuthenticated])
 def current_user_dashboard_api(request):
     user = request.user
     
-    # 1. Kullanıcı bilgilerini JSON'a çevir
+    # Serializer'a ek olarak total_score ve earned_badges özelliklerini de manuel yolluyoruz
     user_data = UserSerializer(user).data
+    user_data['total_score'] = user.total_score
+    user_data['earned_badges'] = user.earned_badges
     
-    # 2. Sadece bu öğrencinin seviyesine (İlkokul vb.) uygun üniteleri bul ve JSON'a çevir
-    units = Unit.objects.filter(target_grade=user.grade_level)
+    units = Unit.objects.filter(target_grade=user.grade_level).order_by('order')
     units_data = UnitSerializer(units, many=True).data
     
-    # İkisini paketleyip React'a gönder
     return Response({
         'user': user_data,
         'units': units_data
     })
 
-from .models import Content, UserProgress
-
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def user_progress_api(request):
-    # GET: Öğrencinin daha önce tamamladığı tüm içeriklerin ID'lerini liste olarak gönder
     if request.method == 'GET':
-        completed_ids = UserProgress.objects.filter(student=request.user, is_completed=True).values_list('content_id', flat=True)
-        return Response(list(completed_ids))
+        # Öğrencinin tamamladığı içeriklerin detaylarını (Puanlarıyla birlikte) gönder
+        progress_data = UserProgress.objects.filter(student=request.user, is_completed=True).values('content_id', 'score', 'content__title')
+        return Response(list(progress_data))
     
-    # POST: Öğrenci "Videoyu Bitirdim" butonuna bastığında o içeriği tamamlandı olarak işaretle
     elif request.method == 'POST':
         content_id = request.data.get('content_id')
+        new_score = request.data.get('score') # React'ten oyun puanı gelirse al
+        
         try:
             content = Content.objects.get(id=content_id)
+            unit = content.subtopic.unit
+            
+            # Öğrencinin bu içerikteki ilerlemesini bul veya yarat
             progress, created = UserProgress.objects.get_or_create(
                 student=request.user,
                 content=content,
-                defaults={'is_completed': True}
+                defaults={'is_completed': True, 'score': new_score}
             )
+            
+            # Eğer içerik zaten daha önce tamamlandıysa ve bir oyunsa: Puanı GÜNCELLEME! (Sadece ilk oynayış geçerli)
             if not created:
                 progress.is_completed = True
+                # Eğer daha önce puan kaydedilmemişse ve şimdi bir puan geldiyse kaydet
+                if progress.score is None and new_score is not None:
+                    progress.score = new_score
                 progress.save()
-            return Response({'status': 'success', 'content_id': content_id})
+                
+            # --- ROZET KONTROL SİSTEMİ ---
+            # Bu üniteye ait TÜM içerikleri bul
+            unit_contents = Content.objects.filter(subtopic__unit=unit)
+            # Bu öğrencinin bu ünitede tamamladığı İÇERİKLERİ bul
+            completed_unit_contents = UserProgress.objects.filter(
+                student=request.user, 
+                content__in=unit_contents, 
+                is_completed=True
+            ).count()
+            
+            earned_new_badge = False
+            # Eğer ünitedeki içerik sayısı, öğrencinin tamamladıklarına eşitse (Ünite BİTTİYSE!)
+            if unit_contents.count() > 0 and completed_unit_contents == unit_contents.count():
+                # Öğrenciye bu rozeti ver (Eğer zaten yoksa)
+                badge, badge_created = UserBadge.objects.get_or_create(
+                    student=request.user,
+                    unit=unit
+                )
+                if badge_created:
+                    earned_new_badge = True
+                    
+            return Response({
+                'status': 'success', 
+                'content_id': content_id,
+                'earned_new_badge': earned_new_badge # React'te konfeti patlatmak için :)
+            })
+            
         except Content.DoesNotExist:
             return Response({'error': 'İçerik bulunamadı.'}, status=404)
-        
-# accounts/views.py dosyasının EN ALTINA ekle:
+
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
