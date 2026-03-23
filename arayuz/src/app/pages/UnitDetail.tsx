@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Özel Video Oynatıcı
 import { VideoPlayer } from "../components/VideoPlayer";
-// YENİ: Oyun Yönlendiriciyi İçe Aktarıyoruz
+// Oyun Yönlendiriciyi İçe Aktarıyoruz
 import GameContainer from "../../components/games/GameContainer";
 
 // Eski YouTube linkleri için yardımcı fonksiyon
@@ -56,7 +56,15 @@ export default function UnitDetail() {
 
         const progressRes = await fetch("https://finedu-project.onrender.com/api/progress/", { headers });
         const progressData = await progressRes.json();
-        setCompletedIds(progressData);
+        
+        // ÇÖZÜM 1: KİLİTLENME SORUNU (BAŞA SARMA) ÇÖZÜLDÜ!
+        // Backend'den gelen karmaşık veri tipini düz sayı listesine çeviriyoruz.
+        let extractedIds: number[] = [];
+        if (Array.isArray(progressData)) {
+           // Eğer liste [{content_id: 1}, {content_id: 2}] şeklindeyse mapleyerek ID'leri çıkar.
+           extractedIds = progressData.map((p: any) => Number(typeof p === 'object' ? (p.content || p.content_id) : p));
+        }
+        setCompletedIds(extractedIds);
 
       } catch (error) {
         console.error("Veri çekme hatası:", error);
@@ -68,7 +76,9 @@ export default function UnitDetail() {
     fetchData();
   }, [unitId, navigate]);
 
-  const markAsCompleted = async (contentId: number) => {
+  // ÇÖZÜM 2: PUAN SIFIR KALMASI SORUNU ÇÖZÜLDÜ!
+  // Artık fonksiyona puan da gelebilir, gelirse backend'e gönderiyoruz.
+  const markAsCompleted = async (contentId: number, score?: number) => {
     // Zaten tamamlanmışsa tekrar işlem yapma
     if (completedIds.includes(contentId)) return;
     
@@ -76,27 +86,27 @@ export default function UnitDetail() {
     
     try {
       const token = localStorage.getItem("token");
+      const payload: any = { content_id: contentId };
+      // Puan varsa payload'a ekle!
+      if (score !== undefined) {
+         payload.score = score;
+      }
+
       const res = await fetch("https://finedu-project.onrender.com/api/progress/", {
         method: "POST",
         headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ content_id: contentId })
+        body: JSON.stringify(payload) // Artık sadece ID değil, gerekiyorsa puanı da yolluyoruz!
       });
 
       if (res.ok) {
-        // Backend başarıyla kaydetti, yeşil tiki at!
         setCompletedIds(prev => [...prev, contentId]); 
       } else {
-        // YENİ: EĞER BACKEND HATA VERİRSE ARTIK GİZLENMEYECEK, BİZE SÖYLEYECEK!
         const errorData = await res.json().catch(() => ({}));
         console.error("Backend Kayıt Hatası:", errorData)
-        
-        // CANKURTARAN HAMLESİ: Backend hata verse bile, öğrencinin hevesi kırılmasın 
-        // ve oyun kilitli kalmasın diye yeşil tiki arayüzde zorla atıyoruz!
         setCompletedIds(prev => [...prev, contentId]);
       }
     } catch (error) {
       console.error("Bağlantı koptu", error);
-      // İnternet kopsa bile kilit açılsın
       setCompletedIds(prev => [...prev, contentId]);
     } finally {
       setIsCompleting(false);
@@ -111,16 +121,16 @@ export default function UnitDetail() {
   const unitCompletedCount = allContents.filter((c: any) => completedIds.includes(c.id)).length;
   const progressPercentage = totalContents === 0 ? 0 : Math.round((unitCompletedCount / totalContents) * 100);
 
-  // YENİ: EĞER SEÇİLEN İÇERİK BİR OYUN İSE, EKRANI TAMAMEN OYUNA ÇEVİRİYORUZ
+  // SEÇİLEN İÇERİK BİR OYUN İSE, EKRANI TAMAMEN OYUNA ÇEVİRİYORUZ
   if (activeContent && activeContent.content_type === "GAME") {
     return (
       <GameContainer
         gameCode={activeContent.game_code}
         onComplete={(score: number) => {
-          // Oyun bittiğinde arka planda videoyla aynı API'ye "bitirdi" sinyali gidiyor
-          markAsCompleted(activeContent.id);
+          // ÇÖZÜM 2'NİN DEVAMI: Oyun bittiğinde, oyundan dönen puanı markAsCompleted'e iletiyoruz!
+          markAsCompleted(activeContent.id, score);
         }}
-        onBack={() => setActiveContent(null)} // Listeye geri dönme butonu
+        onBack={() => setActiveContent(null)} 
       />
     );
   }
@@ -188,10 +198,7 @@ export default function UnitDetail() {
                               size="sm"
                               variant={isCompleted ? "outline" : (content.content_type === "VIDEO" ? "primary" : "warning")}
                               disabled={isLocked}
-                              onClick={() => {
-                                // YENİ: Artık içerik ne olursa olsun (Video/Oyun) içeriği state'e atıyoruz, alerti sildik!
-                                setActiveContent(content); 
-                              }}
+                              onClick={() => setActiveContent(content)}
                             >
                               {isLocked ? "Kilitli" : (content.content_type === "VIDEO" ? (isCompleted ? "Tekrar İzle" : "İzle") : (isCompleted ? "Tekrar Oyna" : "Oyna"))}
                             </Button>
@@ -207,7 +214,7 @@ export default function UnitDetail() {
         </div>
       </div>
 
-      {/* VİDEO MODALI (YENİ: Sadece içerik tipi VIDEO ise bu pencere açılır) */}
+      {/* VİDEO MODALI */}
       <AnimatePresence>
         {activeContent && activeContent.content_type === "VIDEO" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
@@ -228,7 +235,6 @@ export default function UnitDetail() {
                 {activeContent.video_file ? (
                   <div className="w-full h-full p-4">
                     <VideoPlayer 
-                      // AKILLI URL KONTROLÜ (Burası silinmiş olabilir, geri getirdik!)
                       videoUrl={
                         activeContent.video_file.startsWith('http') 
                           ? activeContent.video_file 
