@@ -1,6 +1,7 @@
 import React from 'react';
 import FinancialDetectiveGame from './FinancialDetectiveGame';
 import DragDropNeedsGame from './DragDropNeedsGame';
+import RiskHunter from './RiskHunter';
 
 interface GameContainerProps {
   gameCode: string;
@@ -18,7 +19,10 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
       
       case 'drag_drop_needs':
         return <DragDropNeedsGame onComplete={onComplete} />;
-        
+
+      case 'risk_hunter':
+        return <RiskHunter onComplete={onComplete} />;
+
       default:
         return (
           <div className="p-10 text-center bg-red-50 text-red-600 rounded-xl border border-red-200">
