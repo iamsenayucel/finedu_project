@@ -2,6 +2,7 @@ import React from 'react';
 import FinancialDetectiveGame from './FinancialDetectiveGame';
 import DragDropNeedsGame from './DragDropNeedsGame';
 import RiskHunter from './RiskHunter';
+import RealDataHunter from './RealDataHunter';
 
 interface GameContainerProps {
   gameCode: string;
@@ -22,6 +23,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'risk_hunter':
         return <RiskHunter onComplete={onComplete} />;
+
+      case 'real_data_hunter':
+        return <RealDataHunter onComplete={onComplete} />;
 
       default:
         return (

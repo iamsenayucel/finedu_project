@@ -248,7 +248,7 @@ export default function RiskHunter({ onComplete }: RiskHunterProps) {
         <img
           src={scenario.image}
           alt={`Senaryo ${scenario.id}`}
-          className="w-full object-cover max-h-72"
+          className="w-full object-contain"
         />
         {stage === 'allocation' && selectedDirection && (
           <div className="absolute top-3 right-3 bg-black/60 text-white px-4 py-1.5 rounded-full text-sm font-bold backdrop-blur-sm">
