@@ -13,7 +13,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const GAME_OPTIONS = [
   { value: "financial_detective", label: "🕵️‍♂️ Finansal Haber Dedektifi (10. Sınıf)" },
-  { value: "drag_drop_needs", label: "🛒 İstek mi İhtiyaç mı? (İlkokul)" }
+  { value: "drag_drop_needs", label: "🛒 İstek mi İhtiyaç mı? (İlkokul)" },
+  { value: "risk_hunter", label: "🎯 Risk Hunter - Portföy Yöneticisi" }
 ];
 
 export default function AdminPanel() {
