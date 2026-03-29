@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface FinancialDetectiveGameProps {
   onComplete?: (score: number) => void;
@@ -26,7 +26,7 @@ const NEWS_DATA = [
   {
     id: 1,
     title: "Merkez Bankası Faiz Kararı",
-    content: "Türkiye Cumhuriyet Merkez Bankası son Para Politikası Kurulu toplantısının ardından politika faizinin %45 seviyesinde sabit tutulduğunu açıkladı. Merkez Bankası tarafından yayımlanan resmi açıklamada enflasyonla mücadele kapsamında sıkı para politikasının sürdürüleceği ifade edildi. Ekonomistler bu kararın kredi faizleri ve döviz piyasası üzerinde etkili olabileceğini belirtiyor.",
+    image: "/games/FinancialDetectiveGame/1.png",
     questions: [
       { id: 'q1', text: "Haberde somut veri veya istatistik var mı?", expected: "Evet" },
       { id: 'q2', text: "Haberde uzman veya kurum kaynağı belirtilmiş mi?", expected: "Evet" },
@@ -39,7 +39,7 @@ const NEWS_DATA = [
   {
     id: 2,
     title: "Altın Piyasası Yorumu",
-    content: "Son haftalarda altın fiyatlarında hareketlilik yaşanıyor. Finans analisti Mehmet Kaya'ya göre küresel ekonomik belirsizlikler altına olan talebi artırabilir. Uzman, son bir ayda altın fiyatlarının yaklaşık %6 yükseldiğini ifade etti. Ancak fiyatların kısa vadede nasıl değişeceğinin kesin olmadığını belirtti.",
+    image: "/games/FinancialDetectiveGame/2.png",
     questions: [
       { id: 'q1', text: "Haberde somut veri veya istatistik var mı?", expected: "Evet" },
       { id: 'q2', text: "Haberde uzman veya kurum kaynağı belirtilmiş mi?", expected: "Evet" },
@@ -52,7 +52,7 @@ const NEWS_DATA = [
   {
     id: 3,
     title: "Kripto Para Hızla Yükseliyor",
-    content: "Son günlerde sosyal medyada konuşulan 'NovaCoin' adlı kripto para kısa sürede büyük ilgi gördü. Bazı yatırımcılar bu paranın gelecekte çok değerli olabileceğini söylüyor. Ancak projeyle ilgili henüz herhangi bir resmi kurum açıklaması veya bağımsız analiz raporu bulunmuyor.",
+    image: "/games/FinancialDetectiveGame/3.png",
     questions: [
       { id: 'q1', text: "Haberde somut veri veya istatistik var mı?", expected: "Hayır" },
       { id: 'q2', text: "Haberde uzman veya kurum kaynağı belirtilmiş mi?", expected: "Hayır" },
@@ -64,21 +64,21 @@ const NEWS_DATA = [
   },
   {
     id: 4,
-    title: "Sosyal Medyada Yatırım Tavsiyesi",
-    content: "Bir sosyal medya fenomeni yaptığı paylaşımda küçük bir teknoloji şirketinin hisselerinin yakında çok yükseleceğini söyledi. Fenomen, takipçilerine bu hisseleri erkenden almanın büyük kazanç sağlayabileceğini ifade etti. Ancak paylaşımda şirket hakkında finansal veri veya resmi kaynak yer almıyor.",
+    title: "Dijital Altın: Gercekten Altin Mi, Yoksa Dijital Hava Mi?",
+    image: "/games/FinancialDetectiveGame/4.png",
     questions: [
-      { id: 'q1', text: "Haberde somut veri veya istatistik var mı?", expected: "Hayır" },
-      { id: 'q2', text: "Haberde uzman veya kurum kaynağı belirtilmiş mi?", expected: "Hayır" },
-      { id: 'q3', text: "Haber başlığı abartılı mı?", expected: "Evet" },
-      { id: 'q4', text: "Haberde yatırım tavsiyesi var mı?", expected: "Evet" }
+      { id: 'q1', text: "Haberde somut veri veya istatistik var mi?", expected: "Hayir" },
+      { id: 'q2', text: "Haberde uzman veya kurum kaynagi acikca belirtilmis mi?", expected: "Hayir" },
+      { id: 'q3', text: "Haber basligi abartili veya dikkat cekici sekilde kurgulanmis mi?", expected: "Evet" },
+      { id: 'q4', text: "Haberde yatirim tavsiyesi niteliginde ifadeler var mi?", expected: "Evet" }
     ],
-    correctClass: "ŞÜPHELİ",
-    feedback: "Haberde doğrulanabilir veri bulunmamakta ve sosyal medya yorumuna dayanmaktadır. Bu tür içerikler dikkatle değerlendirilmelidir."
+    correctClass: "SUPHELI",
+    feedback: "Haberde belirsiz kaynaklar kullanilmis, dogrulanabilir veri sunulmamis ve yatirim yonlendirmesi iceren ifadeler yer almistir. Bu nedenle icerik supheli olarak degerlendirilmelidir."
   },
   {
     id: 5,
     title: "Yeni Yatırım Platformu Reklamı",
-    content: "Bir internet sitesinde yayımlanan haberde 'CryptoMax yatırım platformu' tanıtılıyor. Haberde platformu kullanan herkesin çok kısa sürede yüksek kazanç elde ettiği ve sistemin yatırımcılara garanti gelir sağladığı iddia ediliyor. Ancak haberde herhangi bir finansal kurum, uzman görüşü veya resmi veri yer almıyor.",
+    image: "/games/FinancialDetectiveGame/5.png",
     questions: [
       { id: 'q1', text: "Haberde somut veri veya istatistik var mı?", expected: "Hayır" },
       { id: 'q2', text: "Haberde uzman veya kurum kaynağı belirtilmiş mi?", expected: "Hayır" },
@@ -161,7 +161,7 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
   if (stage === 'finished') {
     return (
       <div className="max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-2xl border border-gray-100">
-        
+
         {/* Karne Başlığı */}
         <div className="text-center mb-10 pb-6 border-b-2 border-dashed border-gray-200">
           <h2 className="text-4xl font-extrabold text-slate-800 mb-3">Görev Raporu 🕵️‍♂️</h2>
@@ -187,7 +187,7 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
                     <li key={aIdx} className="flex flex-col sm:flex-row justify-between sm:items-center bg-white p-4 rounded-lg border border-slate-100 shadow-sm">
                       <span className="text-slate-700 font-medium flex-1 mb-2 sm:mb-0 pr-4">{ans.questionText}</span>
                       <div className="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200">
-                        <span className="text-sm text-slate-500">Senin Yanıtın: 
+                        <span className="text-sm text-slate-500">Senin Yanıtın:
                           <strong className={`ml-1 ${ans.isCorrect ? 'text-green-600' : 'text-red-600'}`}>{ans.userAnswer}</strong>
                         </span>
                         {ans.isCorrect ? (
@@ -205,7 +205,7 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex flex-col sm:flex-row justify-between sm:items-center">
                 <span className="font-bold text-blue-800 mb-2 sm:mb-0">Haberin Gerçek Türü:</span>
                 <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-md border border-blue-200 shadow-sm">
-                  <span className="text-sm text-slate-600">Seçimin: 
+                  <span className="text-sm text-slate-600">Seçimin:
                     <strong className={`ml-1 ${historyItem.classification.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
                       {historyItem.classification.userClass}
                     </strong>
@@ -225,7 +225,7 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
     );
   }
 
-  // --- OYUNUN KENDİ ARAYÜZÜ (DEĞİŞMEDİ) ---
+  // --- OYUNUN KENDİ ARAYÜZÜ ---
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-lg border border-gray-200">
       <div className="flex justify-between items-center mb-6 border-b pb-4">
@@ -235,7 +235,7 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
 
       <div className="bg-gray-50 p-6 rounded-lg mb-6 border-l-4 border-blue-500">
         <h3 className="text-2xl font-bold mb-3">{currentNews.title}</h3>
-        <p className="text-gray-700 text-lg leading-relaxed">{currentNews.content}</p>
+        <img src={currentNews.image} alt={currentNews.title} className="w-full rounded-lg object-contain" />
       </div>
 
       {stage === 'reading' && (

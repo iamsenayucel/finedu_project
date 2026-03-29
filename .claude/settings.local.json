@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(png|jpg|jpeg|webp|svg|gif\\)$\")",
+      "Bash(mkdir -p c:/Users/yucel/Desktop/finedu_project/arayuz/public/games/FinancialDetectiveGame)",
+      "Bash(cp c:/Users/yucel/Desktop/finedu_project/arayuz/games/FinancialDetectiveGame/*.png c:/Users/yucel/Desktop/finedu_project/arayuz/public/games/FinancialDetectiveGame/)"
+    ]
+  }
+}
