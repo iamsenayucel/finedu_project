@@ -5,8 +5,9 @@ import { Card, CardHeader, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
 import { Input, Select } from "../components/Input";
 import {
-  BookOpen, Award, Users, Settings, TrendingUp,
-  Target, Play, Lock, Plus, UserPlus, X, GraduationCap, CheckCircle2, Gamepad2
+  BookOpen, Award, Users, TrendingUp,
+  Target, Play, Lock, Plus, UserPlus, X, GraduationCap, CheckCircle2, Gamepad2,
+  Flame, Trophy, BarChart2, AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -26,6 +27,8 @@ export default function Dashboard() {
 
   // --- ÖĞRETMEN STATE'LERİ ---
   const [classrooms, setClassrooms] = useState<any[]>([]);
+  const [analytics, setAnalytics] = useState<any[]>([]);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
   const [showClassModal, setShowClassModal] = useState(false);
   const [classForm, setClassForm] = useState({ name: "", grade_level: "" });
   
@@ -71,6 +74,7 @@ export default function Dashboard() {
 
       if (meData.user.role === "TEACHER") {
         fetchClassrooms(headers);
+        fetchAnalytics();
       }
     } catch (err) {
       console.error(err);
@@ -83,6 +87,20 @@ export default function Dashboard() {
   const fetchClassrooms = async (headers: any) => {
     const classRes = await fetch("https://finedu-project.onrender.com/api/classrooms/", { headers });
     if (classRes.ok) setClassrooms(await classRes.json());
+  };
+
+  const fetchAnalytics = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    setIsLoadingAnalytics(true);
+    try {
+      const res = await fetch("https://finedu-project.onrender.com/api/analytics/", {
+        headers: { "Authorization": `Token ${token}` }
+      });
+      if (res.ok) setAnalytics(await res.json());
+    } finally {
+      setIsLoadingAnalytics(false);
+    }
   };
 
   useEffect(() => { fetchData(); }, [navigate]);
@@ -135,7 +153,20 @@ export default function Dashboard() {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-primary font-bold">Verileriniz yükleniyor...</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar userName="" onLogout={handleLogout} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          <div className="h-36 w-full animate-pulse bg-muted rounded-2xl" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => <div key={i} className="h-24 animate-pulse bg-muted rounded-xl" />)}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[...Array(4)].map((_, i) => <div key={i} className="h-48 animate-pulse bg-muted rounded-xl" />)}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // --- 1. ÖĞRENCİ PANELİ ---
@@ -155,7 +186,7 @@ export default function Dashboard() {
 
     return (
       <div className="min-h-screen bg-background relative">
-        <Navbar userName={user.first_name || "Öğrenci"} onLogout={handleLogout} />
+        <Navbar userName={user.first_name || "Öğrenci"} onLogout={handleLogout} streakDays={user.streak_days} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Hoş geldin Kartı */}
@@ -210,13 +241,13 @@ export default function Dashboard() {
           </motion.div>
 
           {/* İstatistikler */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
               <Card>
-                <CardBody className="flex items-center gap-4">
-                  <div className="bg-primary/10 p-3 rounded-lg"><BookOpen className="size-6 text-primary" /></div>
+                <CardBody className="flex items-center gap-3">
+                  <div className="bg-primary/10 p-3 rounded-lg flex-shrink-0"><BookOpen className="size-5 text-primary" /></div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Toplam Ünite</p>
+                    <p className="text-xs text-muted-foreground">Toplam Ünite</p>
                     <p className="text-2xl font-bold text-foreground">{units.length}</p>
                   </div>
                 </CardBody>
@@ -225,10 +256,10 @@ export default function Dashboard() {
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
               <Card>
-                <CardBody className="flex items-center gap-4">
-                  <div className="bg-warning/10 p-3 rounded-lg"><Target className="size-6 text-warning" /></div>
+                <CardBody className="flex items-center gap-3">
+                  <div className="bg-warning/10 p-3 rounded-lg flex-shrink-0"><Target className="size-5 text-warning" /></div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Tamamlama</p>
+                    <p className="text-xs text-muted-foreground">Tamamlama</p>
                     <p className="text-2xl font-bold text-foreground">{overallProgress}%</p>
                   </div>
                 </CardBody>
@@ -237,11 +268,23 @@ export default function Dashboard() {
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
               <Card>
-                <CardBody className="flex items-center gap-4">
-                  <div className="bg-info/10 p-3 rounded-lg"><TrendingUp className="size-6 text-info" /></div>
+                <CardBody className="flex items-center gap-3">
+                  <div className="bg-success/10 p-3 rounded-lg flex-shrink-0"><Trophy className="size-5 text-success" /></div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Haftalık İlerleme</p>
-                    <p className="text-2xl font-bold text-foreground">{globalCompleted > 0 ? "Devam Ediyor" : "Yeni Başladı"}</p>
+                    <p className="text-xs text-muted-foreground">Toplam Puan</p>
+                    <p className="text-2xl font-bold text-foreground">{user.total_score || 0}</p>
+                  </div>
+                </CardBody>
+              </Card>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}>
+              <Card className={user.streak_days > 0 ? "border-orange-200" : ""}>
+                <CardBody className="flex items-center gap-3">
+                  <div className="bg-orange-100 p-3 rounded-lg flex-shrink-0"><Flame className="size-5 text-orange-500" /></div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Günlük Seri</p>
+                    <p className="text-2xl font-bold text-orange-600">{user.streak_days || 0} gün</p>
                   </div>
                 </CardBody>
               </Card>
@@ -392,7 +435,7 @@ export default function Dashboard() {
   if (user?.role === "TEACHER") {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar userName={user.first_name || "Öğretmen"} onLogout={handleLogout} />
+        <Navbar userName={user.first_name || "Öğretmen"} onLogout={handleLogout} streakDays={undefined} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           
           <div className="flex justify-between items-center mb-8">
@@ -461,6 +504,103 @@ export default function Dashboard() {
               ))}
             </div>
           )}
+
+          {/* LEADERBOARD */}
+          {classrooms.length > 0 && (() => {
+            const allStudents = classrooms.flatMap((cls: any) => cls.students || []);
+            const unique = Array.from(new Map(allStudents.map((s: any) => [s.id, s])).values());
+            const sorted = [...unique].sort((a: any, b: any) => (b.total_score || 0) - (a.total_score || 0)).slice(0, 10);
+            return (
+              <div className="mt-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Trophy className="size-5 text-yellow-500" />
+                  <h2 className="text-xl font-bold text-foreground">Liderlik Tablosu</h2>
+                  <span className="text-xs text-muted-foreground ml-1">— tüm sınıflar</span>
+                </div>
+                <Card>
+                  <CardBody className="p-0">
+                    <div className="divide-y divide-border">
+                      {sorted.map((student: any, idx: number) => (
+                        <div key={student.id} className="flex items-center gap-4 px-5 py-3 hover:bg-muted/30 transition-colors">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0
+                            ${idx === 0 ? 'bg-yellow-100 text-yellow-700' : idx === 1 ? 'bg-slate-100 text-slate-700' : idx === 2 ? 'bg-orange-100 text-orange-700' : 'bg-muted text-muted-foreground'}`}>
+                            {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-foreground text-sm">{student.first_name} {student.last_name}</p>
+                            <div className="flex items-center gap-3 mt-0.5">
+                              <div className="h-1.5 w-24 bg-muted rounded-full overflow-hidden">
+                                <div className="h-full bg-success" style={{ width: `${student.progress}%` }} />
+                              </div>
+                              <span className="text-xs text-muted-foreground">{student.progress}%</span>
+                              {student.streak_days > 0 && (
+                                <span className="text-xs text-orange-500 flex items-center gap-0.5">
+                                  <Flame className="size-3" />{student.streak_days}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="font-black text-success text-lg">{student.total_score || 0}</div>
+                        </div>
+                      ))}
+                      {sorted.length === 0 && (
+                        <p className="text-sm text-center text-muted-foreground py-8">Henüz sınıflarda öğrenci yok.</p>
+                      )}
+                    </div>
+                  </CardBody>
+                </Card>
+              </div>
+            );
+          })()}
+
+          {/* ANALİTİK */}
+          <div className="mt-8 mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart2 className="size-5 text-primary" />
+              <h2 className="text-xl font-bold text-foreground">İçerik Analizi</h2>
+              <span className="text-xs text-muted-foreground ml-1">— en düşük tamamlanma oranları</span>
+            </div>
+            {isLoadingAnalytics ? (
+              <div className="space-y-3">
+                {[...Array(4)].map((_, i) => <div key={i} className="h-14 animate-pulse bg-muted rounded-xl" />)}
+              </div>
+            ) : analytics.length === 0 ? (
+              <div className="text-center py-10 bg-muted/20 rounded-xl border border-dashed border-border">
+                <AlertCircle className="size-10 mx-auto text-muted-foreground mb-2 opacity-40" />
+                <p className="text-sm text-muted-foreground">Analiz için sınıflara öğrenci ekleyin.</p>
+              </div>
+            ) : (
+              <Card>
+                <CardBody className="p-0">
+                  <div className="divide-y divide-border">
+                    {analytics.map((item: any) => (
+                      <div key={item.content_id} className="px-5 py-3 flex items-center gap-4">
+                        <div className={`p-2 rounded-lg flex-shrink-0 ${item.content_type === 'VIDEO' ? 'bg-primary/10' : 'bg-warning/10'}`}>
+                          {item.content_type === 'VIDEO' ? <TrendingUp className="size-4 text-primary" /> : <Gamepad2 className="size-4 text-warning" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-foreground truncate">{item.content_title}</p>
+                          <p className="text-xs text-muted-foreground">{item.unit_title}</p>
+                        </div>
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${item.completion_rate >= 70 ? 'bg-success' : item.completion_rate >= 40 ? 'bg-warning' : 'bg-destructive'}`}
+                              style={{ width: `${item.completion_rate}%` }}
+                            />
+                          </div>
+                          <span className={`text-sm font-bold w-10 text-right ${item.completion_rate >= 70 ? 'text-success' : item.completion_rate >= 40 ? 'text-warning' : 'text-destructive'}`}>
+                            {item.completion_rate}%
+                          </span>
+                          <span className="text-xs text-muted-foreground">{item.completed_count}/{item.total_students}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardBody>
+              </Card>
+            )}
+          </div>
         </div>
 
         {/* ÖĞRETMEN MODALLARI */}

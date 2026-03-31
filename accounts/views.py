@@ -130,15 +130,23 @@ def unit_detail_view(request, unit_id):
 @permission_classes([IsAuthenticated])
 def current_user_dashboard_api(request):
     user = request.user
-    
-    user_data = dict(UserSerializer(user).data) 
-    
+
+    user_data = dict(UserSerializer(user).data)
+
     user_data['total_score'] = user.total_score
     user_data['earned_badges'] = user.earned_badges
-    
+    user_data['streak_days'] = user.streak_days
+    user_data['date_joined'] = user.date_joined.strftime('%d.%m.%Y')
+
+    if user.role == 'STUDENT':
+        completed_count = UserProgress.objects.filter(student=user, is_completed=True).count()
+        total_count = Content.objects.filter(subtopic__unit__target_grade=user.grade_level).count()
+        user_data['completed_count'] = completed_count
+        user_data['total_content_count'] = total_count
+
     units = Unit.objects.filter(target_grade=user.grade_level).order_by('order')
     units_data = UnitSerializer(units, many=True).data
-    
+
     return Response({
         'user': user_data,
         'units': units_data
@@ -196,10 +204,15 @@ def user_progress_api(request):
                 if badge_created:
                     earned_new_badge = True
                     
+            # Streak güncelle
+            if request.user.role == 'STUDENT':
+                request.user.update_streak()
+
             return Response({
-                'status': 'success', 
+                'status': 'success',
                 'content_id': content_id,
-                'earned_new_badge': earned_new_badge # React'te konfeti patlatmak için :)
+                'earned_new_badge': earned_new_badge,
+                'streak_days': request.user.streak_days,
             })
             
         except Content.DoesNotExist:
@@ -406,7 +419,8 @@ def api_classrooms_view(request):
                 
                 students_data.append({
                     'id': s.id, 'first_name': s.first_name, 'last_name': s.last_name,
-                    'student_code': s.student_code, 'progress': prog
+                    'student_code': s.student_code, 'progress': prog,
+                    'total_score': s.total_score, 'streak_days': s.streak_days,
                 })
             data.append({'id': c.id, 'name': c.name, 'grade_level': c.grade_level, 'students': students_data})
         return Response(data)
@@ -457,6 +471,75 @@ def api_student_detail_view(request, student_id):
         'completed_contents': completed_titles, 'last_watched': last_watched,
         'earned_badges': earned_badges, 'progress_percent': progress_percent
     })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_analytics_view(request):
+    if request.user.role != 'TEACHER':
+        return Response({'error': 'Yetkiniz yok'}, status=403)
+
+    classrooms = Classroom.objects.filter(teacher=request.user)
+    students = CustomUser.objects.filter(enrolled_classes__in=classrooms, role='STUDENT').distinct()
+
+    if not students.exists():
+        return Response([])
+
+    grade_levels = students.values_list('grade_level', flat=True).distinct()
+    contents = Content.objects.filter(subtopic__unit__target_grade__in=grade_levels).select_related('subtopic__unit')[:30]
+
+    student_count = students.count()
+    result = []
+    for content in contents:
+        completed = UserProgress.objects.filter(
+            student__in=students, content=content, is_completed=True
+        ).count()
+        rate = round((completed / student_count) * 100) if student_count > 0 else 0
+        result.append({
+            'content_id': content.id,
+            'content_title': content.title,
+            'content_type': content.content_type,
+            'unit_title': content.subtopic.unit.title,
+            'completed_count': completed,
+            'total_students': student_count,
+            'completion_rate': rate,
+        })
+
+    result.sort(key=lambda x: x['completion_rate'])
+    return Response(result[:15])
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_profile_view(request):
+    user = request.user
+    completed_count = UserProgress.objects.filter(student=user, is_completed=True).count()
+    total_count = Content.objects.filter(subtopic__unit__target_grade=user.grade_level).count()
+    completed_units = 0
+    units = Unit.objects.filter(target_grade=user.grade_level)
+    for unit in units:
+        unit_contents = Content.objects.filter(subtopic__unit=unit)
+        if unit_contents.exists():
+            done = UserProgress.objects.filter(student=user, content__in=unit_contents, is_completed=True).count()
+            if done == unit_contents.count():
+                completed_units += 1
+
+    return Response({
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'email': user.email,
+        'role': user.role,
+        'grade_level': user.grade_level,
+        'student_code': user.student_code,
+        'total_score': user.total_score,
+        'earned_badges': user.earned_badges,
+        'streak_days': user.streak_days,
+        'date_joined': user.date_joined.strftime('%d.%m.%Y'),
+        'completed_count': completed_count,
+        'total_content_count': total_count,
+        'completed_units': completed_units,
+        'total_units': units.count(),
+    })
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

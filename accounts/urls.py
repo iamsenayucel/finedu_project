@@ -1,20 +1,22 @@
 from django.urls import path
 from .views import (
-    api_register_view, 
-    current_user_dashboard_api, 
-    user_progress_api, 
-    api_units_view, 
-    api_users_view, 
-    api_add_content_view, 
-    api_add_subtopic_view, 
-    api_unit_detail_view, 
-    api_subtopic_detail_view, 
-    api_content_detail_view, 
+    api_register_view,
+    current_user_dashboard_api,
+    user_progress_api,
+    api_units_view,
+    api_users_view,
+    api_add_content_view,
+    api_add_subtopic_view,
+    api_unit_detail_view,
+    api_subtopic_detail_view,
+    api_content_detail_view,
     api_user_detail_view,
-    api_classrooms_view, 
-    api_add_student_to_class, 
+    api_classrooms_view,
+    api_add_student_to_class,
     api_student_detail_view,
-    api_reorder_view
+    api_reorder_view,
+    api_analytics_view,
+    api_profile_view,
 )
 
 # Router ve ViewSet'leri tamamen sildik, çünkü kendi özel API'lerimizi kullanıyoruz.
@@ -42,4 +44,6 @@ urlpatterns = [
     path('student/<int:student_id>/detail/', api_student_detail_view, name='api_student_detail'),
 
     path('reorder/', api_reorder_view, name='api_reorder'),
+    path('analytics/', api_analytics_view, name='api_analytics'),
+    path('profile/', api_profile_view, name='api_profile'),
 ]

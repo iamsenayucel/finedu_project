@@ -46,6 +46,7 @@ export default function AdminPanel() {
   });
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchData = async () => {
     const token = localStorage.getItem("token");
@@ -251,12 +252,32 @@ export default function AdminPanel() {
 
         {activeTab === "units" && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
               <h2 className="text-xl font-bold">Mevcut Üniteler</h2>
-              <Button variant="primary" onClick={() => openModal("UNIT", "ADD")}>
-                <Plus className="size-4 mr-2" /> Yeni Ünite
-              </Button>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-72">
+                  <input
+                    type="text"
+                    placeholder="Ünite, konu veya içerik ara..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  />
+                  <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <Button variant="primary" onClick={() => openModal("UNIT", "ADD")}>
+                  <Plus className="size-4 mr-2" /> Yeni Ünite
+                </Button>
+              </div>
             </div>
+
+            {searchQuery.trim() && (
+              <p className="text-sm text-muted-foreground -mt-2 mb-2">
+                "<span className="font-semibold text-foreground">{searchQuery}</span>" için sonuçlar
+              </p>
+            )}
 
             <div className="space-y-10">
               {[
@@ -267,11 +288,22 @@ export default function AdminPanel() {
                 { id: "UNIVERSITY_GENERAL", label: "Üniversite (Genel)", color: "text-indigo-500", border: "border-indigo-500/30" },
                 { id: "OTHER", label: "Seviyesi Belirtilmemiş", color: "text-muted-foreground", border: "border-border" }
               ].map((grade) => {
-                const gradeUnits = grade.id === "OTHER" 
+                const q = searchQuery.trim().toLowerCase();
+                const baseUnits = grade.id === "OTHER"
                   ? units.filter((u: any) => !["PRIMARY", "MIDDLE", "HIGH", "UNIVERSITY_FINANCE", "UNIVERSITY_GENERAL"].includes(u.target_grade))
                   : units.filter((u: any) => u.target_grade === grade.id);
-                
-                if (grade.id === "OTHER" && gradeUnits.length === 0) return null;
+
+                const gradeUnits = q
+                  ? baseUnits.filter((u: any) =>
+                      u.title?.toLowerCase().includes(q) ||
+                      u.subtopics?.some((st: any) =>
+                        st.title?.toLowerCase().includes(q) ||
+                        st.contents?.some((c: any) => c.title?.toLowerCase().includes(q))
+                      )
+                    )
+                  : baseUnits;
+
+                if (gradeUnits.length === 0) return null;
 
                 return (
                   <div key={grade.id} className="space-y-4">

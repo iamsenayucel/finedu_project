@@ -8,6 +8,7 @@ import {
   Award, Lock, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 // Özel Video Oynatıcı
 import { VideoPlayer } from "../components/VideoPlayer";
@@ -99,10 +100,19 @@ export default function UnitDetail() {
       });
 
       if (res.ok) {
-        setCompletedIds(prev => [...prev, contentId]); 
+        const data = await res.json().catch(() => ({}));
+        setCompletedIds(prev => [...prev, contentId]);
+        if (data.earned_new_badge) {
+          toast.success("🏆 Yeni Rozet Kazandın!", {
+            description: "Bu üniteyi başarıyla tamamladın. Tebrikler!",
+            duration: 5000,
+          });
+        } else {
+          toast.success("✅ İçerik tamamlandı!", { duration: 2500 });
+        }
       } else {
         const errorData = await res.json().catch(() => ({}));
-        console.error("Backend Kayıt Hatası:", errorData)
+        console.error("Backend Kayıt Hatası:", errorData);
         setCompletedIds(prev => [...prev, contentId]);
       }
     } catch (error) {
@@ -113,7 +123,20 @@ export default function UnitDetail() {
     }
   };
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center font-bold text-primary">İçerikler Yükleniyor...</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar userName="" onLogout={() => navigate("/login")} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          <div className="h-8 w-32 animate-pulse bg-muted rounded-lg" />
+          <div className="h-40 w-full animate-pulse bg-muted rounded-2xl" />
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-32 w-full animate-pulse bg-muted rounded-2xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
   if (!unit) return <div className="text-center p-10">Ünite bulunamadı.</div>;
 
   const allContents = unit.subtopics?.flatMap((st: any) => st.contents) || [];
@@ -137,7 +160,7 @@ export default function UnitDetail() {
 
   return (
     <div className="min-h-screen bg-background relative">
-      <Navbar userName={user?.first_name || "Öğrenci"} onLogout={() => navigate("/login")} />
+      <Navbar userName={user?.first_name || "Öğrenci"} onLogout={() => navigate("/login")} streakDays={user?.streak_days} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="mb-6">

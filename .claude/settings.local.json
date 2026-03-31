@@ -5,7 +5,10 @@
       "Bash(mkdir -p c:/Users/yucel/Desktop/finedu_project/arayuz/public/games/FinancialDetectiveGame)",
       "Bash(cp c:/Users/yucel/Desktop/finedu_project/arayuz/games/FinancialDetectiveGame/*.png c:/Users/yucel/Desktop/finedu_project/arayuz/public/games/FinancialDetectiveGame/)",
       "Bash(mkdir -p c:/Users/yucel/Desktop/finedu_project/arayuz/public/games/RiskHunter)",
-      "Bash(cp c:/Users/yucel/Desktop/finedu_project/arayuz/games/RiskHunter/*.png c:/Users/yucel/Desktop/finedu_project/arayuz/public/games/RiskHunter/)"
+      "Bash(cp c:/Users/yucel/Desktop/finedu_project/arayuz/games/RiskHunter/*.png c:/Users/yucel/Desktop/finedu_project/arayuz/public/games/RiskHunter/)",
+      "Bash(npx tsc:*)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(node_modules/.bin/tsc --noEmit)"
     ]
   }
 }

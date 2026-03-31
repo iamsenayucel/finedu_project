@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 import uuid
 from django.db.models import Sum
+from datetime import date
 
 # 1. KULLANICI MODELLERİ
 class CustomUser(AbstractUser):
@@ -17,15 +18,31 @@ class CustomUser(AbstractUser):
         ('UNIVERSITY_FINANCE', 'Üniversite (Finans/İşletme)'),
         ('UNIVERSITY_GENERAL', 'Üniversite (Genel)'),
     )
-    
+
     role = models.CharField(max_length=55, choices=ROLE_CHOICES, default='STUDENT')
     grade_level = models.CharField(max_length=55, choices=GRADE_CHOICES, null=True, blank=True)
     student_code = models.CharField(max_length=55, unique=True, null=True, blank=True)
+    streak_days = models.IntegerField(default=0)
+    last_activity_date = models.DateField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.role == 'STUDENT' and not self.student_code:
             self.student_code = str(uuid.uuid4()).upper()[:8] # Örn: 8A2B9C1D
         super().save(*args, **kwargs)
+
+    def update_streak(self):
+        today = date.today()
+        if self.last_activity_date:
+            delta = (today - self.last_activity_date).days
+            if delta == 1:
+                self.streak_days += 1
+            elif delta > 1:
+                self.streak_days = 1
+            # delta == 0: same day, no change
+        else:
+            self.streak_days = 1
+        self.last_activity_date = today
+        self.save(update_fields=['streak_days', 'last_activity_date'])
 
     @property
     def total_score(self):
