@@ -8,7 +8,6 @@ import {
   Award, Lock, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
 
 // Özel Video Oynatıcı
 import { VideoPlayer } from "../components/VideoPlayer";
@@ -34,6 +33,7 @@ export default function UnitDetail() {
   
   const [activeContent, setActiveContent] = useState<any>(null);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [notification, setNotification] = useState<{ msg: string; badge: boolean } | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -103,12 +103,11 @@ export default function UnitDetail() {
         const data = await res.json().catch(() => ({}));
         setCompletedIds(prev => [...prev, contentId]);
         if (data.earned_new_badge) {
-          toast.success("🏆 Yeni Rozet Kazandın!", {
-            description: "Bu üniteyi başarıyla tamamladın. Tebrikler!",
-            duration: 5000,
-          });
+          setNotification({ msg: "🏆 Yeni Rozet Kazandın! Bu üniteyi başarıyla tamamladın.", badge: true });
+          setTimeout(() => setNotification(null), 5000);
         } else {
-          toast.success("✅ İçerik tamamlandı!", { duration: 2500 });
+          setNotification({ msg: "✅ İçerik tamamlandı!", badge: false });
+          setTimeout(() => setNotification(null), 2500);
         }
       } else {
         const errorData = await res.json().catch(() => ({}));
@@ -236,6 +235,20 @@ export default function UnitDetail() {
           ))}
         </div>
       </div>
+
+      {/* BİLDİRİM BANNER */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-white font-semibold text-sm ${notification.badge ? 'bg-yellow-500' : 'bg-green-600'}`}
+          >
+            {notification.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* VİDEO MODALI */}
       <AnimatePresence>

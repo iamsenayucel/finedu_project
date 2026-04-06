@@ -5,42 +5,95 @@ interface RiskHunterProps {
   onComplete?: (score: number) => void;
 }
 
+// Her varlık için hedef aralıklar PDF'e göre tanımlandı
 const SCENARIOS = [
   {
     id: 1,
     image: '/games/RiskHunter/1.png',
     correctDirection: 'Yükselir',
-    strategy: 'Hisse ağırlıklı',
-    strategyKeys: ['hisse'],
-    strategyDesc: 'Yükselen piyasada hisse senedi en yüksek getiriyi sunar.',
-    isBalanced: false,
+    strategy: 'Hisse + Kripto ağırlıklı',
+    strategyLogic: 'Piyasa yükselirken fırsatlar artar. Daha fazla kazanmak için biraz daha risk alınabilir.',
+    successMsg: 'İyi düşündün 🎯\nYükselen piyasada fırsatları değerlendirdin.',
+    strategyDesc: 'Yükselen piyasada ağırlık hisse ve kriptoda olmalı; diğer varlıklar dengeli tutulmalı.',
+    targetRanges: {
+      hisse:   { min: 30, max: 40 },
+      kripto:  { min: 10, max: 20 },
+      altin:   { min: 10, max: 20 },
+      mevduat: { min: 10, max: 20 },
+      tahvil:  { min: 10, max: 20 },
+    },
+    exampleAlloc: { hisse: 35, kripto: 15, altin: 15, mevduat: 15, tahvil: 20 },
+    commonMistakes: [
+      'Tüm parayı güvenli yatırımlara koymak → fırsat kaçırılır',
+      'Hepsini kriptoya koymak → çok riskli',
+      'Tek bir yere yatırım yapmak',
+    ],
   },
   {
     id: 2,
     image: '/games/RiskHunter/2.png',
     correctDirection: 'Düşer',
-    strategy: 'Altın + Mevduat ağırlıklı',
-    strategyKeys: ['altin', 'mevduat'],
-    strategyDesc: 'Düşen piyasada güvenli liman varlıkları sermayeni korur.',
-    isBalanced: false,
+    strategy: 'Mevduat + Altın ağırlıklı',
+    strategyLogic: 'Piyasa düşerken amaç para kazanmak değil, önce parayı korumaktır.',
+    successMsg: 'Doğru karar ✅\nDüşen piyasada riskten kaçınarak paranı korudun.',
+    strategyDesc: 'Düşen piyasada ağırlık mevduat ve altında olmalı; hisse ve kripto çok az tutulmalı.',
+    targetRanges: {
+      mevduat: { min: 35, max: 45 },
+      altin:   { min: 25, max: 35 },
+      tahvil:  { min: 15, max: 25 },
+      hisse:   { min: 5,  max: 15 },
+      kripto:  { min: 0,  max: 5  },
+    },
+    exampleAlloc: { mevduat: 40, altin: 30, tahvil: 20, hisse: 7, kripto: 3 },
+    commonMistakes: [
+      'Hisseye çok para koymak → değer kaybedebilir',
+      'Kriptoya yüklenmek → çok riskli',
+      'Hepsini riskli yatırımlara koymak',
+    ],
   },
   {
     id: 3,
     image: '/games/RiskHunter/3.png',
     correctDirection: 'Dalgalı',
     strategy: 'Dengeli dağılım',
-    strategyKeys: ['mevduat', 'altin', 'hisse', 'kripto', 'tahvil'],
-    strategyDesc: 'Dalgalı piyasada dengeli dağılım riski minimize eder.',
-    isBalanced: true,
+    strategyLogic: 'Dalgalı piyasada tüm paranı tek yere koymazsın. Güvenli yerlere daha çok, riskli yerlere daha az koyarsın.',
+    successMsg: 'Dengeli bir yatırım yaptın 💡\nDalgalı piyasada riski dağıtmak en doğru yaklaşımdır.',
+    strategyDesc: 'Dalgalı piyasada her varlığa biraz koyulmalı; riskli olanlara az, güvenli olanlara biraz daha fazla.',
+    targetRanges: {
+      mevduat: { min: 20, max: 30 },
+      altin:   { min: 20, max: 30 },
+      tahvil:  { min: 15, max: 25 },
+      hisse:   { min: 15, max: 25 },
+      kripto:  { min: 5,  max: 15 },
+    },
+    exampleAlloc: { mevduat: 25, altin: 25, tahvil: 20, hisse: 20, kripto: 10 },
+    commonMistakes: [
+      'Paranın çoğunu kriptoya koymak → çok riskli',
+      'Hepsini tek yere koymak',
+      'Hiç risk almamak → kazanç fırsatını kaçırır',
+    ],
   },
   {
     id: 4,
     image: '/games/RiskHunter/4.png',
     correctDirection: 'Durağan',
-    strategy: 'Mevduat + Tahvil ağırlıklı',
-    strategyKeys: ['mevduat', 'tahvil'],
-    strategyDesc: 'Durağan piyasada sabit getirili ürünler en güvenli seçimdir.',
-    isBalanced: false,
+    strategy: 'Mevduat + Tahvil + Altın ağırlıklı',
+    strategyLogic: 'Piyasa sakinse büyük risk almaya gerek yok. Daha güvenli yatırımlar ön planda olmalı.',
+    successMsg: 'Doğru düşündün ✅\nDurağan piyasada güvenli ve dengeli yatırım yapmak en mantıklısıdır.',
+    strategyDesc: 'Durağan piyasada ağırlık mevduat, tahvil ve altında olmalı; kripto ve hisse sınırlı tutulmalı.',
+    targetRanges: {
+      mevduat: { min: 30, max: 40 },
+      tahvil:  { min: 20, max: 30 },
+      altin:   { min: 15, max: 25 },
+      hisse:   { min: 10, max: 20 },
+      kripto:  { min: 0,  max: 10 },
+    },
+    exampleAlloc: { mevduat: 35, tahvil: 25, altin: 20, hisse: 15, kripto: 5 },
+    commonMistakes: [
+      'Kriptoya çok para koymak → gereksiz risk',
+      'Hepsini hisseye koymak',
+      'Hiç risk almamak → fırsat kaçırılır',
+    ],
   },
 ];
 
@@ -64,16 +117,28 @@ type AllocMap = { [key: string]: number };
 
 const INITIAL_ALLOC: AllocMap = { mevduat: 20, altin: 20, hisse: 20, kripto: 20, tahvil: 20 };
 
+// Bir değerin [min, max] aralığında olup olmadığını kontrol eder
+// Tolerans: aralığın ±5 dışında olursa "yakın" sayılmaz
+function inRange(val: number, min: number, max: number): boolean {
+  return val >= min && val <= max;
+}
+function nearRange(val: number, min: number, max: number): boolean {
+  return val >= min - 5 && val <= max + 5;
+}
+
 function getAllocScore(alloc: AllocMap, scenario: typeof SCENARIOS[0]): number {
-  if (scenario.isBalanced) {
-    const max = Math.max(...Object.values(alloc));
-    if (max <= 30) return 10;
-    if (max <= 45) return 5;
-    return 0;
-  }
-  const primaryTotal = scenario.strategyKeys.reduce((sum, k) => sum + (alloc[k] ?? 0), 0);
-  if (primaryTotal >= 50) return 10;
-  if (primaryTotal >= 30) return 5;
+  const ranges = scenario.targetRanges as Record<string, { min: number; max: number }>;
+  const keys = Object.keys(ranges);
+
+  // Kaç varlık tam aralıkta?
+  const exactCount = keys.filter(k => inRange(alloc[k] ?? 0, ranges[k].min, ranges[k].max)).length;
+  // Kaç varlık ±5 toleranslı aralıkta?
+  const nearCount = keys.filter(k => nearRange(alloc[k] ?? 0, ranges[k].min, ranges[k].max)).length;
+
+  if (exactCount >= 4) return 10;   // 4-5 varlık tam aralıkta → mükemmel
+  if (nearCount >= 4) return 10;    // 4-5 varlık yakın aralıkta → mükemmel
+  if (exactCount >= 2) return 5;    // 2-3 varlık tam → orta
+  if (nearCount >= 3) return 5;     // 3+ varlık yakın → orta
   return 0;
 }
 
@@ -356,67 +421,113 @@ export default function RiskHunter({ onComplete }: RiskHunterProps) {
         {stage === 'feedback' && (() => {
           const dirPts = selectedDirection === scenario.correctDirection ? 10 : 0;
           const allocPts = getAllocScore(alloc, scenario);
+          const ranges = scenario.targetRanges as Record<string, { min: number; max: number }>;
+
           return (
             <motion.div
               key="feedback"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="p-6"
+              className="p-6 space-y-4"
             >
-              {/* Scenario score badge */}
-              <div className="text-center mb-6">
-                <div className="text-5xl mb-3">
+              {/* Senaryo puan rozeti */}
+              <div className="text-center">
+                <div className="text-5xl mb-2">
                   {lastScenarioScore >= 15 ? '🎉' : lastScenarioScore >= 10 ? '👍' : '📚'}
                 </div>
-                <div className="inline-flex items-center gap-2 bg-slate-700 px-6 py-3 rounded-full text-white font-black text-xl border border-slate-600">
+                <div className="inline-flex items-center gap-2 bg-slate-700 px-6 py-2.5 rounded-full text-white font-black text-lg border border-slate-600">
                   Bu senaryodan: +{lastScenarioScore} puan
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                {/* Direction card */}
-                <div className={`p-4 rounded-2xl border ${
-                  dirPts === 10
-                    ? 'bg-emerald-900/50 border-emerald-600'
-                    : 'bg-red-900/50 border-red-600'
-                }`}>
-                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                    Piyasa Tahmini
-                  </div>
-                  <div className="text-white text-sm mb-1">
-                    Seçimin: <span className="font-bold text-blue-300">{selectedDirection}</span>
-                  </div>
-                  <div className="text-white text-sm mb-2">
-                    Doğrusu: <span className="font-bold text-emerald-300">{scenario.correctDirection}</span>
-                  </div>
+              {/* Piyasa tahmini + portföy özeti */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className={`p-4 rounded-2xl border ${dirPts === 10 ? 'bg-emerald-900/50 border-emerald-600' : 'bg-red-900/50 border-red-600'}`}>
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Piyasa Tahmini</div>
+                  <div className="text-white text-sm mb-1">Seçimin: <span className="font-bold text-blue-300">{selectedDirection}</span></div>
+                  <div className="text-white text-sm mb-2">Doğrusu: <span className="font-bold text-emerald-300">{scenario.correctDirection}</span></div>
                   <div className={`text-sm font-black ${dirPts === 10 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {dirPts === 10 ? '+10 puan ✅' : '0 puan ❌'}
                   </div>
                 </div>
 
-                {/* Allocation card */}
-                <div className={`p-4 rounded-2xl border ${
-                  allocPts === 10
-                    ? 'bg-emerald-900/50 border-emerald-600'
-                    : allocPts === 5
-                    ? 'bg-yellow-900/50 border-yellow-600'
-                    : 'bg-red-900/50 border-red-600'
-                }`}>
-                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                    Portföy Dağılımı
-                  </div>
-                  <div className="text-slate-300 text-sm mb-1">
-                    Önerilen: <span className="text-yellow-300 font-bold">{scenario.strategy}</span>
-                  </div>
-                  <div className="text-slate-400 text-xs mb-2">{scenario.strategyDesc}</div>
-                  <div className={`text-sm font-black ${
-                    allocPts === 10 ? 'text-emerald-400' : allocPts === 5 ? 'text-yellow-400' : 'text-red-400'
-                  }`}>
+                <div className={`p-4 rounded-2xl border ${allocPts === 10 ? 'bg-emerald-900/50 border-emerald-600' : allocPts === 5 ? 'bg-yellow-900/50 border-yellow-600' : 'bg-red-900/50 border-red-600'}`}>
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Portföy Dağılımı</div>
+                  <div className="text-slate-300 text-sm mb-1">Strateji: <span className="text-yellow-300 font-bold">{scenario.strategy}</span></div>
+                  <div className={`text-sm font-black ${allocPts === 10 ? 'text-emerald-400' : allocPts === 5 ? 'text-yellow-400' : 'text-red-400'}`}>
                     +{allocPts} puan {allocPts === 10 ? '✅' : allocPts === 5 ? '〽️' : '❌'}
                   </div>
                 </div>
               </div>
+
+              {/* Doğru mantık açıklaması */}
+              <div className="bg-blue-900/40 border border-blue-700/50 rounded-2xl p-4">
+                <div className="text-xs font-bold uppercase tracking-wider text-blue-400 mb-2">💡 Doğru Mantık</div>
+                <p className="text-blue-100 text-sm leading-relaxed">{scenario.strategyLogic}</p>
+              </div>
+
+              {/* Öğrencinin dağılımı vs hedef aralıklar */}
+              <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-4">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">📊 Dağılım Analizi</div>
+                <div className="space-y-2">
+                  {ASSETS.map(asset => {
+                    const range = ranges[asset.key];
+                    const val = alloc[asset.key] ?? 0;
+                    const ok = inRange(val, range.min, range.max);
+                    const near = !ok && nearRange(val, range.min, range.max);
+                    return (
+                      <div key={asset.key} className="flex items-center gap-3 text-sm">
+                        <span className="w-20 text-slate-300 font-medium flex items-center gap-1">
+                          {asset.icon} {asset.label}
+                        </span>
+                        <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${ok ? 'bg-emerald-400' : near ? 'bg-yellow-400' : 'bg-red-400'}`}
+                            style={{ width: `${val}%` }}
+                          />
+                        </div>
+                        <span className={`w-8 text-right font-bold ${ok ? 'text-emerald-400' : near ? 'text-yellow-400' : 'text-red-400'}`}>
+                          {val}%
+                        </span>
+                        <span className="text-slate-500 text-xs w-16 text-right">
+                          hedef: {range.min}–{range.max}%
+                        </span>
+                        <span>{ok ? '✅' : near ? '〽️' : '❌'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Örnek doğru dağılım */}
+              {allocPts < 10 && (
+                <div className="bg-slate-800/40 border border-slate-600 rounded-2xl p-4">
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">🎯 Örnek Doğru Dağılım</div>
+                  <div className="flex flex-wrap gap-2">
+                    {ASSETS.map(asset => (
+                      <div key={asset.key} className="bg-slate-700 px-3 py-1.5 rounded-lg text-sm">
+                        <span className="text-slate-300">{asset.icon} {asset.label}: </span>
+                        <span className="text-emerald-300 font-bold">%{(scenario.exampleAlloc as Record<string,number>)[asset.key]}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Yaygın hatalar */}
+              {allocPts < 10 && (
+                <div className="bg-red-900/20 border border-red-800/40 rounded-2xl p-4">
+                  <div className="text-xs font-bold uppercase tracking-wider text-red-400 mb-2">⚠️ Sık Yapılan Hatalar</div>
+                  <ul className="space-y-1">
+                    {(scenario.commonMistakes as string[]).map((m, i) => (
+                      <li key={i} className="text-red-300 text-xs flex items-start gap-2">
+                        <span className="mt-0.5">•</span>{m}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               <motion.button
                 whileHover={{ scale: 1.02 }}
