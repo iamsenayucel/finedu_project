@@ -7,7 +7,7 @@ import { Input, Select } from "../components/Input";
 import {
   BookOpen, Award, Users, TrendingUp,
   Target, Play, Lock, Plus, UserPlus, X, GraduationCap, CheckCircle2, Gamepad2,
-  Flame, Trophy, BarChart2, AlertCircle
+  Flame, Trophy, BarChart2, AlertCircle, Settings
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
