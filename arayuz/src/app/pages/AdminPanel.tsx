@@ -15,7 +15,8 @@ const GAME_OPTIONS = [
   { value: "financial_detective", label: "🕵️‍♂️ Finansal Haber Dedektifi (10. Sınıf)" },
   { value: "drag_drop_needs", label: "🛒 İstek mi İhtiyaç mı? (İlkokul)" },
   { value: "risk_hunter", label: "🎯 Risk Hunter - Portföy Yöneticisi" },
-  { value: "real_data_hunter", label: "🔍 Gerçek Veri Avı - Bilgi Doğrulama" }
+  { value: "real_data_hunter", label: "🔍 Gerçek Veri Avı - Bilgi Doğrulama" },
+  { value: "space_shopping_depot", label: "🚀 Uzay Alışveriş Deposu - İstek & İhtiyaç" }
 ];
 
 export default function AdminPanel() {

@@ -3,6 +3,7 @@ import FinancialDetectiveGame from './FinancialDetectiveGame';
 import DragDropNeedsGame from './DragDropNeedsGame';
 import RiskHunter from './RiskHunter';
 import RealDataHunter from './RealDataHunter';
+import SpaceShoppingDepot from './SpaceShoppingDepot';
 
 interface GameContainerProps {
   gameCode: string;
@@ -26,6 +27,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'real_data_hunter':
         return <RealDataHunter onComplete={onComplete} />;
+
+      case 'space_shopping_depot':
+        return <SpaceShoppingDepot onComplete={onComplete} />;
 
       default:
         return (
