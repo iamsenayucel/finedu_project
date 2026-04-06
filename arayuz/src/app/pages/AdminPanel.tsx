@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { getCached, setCached } from "../utils/apiCache";
 import { Navbar } from "../components/Navbar";
 import { Card, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
@@ -55,17 +56,23 @@ export default function AdminPanel() {
 
     try {
       const headers = { "Authorization": `Token ${token}` };
+      const cachedMe = getCached("me");
+
       const [meRes, unitsRes, usersRes] = await Promise.all([
-        fetch("https://finedu-project.onrender.com/api/me/", { headers }),
+        cachedMe ? Promise.resolve(null) : fetch("https://finedu-project.onrender.com/api/me/", { headers }),
         fetch("https://finedu-project.onrender.com/api/units/", { headers }),
         fetch("https://finedu-project.onrender.com/api/users/", { headers })
       ]);
 
-      const meData = await meRes.json();
+      let meData = cachedMe;
+      if (meRes) {
+        meData = await meRes.json();
+        setCached("me", meData);
+      }
       if (meData.user.role !== "ADMIN") {
         return navigate("/dashboard");
       }
-      
+
       setCurrentUser(meData.user);
       
       const fetchedUnits = await unitsRes.json();

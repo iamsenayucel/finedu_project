@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getCached, setCached, invalidateCache } from "../utils/apiCache";
 import { useNavigate } from "react-router";
 import { Navbar } from "../components/Navbar";
 import { Card, CardHeader, CardBody } from "../components/Card";
@@ -49,20 +50,25 @@ export default function Dashboard() {
     const headers = { "Authorization": `Token ${token}`, "Content-Type": "application/json" };
 
     try {
+      const cachedMe = getCached("me");
+
+      // me cache'deyse atla, progress her zaman taze çek
       const [meRes, progRes] = await Promise.all([
-        fetch("https://finedu-project.onrender.com/api/me/", { headers }),
-        fetch("https://finedu-project.onrender.com/api/progress/", { headers })
+        cachedMe ? Promise.resolve(null) : fetch("https://finedu-project.onrender.com/api/me/", { headers }),
+        fetch("https://finedu-project.onrender.com/api/progress/", { headers }),
       ]);
-      
-      const meData = await meRes.json();
+
+      let meData = cachedMe;
+      if (meRes) {
+        meData = await meRes.json();
+        setCached("me", meData);
+      }
       setUser(meData.user);
       setUnits(meData.units);
 
       if (progRes.ok) {
         const progData = await progRes.json();
-        // YENİ: Puan detaylarını kaydet
-        setProgressDetails(progData); 
-
+        setProgressDetails(progData);
         let ids: number[] = [];
         if (Array.isArray(progData)) {
           ids = progData.map((p: any) => Number(typeof p === 'object' ? (p.content || p.content_id) : p));
@@ -73,8 +79,8 @@ export default function Dashboard() {
       }
 
       if (meData.user.role === "TEACHER") {
-        fetchClassrooms(headers);
-        fetchAnalytics();
+        // classrooms ve analytics aynı anda başlasın
+        Promise.all([fetchClassrooms(headers), fetchAnalytics()]);
       }
     } catch (err) {
       console.error(err);
@@ -89,14 +95,13 @@ export default function Dashboard() {
     if (classRes.ok) setClassrooms(await classRes.json());
   };
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (headers?: any) => {
     const token = localStorage.getItem("token");
     if (!token) return;
     setIsLoadingAnalytics(true);
     try {
-      const res = await fetch("https://finedu-project.onrender.com/api/analytics/", {
-        headers: { "Authorization": `Token ${token}` }
-      });
+      const h = headers || { "Authorization": `Token ${token}` };
+      const res = await fetch("https://finedu-project.onrender.com/api/analytics/", { headers: h });
       if (res.ok) setAnalytics(await res.json());
     } finally {
       setIsLoadingAnalytics(false);
@@ -107,6 +112,7 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    invalidateCache();
     navigate("/login");
   };
 

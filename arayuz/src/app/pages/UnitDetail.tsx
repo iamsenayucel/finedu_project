@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
+import { getCached, setCached } from "../utils/apiCache";
 import { Navbar } from "../components/Navbar";
 import { Card, CardHeader, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
@@ -46,24 +47,28 @@ export default function UnitDetail() {
       try {
         const headers = { "Authorization": `Token ${token}`, "Content-Type": "application/json" };
 
-        const userRes = await fetch("https://finedu-project.onrender.com/api/me/", { headers });
-        const userData = await userRes.json();
+        // 3 isteği aynı anda başlat — sıralı değil paralel
+        const cachedMe = getCached("me");
+        const [meRes, unitRes, progressRes] = await Promise.all([
+          cachedMe ? Promise.resolve(null) : fetch("https://finedu-project.onrender.com/api/me/", { headers }),
+          fetch(`https://finedu-project.onrender.com/api/units/${unitId}/`, { headers }),
+          fetch("https://finedu-project.onrender.com/api/progress/", { headers }),
+        ]);
+
+        let userData = cachedMe;
+        if (meRes) {
+          userData = await meRes.json();
+          setCached("me", userData);
+        }
         setUser(userData.user);
 
-        const unitRes = await fetch(`https://finedu-project.onrender.com/api/units/${unitId}/`, { headers });
         if (!unitRes.ok) throw new Error("Ünite bulunamadı");
-        const unitData = await unitRes.json();
-        setUnit(unitData);
+        setUnit(await unitRes.json());
 
-        const progressRes = await fetch("https://finedu-project.onrender.com/api/progress/", { headers });
         const progressData = await progressRes.json();
-        
-        // ÇÖZÜM 1: KİLİTLENME SORUNU (BAŞA SARMA) ÇÖZÜLDÜ!
-        // Backend'den gelen karmaşık veri tipini düz sayı listesine çeviriyoruz.
         let extractedIds: number[] = [];
         if (Array.isArray(progressData)) {
-           // Eğer liste [{content_id: 1}, {content_id: 2}] şeklindeyse mapleyerek ID'leri çıkar.
-           extractedIds = progressData.map((p: any) => Number(typeof p === 'object' ? (p.content || p.content_id) : p));
+          extractedIds = progressData.map((p: any) => Number(typeof p === 'object' ? (p.content || p.content_id) : p));
         }
         setCompletedIds(extractedIds);
 
