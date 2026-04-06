@@ -211,6 +211,11 @@ export default function SpaceShoppingDepot({ onComplete }: SpaceShoppingDepotPro
     }
   };
 
+  const finishGame = () => {
+    setStage('finished');
+    if (onComplete) onComplete(score);
+  };
+
   const reset = () => {
     setSlots(makeSlots());
     setSlotValidation(Array(12).fill('idle'));
@@ -425,6 +430,18 @@ export default function SpaceShoppingDepot({ onComplete }: SpaceShoppingDepotPro
                   ? `${correctCount}/12 Doğru ✓`
                   : '🔍 Cevapları Kontrol Et'}
               </motion.button>
+
+              {checked && correctCount < 12 && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  onClick={finishGame}
+                  className="font-black py-3 px-5 rounded-xl shadow-md text-base bg-green-600 hover:bg-green-500 text-white border-b-4 border-green-800 cursor-pointer"
+                >
+                  Bitir 🏁
+                </motion.button>
+              )}
 
               <motion.button
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
