@@ -21,13 +21,18 @@ export default function Login() {
     setIsLoading(true);
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 saniye timeout
+
       const response = await fetch("https://finedu-project.onrender.com/api/login/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       // DİKKAT: Önce gelen veriyi düz metin (text) olarak alıyoruz ki çökmesin!
       const textData = await response.text();
@@ -54,7 +59,11 @@ export default function Login() {
       
     } catch (err: any) {
       console.error("Giriş Hatası:", err);
-      setError(err.message || "Sunucuya bağlanılamadı. Lütfen tekrar deneyin.");
+      if (err.name === "AbortError") {
+        setError("Sunucu yanıt vermiyor (uyku modunda olabilir). Lütfen 30 saniye bekleyip tekrar deneyin.");
+      } else {
+        setError(err.message || "Sunucuya bağlanılamadı. Lütfen tekrar deneyin.");
+      }
     } finally {
       setIsLoading(false);
     }
