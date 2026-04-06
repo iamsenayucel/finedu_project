@@ -200,7 +200,7 @@ export default function SpaceShoppingDepot({ onComplete }: SpaceShoppingDepotPro
     setSlotValidation(validation);
     setChecked(true);
 
-    const finalScore = Math.round((correct / 12) * 100);
+    const finalScore = correct * 10;
     setScore(finalScore);
 
     if (correct === 12) {
@@ -298,7 +298,7 @@ export default function SpaceShoppingDepot({ onComplete }: SpaceShoppingDepotPro
               className="text-7xl mb-4">🏆</motion.div>
             <h2 className="text-4xl font-black text-white mb-2">Harika! Depo Tamamlandı!</h2>
             <p className="text-indigo-200 mb-6 font-medium">Tüm ürünleri doğru bölmeye yerleştirdin.</p>
-            <div className="text-5xl font-black text-yellow-400 mb-8">{score} / 100 puan</div>
+            <div className="text-5xl font-black text-yellow-400 mb-8">{score} / 120 puan</div>
             <motion.button
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={() => { setStage('intro'); reset(); }}
