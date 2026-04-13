@@ -5,6 +5,7 @@ import RiskHunter from './RiskHunter';
 import RealDataHunter from './RealDataHunter';
 import SpaceShoppingDepot from './SpaceShoppingDepot';
 import RiskReturnTradeoff from './RiskReturnTradeoff';
+import EconomicTerms from './EconomicTerms';
 
 interface GameContainerProps {
   gameCode: string;
@@ -34,6 +35,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'risk_return_tradeoff':
         return <RiskReturnTradeoff onComplete={onComplete} />;
+
+      case 'economic_terms':
+        return <EconomicTerms onComplete={onComplete} />;
 
       default:
         return (

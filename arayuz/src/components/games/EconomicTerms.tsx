@@ -1,0 +1,477 @@
+import { useState, useCallback } from 'react';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface EconomicTermsProps {
+  onComplete?: (score: number) => void;
+}
+
+const ITEM_TYPE = 'TERM';
+
+// ─── VERİ ─────────────────────────────────────────────────────────────────────
+
+const PAIRS = [
+  {
+    id: 1,
+    term: 'Tasarruf',
+    definition: 'Gelirin bir kısmını gelecekte kullanmak üzere biriktirmektir.',
+    emoji: '🐷',
+    color: 'from-emerald-500 to-teal-500',
+    light: 'bg-emerald-50 border-emerald-200',
+    badge: 'bg-emerald-100 text-emerald-700',
+  },
+  {
+    id: 2,
+    term: 'Maaş',
+    definition: 'Yapılan iş karşılığında düzenli olarak kazanılan paradır.',
+    emoji: '💵',
+    color: 'from-blue-500 to-indigo-500',
+    light: 'bg-blue-50 border-blue-200',
+    badge: 'bg-blue-100 text-blue-700',
+  },
+  {
+    id: 3,
+    term: 'Şirket',
+    definition: 'Üretim yaparak kazanç sağlar ve çalışanlarına maaş öder.',
+    emoji: '🏢',
+    color: 'from-violet-500 to-purple-500',
+    light: 'bg-violet-50 border-violet-200',
+    badge: 'bg-violet-100 text-violet-700',
+  },
+  {
+    id: 4,
+    term: 'Banka',
+    definition: 'Paranın güvenli bir şekilde saklanmasını sağlar ve ihtiyaç olduğunda kredi desteği sunar.',
+    emoji: '🏦',
+    color: 'from-sky-500 to-cyan-500',
+    light: 'bg-sky-50 border-sky-200',
+    badge: 'bg-sky-100 text-sky-700',
+  },
+  {
+    id: 5,
+    term: 'Vergi',
+    definition: 'Kazanılan gelirin belirli bir kısmının devlete aktarılmasıdır.',
+    emoji: '🧾',
+    color: 'from-orange-500 to-amber-500',
+    light: 'bg-orange-50 border-orange-200',
+    badge: 'bg-orange-100 text-orange-700',
+  },
+  {
+    id: 6,
+    term: 'Harcama',
+    definition: 'İhtiyaç ve istekler için para harcama sürecidir.',
+    emoji: '🛍️',
+    color: 'from-pink-500 to-rose-500',
+    light: 'bg-pink-50 border-pink-200',
+    badge: 'bg-pink-100 text-pink-700',
+  },
+  {
+    id: 7,
+    term: 'Birey',
+    definition: 'Çalışarak gelir elde eden ve harcama yapan kişidir.',
+    emoji: '🧑',
+    color: 'from-yellow-500 to-orange-400',
+    light: 'bg-yellow-50 border-yellow-200',
+    badge: 'bg-yellow-100 text-yellow-700',
+  },
+  {
+    id: 8,
+    term: 'Devlet',
+    definition: 'Toplum için hizmet sunar ve bu hizmetleri finanse etmek için vergi toplar.',
+    emoji: '🏛️',
+    color: 'from-slate-600 to-slate-500',
+    light: 'bg-slate-50 border-slate-200',
+    badge: 'bg-slate-100 text-slate-700',
+  },
+];
+
+function shuffle<T>(arr: T[]): T[] {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+const MAX_SCORE = PAIRS.length * 10;
+
+// ─── SÜRÜKLENEBILIR KAVRAM KARTI ──────────────────────────────────────────────
+
+function TermCard({ pair, placed }: { pair: typeof PAIRS[0]; placed: boolean }) {
+  const [{ isDragging }, drag] = useDrag(
+    () => ({
+      type: ITEM_TYPE,
+      item: { id: pair.id },
+      canDrag: !placed,
+      collect: (m) => ({ isDragging: m.isDragging() }),
+    }),
+    [placed]
+  );
+
+  return (
+    <motion.div
+      ref={drag as any}
+      layout
+      style={{ opacity: isDragging ? 0.2 : 1 }}
+      whileHover={placed ? {} : { scale: 1.05, y: -3 }}
+      className={`
+        select-none rounded-2xl border-2 px-4 py-3 flex items-center gap-3 transition-all
+        ${placed
+          ? 'border-slate-200 bg-white opacity-40 cursor-default'
+          : `bg-gradient-to-r ${pair.color} border-transparent shadow-lg cursor-grab active:cursor-grabbing`
+        }
+      `}
+    >
+      <span className="text-2xl leading-none">{pair.emoji}</span>
+      <span className={`font-black text-sm leading-tight ${placed ? 'text-slate-400' : 'text-white'}`}>
+        {pair.term}
+      </span>
+      {placed && <span className="ml-auto text-slate-300 text-xs">✓</span>}
+    </motion.div>
+  );
+}
+
+// ─── TANIM KUTUSU (DROP ZONE) ─────────────────────────────────────────────────
+
+interface DefinitionBoxProps {
+  pair: typeof PAIRS[0];
+  droppedTermId: number | null;
+  onDrop: (termId: number, defId: number) => void;
+  onRemove: (defId: number) => void;
+  validationState: 'idle' | 'correct' | 'wrong';
+}
+
+function DefinitionBox({ pair, droppedTermId, onDrop, onRemove, validationState }: DefinitionBoxProps) {
+  const droppedPair = droppedTermId !== null ? PAIRS.find(p => p.id === droppedTermId) : null;
+  const isEmpty = droppedTermId === null;
+
+  const [{ isOver, canDrop }, drop] = useDrop(
+    () => ({
+      accept: ITEM_TYPE,
+      canDrop: () => isEmpty,
+      drop: (dragged: { id: number }) => onDrop(dragged.id, pair.id),
+      collect: (m) => ({ isOver: m.isOver(), canDrop: m.canDrop() }),
+    }),
+    [isEmpty, onDrop, pair.id]
+  );
+
+  const isActive = isOver && canDrop;
+
+  return (
+    <motion.div
+      ref={drop as any}
+      layout
+      className={`
+        relative rounded-2xl border-2 p-4 transition-all duration-200 min-h-[100px] flex flex-col gap-3
+        ${isEmpty && !isActive ? 'border-dashed border-slate-300 bg-white' : ''}
+        ${isActive ? 'border-indigo-400 bg-indigo-50 scale-[1.02] shadow-md' : ''}
+        ${!isEmpty && validationState === 'idle' ? `${pair.light} border-2` : ''}
+        ${validationState === 'correct' ? 'border-emerald-400 bg-emerald-50' : ''}
+        ${validationState === 'wrong' ? 'border-red-400 bg-red-50' : ''}
+      `}
+    >
+      {/* Tanım metni */}
+      <p className={`text-sm leading-relaxed font-medium ${isEmpty ? 'text-slate-500' : 'text-slate-700'}`}>
+        {pair.definition}
+      </p>
+
+      {/* Bırakılan kavram */}
+      {!isEmpty && droppedPair && (
+        <div className="flex items-center justify-between">
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl ${droppedPair.badge} font-black text-sm`}>
+            <span>{droppedPair.emoji}</span>
+            <span>{droppedPair.term}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {validationState === 'correct' && <span className="text-emerald-500 font-black text-lg">✅</span>}
+            {validationState === 'wrong'   && <span className="text-red-500 font-black text-lg">❌</span>}
+            {validationState === 'idle' && (
+              <button
+                onClick={() => onRemove(pair.id)}
+                className="text-slate-300 hover:text-red-400 font-black text-sm w-6 h-6 rounded-full hover:bg-red-50 flex items-center justify-center transition-all"
+              >✕</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Boşken ipucu */}
+      {isEmpty && (
+        <div className={`text-xs font-bold transition-all ${isActive ? 'text-indigo-500' : 'text-slate-300'}`}>
+          {isActive ? '👆 Bırak!' : 'Kavramı buraya sürükle...'}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+// ─── ANA BİLEŞEN ──────────────────────────────────────────────────────────────
+
+export default function EconomicTerms({ onComplete }: EconomicTermsProps) {
+  const [stage, setStage] = useState<'intro' | 'playing' | 'finished'>('intro');
+  const [shuffledTerms] = useState(() => shuffle(PAIRS));
+  const [shuffledDefs] = useState(() => shuffle(PAIRS));
+  // defId → termId eşleşmesi
+  const [matches, setMatches] = useState<Record<number, number | null>>(
+    () => Object.fromEntries(PAIRS.map(p => [p.id, null]))
+  );
+  const [validation, setValidation] = useState<Record<number, 'idle' | 'correct' | 'wrong'>>(
+    () => Object.fromEntries(PAIRS.map(p => [p.id, 'idle']))
+  );
+  const [checked, setChecked] = useState(false);
+  const [score, setScore] = useState(0);
+
+  const placedTermIds = Object.values(matches).filter(v => v !== null) as number[];
+  const allPlaced = placedTermIds.length === PAIRS.length;
+  const correctCount = Object.values(validation).filter(v => v === 'correct').length;
+
+  const handleDrop = useCallback((termId: number, defId: number) => {
+    setMatches(prev => {
+      const next = { ...prev };
+      // Eğer bu kavram başka bir tanımda zaten varsa, oradan kaldır
+      Object.keys(next).forEach(key => {
+        if (next[Number(key)] === termId) next[Number(key)] = null;
+      });
+      next[defId] = termId;
+      return next;
+    });
+    setChecked(false);
+    setValidation(Object.fromEntries(PAIRS.map(p => [p.id, 'idle'])));
+  }, []);
+
+  const handleRemove = useCallback((defId: number) => {
+    setMatches(prev => ({ ...prev, [defId]: null }));
+    setChecked(false);
+    setValidation(Object.fromEntries(PAIRS.map(p => [p.id, 'idle'])));
+  }, []);
+
+  const checkAnswers = () => {
+    let correct = 0;
+    const newVal: Record<number, 'idle' | 'correct' | 'wrong'> = {};
+    PAIRS.forEach(pair => {
+      const dropped = matches[pair.id];
+      if (dropped === null) { newVal[pair.id] = 'idle'; return; }
+      if (dropped === pair.id) { newVal[pair.id] = 'correct'; correct++; }
+      else newVal[pair.id] = 'wrong';
+    });
+    setValidation(newVal);
+    setChecked(true);
+    const finalScore = correct * 10;
+    setScore(finalScore);
+    if (correct === PAIRS.length) {
+      setTimeout(() => { setStage('finished'); if (onComplete) onComplete(finalScore); }, 1000);
+    }
+  };
+
+  const finishGame = () => {
+    setStage('finished');
+    if (onComplete) onComplete(score);
+  };
+
+  const restart = () => {
+    setStage('intro');
+    setMatches(Object.fromEntries(PAIRS.map(p => [p.id, null])));
+    setValidation(Object.fromEntries(PAIRS.map(p => [p.id, 'idle'])));
+    setChecked(false);
+    setScore(0);
+  };
+
+  // ── GİRİŞ ──────────────────────────────────────────────────────────────────
+  if (stage === 'intro') {
+    return (
+      <div className="w-full max-w-4xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-10 text-center relative">
+          {/* Dekoratif arka plan noktaları */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {PAIRS.map((p, i) => (
+              <motion.div key={i}
+                className="absolute text-4xl opacity-10 select-none"
+                style={{ top: `${10 + (i * 11) % 80}%`, left: `${5 + (i * 13) % 90}%` }}
+                animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+                transition={{ duration: 3 + i * 0.4, repeat: Infinity }}>
+                {p.emoji}
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="relative z-10">
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.1 }}
+              className="text-6xl mb-4">💡</motion.div>
+            <h1 className="text-3xl md:text-4xl font-black text-white mb-3">
+              Ekonomi Terimleri
+            </h1>
+            <p className="text-indigo-200 text-base mb-2 max-w-lg mx-auto leading-relaxed">
+              Kavramları doğru açıklamalarıyla eşleştir!
+            </p>
+            <p className="text-indigo-300 text-sm mb-8 max-w-md mx-auto">
+              8 ekonomi terimini doğru tanımlarına sürükle ve bırak.
+              Her doğru eşleşme <span className="text-yellow-300 font-bold">10 puan</span> kazandırır.
+            </p>
+
+            {/* Kavram önizleme */}
+            <div className="flex flex-wrap justify-center gap-2 mb-8">
+              {PAIRS.map(p => (
+                <div key={p.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 border border-white/20 text-white text-sm font-bold`}>
+                  <span>{p.emoji}</span><span>{p.term}</span>
+                </div>
+              ))}
+            </div>
+
+            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => setStage('playing')}
+              className="bg-white text-indigo-700 font-black text-xl py-4 px-12 rounded-full shadow-2xl hover:bg-indigo-50 transition-colors">
+              OYUNA BAŞLA 🚀
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ── BİTİŞ ──────────────────────────────────────────────────────────────────
+  if (stage === 'finished') {
+    const pct = Math.round((score / MAX_SCORE) * 100);
+    const perf = pct === 100
+      ? { icon: '🏆', title: 'Ekonomi Dahisi!', sub: 'Tüm kavramları mükemmel eşleştirdin!', grad: 'from-yellow-500 to-amber-400' }
+      : pct >= 75
+      ? { icon: '🌟', title: 'Harika İş!', sub: 'Ekonomiyi çok iyi biliyorsun.', grad: 'from-indigo-600 to-violet-500' }
+      : pct >= 50
+      ? { icon: '👍', title: 'İyi Başlangıç!', sub: 'Biraz daha pratik yaparak ustalaşırsın.', grad: 'from-blue-600 to-cyan-500' }
+      : { icon: '📚', title: 'Öğrenmeye Devam!', sub: 'Her deneme seni bir adım ileriye taşır.', grad: 'from-slate-600 to-slate-500' };
+
+    return (
+      <div className="w-full max-w-4xl mx-auto">
+        <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+          className={`bg-gradient-to-br ${perf.grad} rounded-3xl p-10 text-center shadow-2xl`}>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.2 }}
+            className="text-7xl mb-4">{perf.icon}</motion.div>
+          <h2 className="text-3xl font-black text-white mb-2">{perf.title}</h2>
+          <p className="text-white/80 mb-6">{perf.sub}</p>
+          <div className="inline-flex flex-col items-center bg-black/20 rounded-2xl px-8 py-4 mb-6">
+            <span className="text-5xl font-black text-white">{score}</span>
+            <span className="text-white/60 text-sm font-bold">/ {MAX_SCORE} puan</span>
+          </div>
+          <div className="w-full max-w-xs mx-auto bg-black/20 rounded-full h-3 mb-8">
+            <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }}
+              transition={{ duration: 1, delay: 0.4 }}
+              className="h-3 rounded-full bg-white/70" />
+          </div>
+          <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={restart}
+            className="bg-white/20 hover:bg-white/30 text-white font-black py-3 px-10 rounded-full border-2 border-white/30 text-lg backdrop-blur">
+            Tekrar Oyna 🔄
+          </motion.button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ── OYUN ───────────────────────────────────────────────────────────────────
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div className="w-full max-w-5xl mx-auto">
+
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl px-5 py-3 mb-4 flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">💡</span>
+            <span className="text-white font-black text-base">Ekonomi Terimleri</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-indigo-200 text-xs font-bold">
+              {placedTermIds.length} / {PAIRS.length} eşleştirildi
+            </span>
+            {checked && (
+              <div className={`text-xs font-black px-3 py-1 rounded-full ${
+                correctCount === PAIRS.length ? 'bg-emerald-400 text-emerald-900' : 'bg-yellow-400 text-yellow-900'
+              }`}>
+                {correctCount} / {PAIRS.length} doğru
+              </div>
+            )}
+            <div className="flex items-center gap-1 bg-yellow-400/20 border border-yellow-400/40 px-3 py-1 rounded-full">
+              <span className="text-yellow-300 text-sm">⭐</span>
+              <span className="text-yellow-200 font-black text-sm">{score}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+          {/* SOL: Kavram Kartları */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3">
+              <h3 className="text-white font-black text-sm flex items-center gap-2">
+                <span>🃏</span> Kavramlar
+              </h3>
+              <p className="text-indigo-200 text-xs mt-0.5">Doğru tanıma sürükle ve bırak</p>
+            </div>
+            <div className="p-3 flex flex-col gap-2">
+              {shuffledTerms.map(pair => (
+                <TermCard key={pair.id} pair={pair} placed={placedTermIds.includes(pair.id)} />
+              ))}
+            </div>
+          </div>
+
+          {/* SAĞ: Tanım Kutuları */}
+          <div className="lg:col-span-3 flex flex-col gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {shuffledDefs.map(pair => (
+                <DefinitionBox
+                  key={pair.id}
+                  pair={pair}
+                  droppedTermId={matches[pair.id]}
+                  onDrop={handleDrop}
+                  onRemove={handleRemove}
+                  validationState={validation[pair.id]}
+                />
+              ))}
+            </div>
+
+            {/* Butonlar */}
+            <div className="flex gap-3">
+              <motion.button
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                onClick={checkAnswers}
+                disabled={!allPlaced || checked}
+                className={`flex-1 font-black py-3 px-6 rounded-xl shadow text-base transition-all border-b-4 ${
+                  allPlaced && !checked
+                    ? 'bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-800 cursor-pointer'
+                    : 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
+                }`}>
+                {!allPlaced
+                  ? `${PAIRS.length - placedTermIds.length} kavram kaldı...`
+                  : checked
+                  ? `${correctCount}/${PAIRS.length} Doğru ✓`
+                  : '🔍 Cevapları Kontrol Et'}
+              </motion.button>
+
+              {checked && correctCount < PAIRS.length && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                  onClick={finishGame}
+                  className="font-black py-3 px-5 rounded-xl shadow text-base bg-emerald-600 hover:bg-emerald-500 text-white border-b-4 border-emerald-800 cursor-pointer">
+                  Bitir 🏁
+                </motion.button>
+              )}
+
+              <motion.button
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                onClick={restart}
+                className="bg-white hover:bg-slate-50 text-slate-600 font-bold py-3 px-5 rounded-xl shadow border-2 border-slate-200 text-sm">
+                🔄 Sıfırla
+              </motion.button>
+            </div>
+
+            {/* Geri bildirim */}
+            <AnimatePresence>
+              {checked && correctCount < PAIRS.length && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="bg-amber-50 border-2 border-amber-300 rounded-xl px-4 py-3 text-sm text-amber-800 font-semibold text-center">
+                  ❌ işaretli tanımları düzelt ve tekrar dene! ({correctCount}/{PAIRS.length} doğru)
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </DndProvider>
+  );
+}
