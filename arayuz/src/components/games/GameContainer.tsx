@@ -4,6 +4,7 @@ import DragDropNeedsGame from './DragDropNeedsGame';
 import RiskHunter from './RiskHunter';
 import RealDataHunter from './RealDataHunter';
 import SpaceShoppingDepot from './SpaceShoppingDepot';
+import RiskReturnTradeoff from './RiskReturnTradeoff';
 
 interface GameContainerProps {
   gameCode: string;
@@ -30,6 +31,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'space_shopping_depot':
         return <SpaceShoppingDepot onComplete={onComplete} />;
+
+      case 'risk_return_tradeoff':
+        return <RiskReturnTradeoff onComplete={onComplete} />;
 
       default:
         return (
