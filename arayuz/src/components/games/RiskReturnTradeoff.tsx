@@ -27,16 +27,16 @@ const QUESTIONS = [
   {
     id: 2,
     image: '/games/RiskReturnTradeoff/2.jpeg',
-    question: 'Portföyünün %80\'i kasada nakit yatıyor! Piyasa roket gibi uçarken ne yapmalısın?',
+    question: 'Piyasanın "Boğa" (Yükseliş) trendinde olduğunu doğru bildin. Ama çok büyük bir krizimiz var: Sana miras kalan portföyün %80\'i şu an kasada nakit olarak yatıyor! Dışarıdaki devasa kazanç trenini kaçırıyorsun. Portföyün bu haldeyken ve piyasa roket gibi uçarken, ne yapmalısın?',
     choices: [
-      { id: 'A', text: 'HÜCUM — Riski Artır', sub: 'Nakitin bir kısmıyla hemen teknoloji ve şirket hisseleri AL. Bu rüzgarı kaçıramam!' },
-      { id: 'B', text: 'İZLEYİCİ KAL — Koru', sub: 'Korkuyorum. Portföy böyle kalsın, başkalarının zengin olmasını uzaktan izleyeyim.' },
-      { id: 'C', text: 'PANİK — Sat', sub: 'Bu yükseliş yalan! Küçücük %20\'lik hisseyi de sat, %100 nakite geçip sığınağa gir.' },
+      { id: 'A', text: 'HÜCUM (Riski Artır)', sub: '"Güvenli kasanın kilidini kır! Nakitin bir kısmıyla hemen teknoloji ve şirket hisseleri AL. Bu rüzgarı kaçıramam!"' },
+      { id: 'B', text: 'İZLEYİCİ KAL (Koru)', sub: '"Korkuyorum. Portföy böyle kalsın, başkalarının zengin olmasını uzaktan izleyeyim."' },
+      { id: 'C', text: 'PANİK (Sat)', sub: '"Bu yükseliş yalan! Elimdeki o küçücük %20\'lik hisseyi de sat, %100 nakite geçip sığınağa gir."' },
     ],
     correct: 'A',
     feedbacks: {
-      A: { icon: '🏆', title: 'HARİKA: FIRSATI KAÇIRMADIN!', type: 'correct', text: '"Fırsat Maliyeti" tuzağına düşmedin. Piyasa coşkuyla yükselirken paranı çalıştırdın. Harika bir hamle! 🎖️ Fırsat Avcısı Rozeti kazanıldı!' },
-      B: { icon: '❌', title: 'FIRSAT KAÇTI! (Korkaklık)', type: 'wrong', text: 'Güvenli limanda kalmak kriz anlarında iyidir ama dışarıda para yağmuru varken sığınakta beklemek sana sadece zaman kaybettirir. Paran enflasyon karşısında eriyor.' },
+      A: { icon: '🏆', title: 'HARİKA: FIRSATI KAÇIRMADIN!', type: 'correct', text: '"Fırsat Maliyeti" tuzağına düşmedin. Piyasa coşkuyla yükselirken paranı yastık altında tutmak yerine yatırıma yönlendirerek paranı çalıştırdın. Harika bir hamle! 🎖️ Fırsat Avcısı Rozeti kazanıldı!' },
+      B: { icon: '❌', title: 'FIRSAT KAÇTI! (Korkaklık)', type: 'wrong', text: 'Güvenli limanda kalmak kriz anlarında iyidir ama dışarıda para yağmuru varken sığınakta beklemek sana sadece zaman kaybettirir. Paran enflasyon ve artan fiyatlar karşısında alım gücünü eritiyor. Çok pasif kaldın!' },
       C: { icon: '🚨', title: 'KRİTİK HATA! (Aşırı Korku)', type: 'critical', text: 'Trendin tamamen tersine hareket ettin! Coşkulu piyasada panikle nakite geçmek, seni kâr partisinin dışına itti. İyi bir yatırımcı mantıkla hareket eder, vesveseyle değil!' },
     },
   },
@@ -52,24 +52,24 @@ const QUESTIONS = [
     correct: 'B',
     feedbacks: {
       A: { icon: '❌', title: 'Yanlış Teşhis', type: 'wrong', text: 'Haberlere bak: fabrikalar duruyor, teknoloji şirketleri kâr uyarısı yapıyor. Bu bir Boğa Piyasası değil.' },
-      B: { icon: '📉', title: 'Doğru Teşhis!', type: 'correct', text: '"Ayı Mevsimi"nin tam ortasındayız. Fırtına bulutları toplandı, endeksler kırmızıya boyandı. Şimdi bu fırtınada dümende sen varsın, portföyünü korumak için ne yapacaksın?' },
+      B: { icon: '📉', title: 'Doğru Teşhis!', type: 'correct', text: 'Maalesef "Ayı Mevsimi"nin tam ortasındayız. Fırtına bulutları toplandı, fabrikalar üretimi durduruyor ve teknoloji devleri kâr uyarısı yapıyor. #BorsaÇöküyor etiketi zirvede ve herkes "Panik Butonu"na basmış durumda. Trend kesinlikle AŞAĞI yönlü ve endeksler kırmızıya boyandı. Şimdi bu fırtınada dümende sen varsın, portföyünü korumak için ne yapacaksın?' },
       C: { icon: '❌', title: 'Yanlış Teşhis', type: 'wrong', text: 'Piyasa yatay seyretmiyor, sert düşüyor. Grafiklerdeki kırmızı oklara dikkat et!' },
     },
   },
   {
     id: 4,
     image: '/games/RiskReturnTradeoff/4.jpeg',
-    question: 'Portföyünün %90\'ı hisse senetlerinde mahsur kaldı ve eriyor! Nakit oranın sadece %10. Ne yapmalısın?',
+    question: 'Piyasanın "Ayı" (Düşüş) trendinde olduğunu ve fırtınanın sertleştiğini doğru bildin. Ancak portföyünün %90\'ı hisse senetlerinde yakalandı ve her saniye eriyor! Üstelik bu düşüşü fırsata çevirecek nakitin (Güvenli Kasa) sadece %10 seviyesinde. Ne yapmalısın?',
     choices: [
-      { id: 'A', text: 'TEDBİRLİ — Riski Yönet', sub: 'En çok düşen riskli hisselerden bir kısmını sat, nakit oranını artır. Portföyü hayatta tut!' },
-      { id: 'B', text: 'PASİF — Hareketsiz Kal', sub: 'Ekranı kapatıp bakmayacağım. Portföy olduğu gibi kalsın, elbet bir gün yükselir.' },
-      { id: 'C', text: 'GÖZÜ KARA — Tehlikeli Hamle', sub: 'Son %10 nakiti de düşen hisselere yatır! Nasılsa çok düştü, buradan dönerse çok kazanırım!' },
+      { id: 'A', text: 'TEDBİRLİ (Riski Yönet)', sub: '"Zararın neresinden dönülse kârdır! En çok düşen riskli hisselerden bir kısmını satarak nakit oranını artır. Portföyü hayatta tut!"' },
+      { id: 'B', text: 'PASİF (Hareketsiz Kal)', sub: '"Ekranı kapatıp bakmayacağım. Portföy olduğu gibi kalsın, elbet bir gün yükselir. Bu sırada paranın erimesini izle."' },
+      { id: 'C', text: 'GÖZÜ KARA (Tehlikeli Hamle)', sub: '"Kalan son %10 nakitini de düşen hisselere yatır! Nasılsa çok düştü, \'buradan dönerse çok kazanırım\' diyerek tüm kurşunlarını harca!"' },
     ],
     correct: 'A',
     feedbacks: {
-      A: { icon: '🛡️', title: 'TEBRİKLER: LİKİDİTEYİ KURTARDIN!', type: 'correct', text: '"Yüksek Risk Tuzağı"ndan kaçmayı başardın. Sert düşüşlerde hisse azaltıp nakit artırmak sermayeni korur. Fırtına dindiğinde, elindeki nakitle ucuzlamış sağlam şirketleri alacak gücün var!' },
-      B: { icon: '📉', title: 'HASAR BÜYÜYOR! (Pasiflik Tuzağı)', type: 'wrong', text: '"Bakmazsam düşmez" mantığı seni korumaz. Portföyünün %90\'ı erirken müdahale etmemek, sermayeni fırtınaya kurban etmektir.' },
-      C: { icon: '🚨', title: 'KRİTİK HATA! (Düşen Bıçak)', type: 'critical', text: 'Piyasa sert düşerken eldeki son nakiti de tehlikeye atmak rasyonel bir strateji değil. Nakitini sıfırladın ve piyasanın insafına kaldın!' },
+      A: { icon: '🛡️', title: 'TEBRİKLER: LİKİDİTEYİ KURTARDIN!', type: 'correct', text: '"Yüksek Risk Tuzağı"ndan kaçmayı başardın. Sert düşüşlerde hisse azaltıp nakit artırmak sermayeni korur. Fırtına dindiğinde, elindeki nakitle "ucuzlamış" sağlam şirketleri almak için artık gücün var!' },
+      B: { icon: '📉', title: 'HASAR BÜYÜYOR! (Pasiflik Tuzağı)', type: 'wrong', text: 'Yatırımda "bakmazsam düşmez" mantığı seni korumaz. Portföyünün %90\'ı erirken müdahale etmemek, sermayeni fırtınaya kurban etmektir. Toparlanma başladığında yatırım yapacak sermayen kalmamış olabilir.' },
+      C: { icon: '🚨', title: 'KRİTİK HATA! (Düşen Bıçak)', type: 'critical', text: 'Finans dünyasında buna "Düşen bıçağı tutmaya çalışmak" denir. Piyasa sert düşerken eldeki son nakiti de tehlikeye atmak rasyonel bir strateji değil, riskli bir duygusal karardır. Nakitini (likiditeni) sıfırladın ve piyasanın insafına kaldın!' },
     },
   },
   {
@@ -79,29 +79,29 @@ const QUESTIONS = [
     choices: [
       { id: 'A', text: 'İyimser (Boğa Piyasası)', sub: 'Fiyatlar hızla artıyor, herkes coşkulu ve sürekli yeni alımlar yapıyor.' },
       { id: 'B', text: 'Kötümser (Ayı Piyasası)', sub: 'Fiyatlar sürekli düşüyor, piyasada korku hakim ve herkes kaçmaya çalışıyor.' },
-      { id: 'C', text: 'Durgun (Yatay Trend)', sub: 'Fiyatlar belirli bir sınırda sıkışmış. Ne net bir yükseliş ne de düşüş var.' },
+      { id: 'C', text: 'Durgun (Yatay Trend)', sub: 'Fiyatlar belirli bir sınır içinde sıkışmış durumda. Piyasada yaprak kımıldamıyor, ne net bir yükseliş ne de düşüş var.' },
     ],
     correct: 'C',
     feedbacks: {
       A: { icon: '❌', title: 'Yanlış Teşhis', type: 'wrong', text: 'Haberlere bak: "Büyük Sessizlik", "Duraklama Dönemi". Coşkulu bir Boğa Piyasası değil bu.' },
       B: { icon: '❌', title: 'Yanlış Teşhis', type: 'wrong', text: 'Panik yok, büyük düşüş yok. Piyasa sıkıcı ama istikrarlı. Bu bir Ayı Piyasası değil.' },
-      C: { icon: '🌟', title: 'Doğru Teşhis!', type: 'correct', text: 'Sıkıcı ama kritik bir "Yatay Piyasa"nın ortasındayız. Acemiler heyecan ararken, usta yatırımcılar pusuya yatıp nakit biriktiriyor. Dümende sen varsın...' },
+      C: { icon: '🌟', title: 'Doğru Teşhis!', type: 'correct', text: 'Sıkıcı ama bir o kadar da kritik bir "Yatay Piyasa"nın tam ortasındayız. Ekranda fiyatlar sadece yana doğru sürükleniyor. Acemi yatırımcılar sıkıntıdan patlayıp heyecan aramak için yanlış hamleler yaparken, usta yatırımcılar pusuya yatıp nakit biriktiriyor. Şimdi dümende sen varsın... Sabrını mı konuşturacaksın, yoksa can sıkıntısına yenik mi düşeceksin?' },
     },
   },
   {
     id: 6,
     image: '/games/RiskReturnTradeoff/6.jpeg',
-    question: 'Portföyün yarısı temettü hisselerinde, yarısı kasada. Sosyal medyada "Nova-X" adlı proje birkaç günde %150 kazandırdı. Ne yapmalısın?',
+    question: 'Piyasanın "Durgun" (Yatay) bir dönemde olduğunu doğru analiz ettin. Aylardır grafikler neredeyse düz bir çizgi halinde ilerliyor. Mevcut portföyün ikiye bölünmüş: Yarısı kasada nakit bekliyor, diğer yarısı sana düzenli küçük ama garanti ödemeler yapan "temettü" hisselerinde. Sosyal medyada herkes "Nova-X" adlı yeni projeyi konuşuyor — sadece birkaç günde %150 değer kazanmış. Ne yapmalısın?',
     choices: [
-      { id: 'A', text: 'HÜCUM — Nova-X\'e Gir', sub: 'Temettü hisselerimi bozup tüm nakitimi Nova-X\'e yatırmalıyım. Herkes kazanırken bu fırsatı kaçıramam!' },
-      { id: 'B', text: 'İZLEYİCİ KAL — Sabret', sub: 'Temettü hisselerimi tutmaya devam edeyim, gelen harçlıkları kasaya ekleyip gerçek fırsat için bekleyeyim.' },
-      { id: 'C', text: 'PANİK — %100 Nakite Geç', sub: 'Bu sessizlik ve tuhaf yükselişler beni huzursuz etti. Temettü hisselerini de satıp tamamen nakite geçeyim.' },
+      { id: 'A', text: 'HÜCUM', sub: '"Düzenli ödeme yapan kasamı (temettü hisselerimi) bozup, elimdeki tüm nakitle birlikte Nova-X\'e girmeliyim. Herkes kazanırken bu fırsatı kaçıramam."' },
+      { id: 'B', text: 'İZLEYİCİ KAL', sub: '"Düzenli ödeme yapan temettü hisselerimi tutmaya devam edeyim. Oradan gelen harçlıkları da nakit kısmına ekleyip, piyasada gerçek ve sürdürülebilir bir fırsat görene kadar bekleyeyim."' },
+      { id: 'C', text: 'PANİK', sub: '"Piyasadaki bu sessizlik ve Nova-X gibi mantıksız yükselişler beni huzursuz etti. Kesin büyük bir kriz patlayacak. Temettü hisselerini de satıp %100 nakite geçmeli ve dışarıdan izlemeliyim."' },
     ],
     correct: 'B',
     feedbacks: {
-      A: { icon: '🚨', title: 'FOMO TUZAĞINA DÜŞTÜN!', type: 'critical', text: 'Başkaları kazanıyor diye sana düzenli gelir sağlayan çalışan sistemi bozdun. Nova-X gibi hızlı parlayan varlıklar, sen en tepeden aldığında genellikle sert düşüşe geçer.' },
-      B: { icon: '🏆', title: 'SABRIN ZAFERİ!', type: 'correct', text: 'Sosyal medyadaki gürültüye kulak asmadın ve stratejine sadık kaldın. Durgun piyasada temettü en iyi dostundur. Piyasa yönünü belli ettiğinde elinde güçlü bir nakit olacak! 🎖️ Soğukkanlı Yatırımcı Rozeti kazanıldı!' },
-      C: { icon: '❌', title: 'GEREKSİZ TELAŞ!', type: 'wrong', text: 'Somut bir kriz yokken sana düzenli ödeme yapan güvenli kasanın kilidini kırdın. %100 nakite geçerek o durgun aylarda kazanabileceğin tüm garanti geliri çöpe attın.' },
+      A: { icon: '🚨', title: 'FOMO TUZAĞINA DÜŞTÜN! (Fırsatı Kaçırma Korkusu)', type: 'critical', text: 'Sırf başkaları kazanıyor diye, sana düzenli gelir sağlayan çalışan bir sistemi bozdun. Nova-X gibi hızlı parlayan varlıklar, sen tam en tepeden aldığında genellikle sert düşüşe geçer. Elindeki güvenli gelirden de oldun!' },
+      B: { icon: '🏆', title: 'SABRIN ZAFERİ!', type: 'correct', text: 'Sosyal medyadaki gürültüye kulak asmadın ve stratejine sadık kaldın. Durgun piyasalarda "Temettü" senin en iyi dostundur; sen hiçbir şey yapmasan da sana para kazandırır. Bu sabrın sayesinde, piyasa gerçekten yönünü belli ettiğinde elinde harika bir nakit gücü olacak! 🎖️ Soğukkanlı Yatırımcı Rozeti kazanıldı!' },
+      C: { icon: '❌', title: 'GEREKSİZ TELAŞ!', type: 'wrong', text: 'Ortada somut bir kriz yokken, sırf piyasa sıkıcı ve tuhaf hissettiriyor diye sana düzenli ödeme yapan güvenli kasanın kilidini kırdın. %100 nakite geçerek, o durgun aylarda kazanabileceğin tüm garanti geliri çöpe atmış oldun.' },
     },
   },
 ];
@@ -295,7 +295,7 @@ export default function RiskReturnTradeoff({ onComplete }: RiskReturnTradeoffPro
           exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.3 }}>
           <div className="relative bg-slate-900">
             <img src={question.image} alt={`Soru ${question.id}`}
-              className="w-full object-contain max-h-64"
+              className="w-full object-contain max-h-96"
               draggable={false} />
             {/* Soru numarası rozeti */}
             <div className="absolute top-3 left-3 bg-indigo-600 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-lg">
