@@ -53,6 +53,8 @@ export default function AdminPanel() {
   const [searchQuery, setSearchQuery] = useState("");
   const [report, setReport] = useState<any>(null);
   const [reportLoading, setReportLoading] = useState(false);
+  const [sortField, setSortField] = useState<'type' | 'completions' | 'avg_score'>('completions');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const fetchData = async () => {
     const token = localStorage.getItem("token");
@@ -576,7 +578,7 @@ export default function AdminPanel() {
 
       {/* RAPORLAR SEKMESİ */}
       {activeTab === "reports" && (
-        <div className="space-y-6">
+        <div className="space-y-6 px-4 md:px-6">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xl font-bold">Platform Raporları</h2>
             <button onClick={fetchReport} className="flex items-center gap-2 text-sm text-primary hover:underline font-medium">
@@ -724,13 +726,37 @@ export default function AdminPanel() {
                         <tr className="border-b border-border">
                           <th className="text-left py-2 px-3 font-bold text-muted-foreground">İçerik</th>
                           <th className="text-left py-2 px-3 font-bold text-muted-foreground">Ünite</th>
-                          <th className="text-center py-2 px-3 font-bold text-muted-foreground">Tür</th>
-                          <th className="text-center py-2 px-3 font-bold text-muted-foreground">Tamamlama</th>
-                          <th className="text-center py-2 px-3 font-bold text-muted-foreground">Ort. Puan</th>
+                          {(['type', 'completions', 'avg_score'] as const).map((field) => {
+                            const labels: Record<string, string> = { type: 'Tür', completions: 'Tamamlama', avg_score: 'Ort. Puan' };
+                            const active = sortField === field;
+                            return (
+                              <th
+                                key={field}
+                                className="text-center py-2 px-3 font-bold text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors"
+                                onClick={() => {
+                                  if (active) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+                                  else { setSortField(field); setSortDir('desc'); }
+                                }}
+                              >
+                                <span className="inline-flex items-center gap-1 justify-center">
+                                  {labels[field]}
+                                  {active ? (sortDir === 'asc' ? '↑' : '↓') : <span className="text-slate-300">↕</span>}
+                                </span>
+                              </th>
+                            );
+                          })}
                         </tr>
                       </thead>
                       <tbody>
-                        {report.content_stats.map((c: any, i: number) => (
+                        {[...report.content_stats].sort((a: any, b: any) => {
+                          let av = a[sortField];
+                          let bv = b[sortField];
+                          if (sortField === 'type') { av = av ?? ''; bv = bv ?? ''; }
+                          else { av = av ?? 0; bv = bv ?? 0; }
+                          if (av < bv) return sortDir === 'asc' ? -1 : 1;
+                          if (av > bv) return sortDir === 'asc' ? 1 : -1;
+                          return 0;
+                        }).map((c: any, i: number) => (
                           <tr key={i} className="border-b border-border/50 hover:bg-muted/30">
                             <td className="py-2 px-3 font-medium">{c.title}</td>
                             <td className="py-2 px-3 text-muted-foreground text-xs">{c.unit}</td>
