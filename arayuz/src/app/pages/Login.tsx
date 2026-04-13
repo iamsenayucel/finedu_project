@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router"; 
+import { Link, useNavigate } from "react-router";
+import { invalidateCache } from "../utils/apiCache";
 import { GraduationCap, LogIn, User, Lock, AlertCircle } from "lucide-react"; 
 import { Button } from "../components/Button";
 import { Card, CardBody } from "../components/Card";
@@ -48,6 +49,7 @@ export default function Login() {
       }
 
       if (response.ok) {
+        invalidateCache(); // Önceki kullanıcının cache'ini temizle
         localStorage.setItem("token", data.token);
         navigate("/dashboard");
       } else {
