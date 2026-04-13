@@ -8,7 +8,7 @@ import { Input, Select } from "../components/Input";
 import {
   Plus, BookOpen, Video, Gamepad2, Users,
   Trash2, Edit, ChevronDown, ChevronRight, Layers, X, UserPlus,
-  ArrowUp, ArrowDown
+  ArrowUp, ArrowDown, BarChart2, TrendingUp, AlertTriangle, Award, Activity
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -24,7 +24,7 @@ const GAME_OPTIONS = [
 
 export default function AdminPanel() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"units" | "users">("units");
+  const [activeTab, setActiveTab] = useState<"units" | "users" | "reports">("units");
   
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [units, setUnits] = useState<any[]>([]);
@@ -51,6 +51,8 @@ export default function AdminPanel() {
 
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [report, setReport] = useState<any>(null);
+  const [reportLoading, setReportLoading] = useState(false);
 
   const fetchData = async () => {
     const token = localStorage.getItem("token");
@@ -98,6 +100,24 @@ export default function AdminPanel() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  const fetchReport = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    setReportLoading(true);
+    try {
+      const res = await fetch("https://finedu-project.onrender.com/api/admin-report/", {
+        headers: { "Authorization": `Token ${token}` },
+      });
+      if (res.ok) setReport(await res.json());
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "reports" && !report) fetchReport();
+  }, [activeTab]);
 
   const handleMove = async (type: "UNIT" | "SUBTOPIC" | "CONTENT", list: any[], index: number, direction: "UP" | "DOWN") => {
     if ((direction === "UP" && index === 0) || (direction === "DOWN" && index === list.length - 1)) return;
@@ -257,6 +277,9 @@ export default function AdminPanel() {
           </button>
           <button onClick={() => setActiveTab("users")} className={`px-6 py-3 font-medium transition-colors border-b-2 ${activeTab === "users" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             <Users className="size-4 inline mr-2" /> Kullanıcılar
+          </button>
+          <button onClick={() => setActiveTab("reports")} className={`px-6 py-3 font-medium transition-colors border-b-2 ${activeTab === "reports" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            <BarChart2 className="size-4 inline mr-2" /> Raporlar
           </button>
         </div>
 
@@ -550,6 +573,189 @@ export default function AdminPanel() {
           </div>
         )}
       </div>
+
+      {/* RAPORLAR SEKMESİ */}
+      {activeTab === "reports" && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xl font-bold">Platform Raporları</h2>
+            <button onClick={fetchReport} className="flex items-center gap-2 text-sm text-primary hover:underline font-medium">
+              <Activity className="size-4" /> Yenile
+            </button>
+          </div>
+
+          {reportLoading && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => <div key={i} className="h-24 rounded-xl animate-pulse bg-muted" />)}
+            </div>
+          )}
+
+          {report && !reportLoading && (
+            <>
+              {/* KPI Kartları */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Toplam Öğrenci', value: report.summary.total_students, icon: '👥', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+                  { label: 'Bu Hafta Aktif', value: report.summary.active_this_week, icon: '🔥', color: 'bg-orange-50 border-orange-200 text-orange-700' },
+                  { label: 'Toplam Tamamlama', value: report.summary.total_completions, icon: '✅', color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+                  { label: 'Ortalama Puan', value: report.summary.avg_score, icon: '⭐', color: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
+                ].map((kpi, i) => (
+                  <div key={i} className={`rounded-xl border-2 p-4 ${kpi.color}`}>
+                    <div className="text-2xl mb-1">{kpi.icon}</div>
+                    <div className="text-3xl font-black">{kpi.value}</div>
+                    <div className="text-sm font-medium mt-1">{kpi.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Son 7 Gün Aktivite */}
+                <Card>
+                  <CardBody>
+                    <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+                      <Activity className="size-4 text-primary" /> Son 7 Günlük Aktivite
+                    </h3>
+                    <div className="flex items-end gap-2 h-32">
+                      {report.daily_activity.map((d: any, i: number) => {
+                        const max = Math.max(...report.daily_activity.map((x: any) => x.count), 1);
+                        const pct = Math.round((d.count / max) * 100);
+                        return (
+                          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                            <span className="text-xs font-bold text-slate-500">{d.count}</span>
+                            <div className="w-full rounded-t-md bg-indigo-500 transition-all" style={{ height: `${Math.max(pct, 4)}%`, minHeight: 4 }} />
+                            <span className="text-xs text-slate-400">{d.date}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardBody>
+                </Card>
+
+                {/* Sınıf Dağılımı */}
+                <Card>
+                  <CardBody>
+                    <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+                      <TrendingUp className="size-4 text-primary" /> Sınıf Seviyesi Dağılımı
+                    </h3>
+                    <div className="space-y-3">
+                      {report.grade_distribution.map((g: any, i: number) => {
+                        const max = Math.max(...report.grade_distribution.map((x: any) => x.count), 1);
+                        const pct = Math.round((g.count / max) * 100);
+                        return (
+                          <div key={i}>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="font-medium">{g.label}</span>
+                              <span className="font-bold text-primary">{g.count} öğrenci</span>
+                            </div>
+                            <div className="h-2 bg-slate-100 rounded-full">
+                              <div className="h-2 bg-indigo-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardBody>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Top 10 Öğrenci */}
+                <Card>
+                  <CardBody>
+                    <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+                      <Award className="size-4 text-yellow-500" /> Top 10 Öğrenci
+                    </h3>
+                    <div className="space-y-2">
+                      {report.top_students.map((s: any, i: number) => (
+                        <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/40">
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0
+                            ${i === 0 ? 'bg-yellow-400 text-yellow-900' : i === 1 ? 'bg-slate-300 text-slate-700' : i === 2 ? 'bg-orange-300 text-orange-800' : 'bg-muted text-muted-foreground'}`}>
+                            {i + 1}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm truncate">{s.name}</p>
+                            <p className="text-xs text-muted-foreground">{s.grade_level} · 🔥 {s.streak_days} gün</p>
+                          </div>
+                          <span className="font-black text-primary text-sm">{s.total_score} pt</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardBody>
+                </Card>
+
+                {/* Risk Altındaki Öğrenciler */}
+                <Card>
+                  <CardBody>
+                    <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+                      <AlertTriangle className="size-4 text-orange-500" /> Risk Altındaki Öğrenciler
+                      <span className="ml-auto text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-bold">
+                        7+ gün inaktif
+                      </span>
+                    </h3>
+                    {report.at_risk.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">🎉 Tüm öğrenciler aktif!</p>
+                    ) : (
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {report.at_risk.map((s: any, i: number) => (
+                          <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-orange-50 border border-orange-100">
+                            <span className="text-xl">⚠️</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm truncate">{s.name}</p>
+                              <p className="text-xs text-muted-foreground">{s.email}</p>
+                            </div>
+                            <span className="text-xs font-bold text-orange-600 shrink-0">{s.last_active}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardBody>
+                </Card>
+              </div>
+
+              {/* İçerik Performans Tablosu */}
+              <Card>
+                <CardBody>
+                  <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+                    <BarChart2 className="size-4 text-primary" /> İçerik Performansı
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="text-left py-2 px-3 font-bold text-muted-foreground">İçerik</th>
+                          <th className="text-left py-2 px-3 font-bold text-muted-foreground">Ünite</th>
+                          <th className="text-center py-2 px-3 font-bold text-muted-foreground">Tür</th>
+                          <th className="text-center py-2 px-3 font-bold text-muted-foreground">Tamamlama</th>
+                          <th className="text-center py-2 px-3 font-bold text-muted-foreground">Ort. Puan</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {report.content_stats.map((c: any, i: number) => (
+                          <tr key={i} className="border-b border-border/50 hover:bg-muted/30">
+                            <td className="py-2 px-3 font-medium">{c.title}</td>
+                            <td className="py-2 px-3 text-muted-foreground text-xs">{c.unit}</td>
+                            <td className="py-2 px-3 text-center">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${c.type === 'VIDEO' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                                {c.type === 'VIDEO' ? '🎬 Video' : '🎮 Oyun'}
+                              </span>
+                            </td>
+                            <td className="py-2 px-3 text-center font-bold">{c.completions}</td>
+                            <td className="py-2 px-3 text-center">
+                              <span className={`font-bold ${c.avg_score >= 70 ? 'text-emerald-600' : c.avg_score >= 40 ? 'text-yellow-600' : 'text-red-500'}`}>
+                                {c.avg_score > 0 ? c.avg_score : '—'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardBody>
+              </Card>
+            </>
+          )}
+        </div>
+      )}
 
       {/* ORTAK AÇILIR PENCERE (MODAL) FORM */}
       <AnimatePresence>

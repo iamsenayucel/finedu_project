@@ -4,8 +4,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from .forms import CustomUserCreationForm
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout, authenticate 
-from django.contrib.auth.forms import AuthenticationForm 
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import CustomUser, Unit, Subtopic, Content, UserProgress, Classroom, UserBadge
@@ -15,8 +15,9 @@ from rest_framework.response import Response
 from .serializers import UserSerializer, UnitSerializer
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import AllowAny
-from django.db.models import Count
-from django.db.models import Sum
+from django.db.models import Count, Sum, Avg
+from django.utils import timezone
+from datetime import timedelta
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
@@ -564,3 +565,110 @@ def api_reorder_view(request):
         return Response({'message': 'Sıralama başarıyla kaydedildi!'})
     except Exception as e:
         return Response({'error': str(e)}, status=400)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_admin_report_view(request):
+    if request.user.role != 'ADMIN':
+        return Response({'error': 'Yetkiniz yok'}, status=403)
+
+    today = timezone.now().date()
+    week_ago = today - timedelta(days=7)
+
+    students = CustomUser.objects.filter(role='STUDENT')
+    total_students = students.count()
+    active_this_week = students.filter(last_activity_date__gte=week_ago).count()
+
+    all_progress = UserProgress.objects.filter(is_completed=True)
+    total_completions = all_progress.count()
+    avg_score = all_progress.aggregate(avg=Avg('score'))['avg']
+    avg_score = round(avg_score, 1) if avg_score else 0
+
+    # --- Son 7 günlük aktivite ---
+    daily_activity = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        count = UserProgress.objects.filter(
+            is_completed=True,
+            date_completed__date=day
+        ).count()
+        daily_activity.append({'date': day.strftime('%d.%m'), 'count': count})
+
+    # --- İçerik performansı (tüm içerikler) ---
+    contents = Content.objects.select_related('subtopic__unit').all()
+    content_stats = []
+    for c in contents:
+        prog = UserProgress.objects.filter(content=c, is_completed=True)
+        cnt = prog.count()
+        avg = prog.aggregate(avg=Avg('score'))['avg']
+        content_stats.append({
+            'id': c.id,
+            'title': c.title,
+            'type': c.content_type,
+            'unit': c.subtopic.unit.title,
+            'completions': cnt,
+            'avg_score': round(avg, 1) if avg else 0,
+        })
+    content_stats.sort(key=lambda x: x['completions'], reverse=True)
+
+    # --- Risk altındaki öğrenciler (7+ gün inaktif veya hiç giriş yapmamış) ---
+    at_risk = students.filter(
+        last_activity_date__lt=week_ago
+    ).values('id', 'first_name', 'last_name', 'email', 'last_activity_date', 'grade_level')
+    never_active = students.filter(last_activity_date__isnull=True).values(
+        'id', 'first_name', 'last_name', 'email', 'last_activity_date', 'grade_level'
+    )
+
+    at_risk_list = []
+    for s in list(at_risk) + list(never_active):
+        last = s['last_activity_date']
+        at_risk_list.append({
+            'id': s['id'],
+            'name': f"{s['first_name']} {s['last_name']}".strip() or s['email'],
+            'email': s['email'],
+            'grade_level': s['grade_level'],
+            'last_active': last.strftime('%d.%m.%Y') if last else 'Hiç giriş yapmadı',
+            'days_inactive': (today - last).days if last else None,
+        })
+    at_risk_list.sort(key=lambda x: (x['days_inactive'] is None, x['days_inactive'] or 999), reverse=True)
+
+    # --- Sınıf seviyesi dağılımı ---
+    grade_dist = list(
+        students.values('grade_level')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    grade_labels = {
+        'PRIMARY': 'İlkokul', 'MIDDLE': 'Ortaokul', 'HIGH': 'Lise',
+        'UNIVERSITY_FINANCE': 'Üniversite (Finans)', 'UNIVERSITY_GENERAL': 'Üniversite (Genel)',
+        None: 'Belirtilmemiş',
+    }
+    for g in grade_dist:
+        g['label'] = grade_labels.get(g['grade_level'], g['grade_level'])
+
+    # --- Top 10 öğrenci ---
+    top_students = []
+    for s in students:
+        top_students.append({
+            'name': f"{s.first_name} {s.last_name}".strip() or s.username,
+            'total_score': s.total_score,
+            'streak_days': s.streak_days,
+            'grade_level': grade_labels.get(s.grade_level, s.grade_level),
+        })
+    top_students.sort(key=lambda x: x['total_score'], reverse=True)
+    top_students = top_students[:10]
+
+    return Response({
+        'summary': {
+            'total_students': total_students,
+            'active_this_week': active_this_week,
+            'total_completions': total_completions,
+            'avg_score': avg_score,
+        },
+        'daily_activity': daily_activity,
+        'content_stats': content_stats[:20],
+        'at_risk': at_risk_list[:20],
+        'grade_distribution': grade_dist,
+        'top_students': top_students,
+    })
