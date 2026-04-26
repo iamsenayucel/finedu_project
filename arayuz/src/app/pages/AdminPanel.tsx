@@ -19,7 +19,9 @@ const GAME_OPTIONS = [
   { value: "real_data_hunter", label: "🔍 Gerçek Veri Avı - Bilgi Doğrulama" },
   { value: "space_shopping_depot", label: "🚀 Uzay Alışveriş Deposu - İstek & İhtiyaç" },
   { value: "risk_return_tradeoff", label: "📈 Mirasın Kaderi - Risk & Getiri" },
-  { value: "economic_terms", label: "💡 Ekonomi Terimleri - Kavram Eşleştirme" }
+  { value: "economic_terms", label: "💡 Ekonomi Terimleri - Kavram Eşleştirme" },
+  { value: "money_flow", label: "💸 Para Akışı - Finansal Kurumlar" },
+  { value: "revenue_matching", label: "💰 Aktif & Pasif Gelir - Eşleştirme Oyunu" }
 ];
 
 export default function AdminPanel() {

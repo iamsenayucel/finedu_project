@@ -6,6 +6,8 @@ import RealDataHunter from './RealDataHunter';
 import SpaceShoppingDepot from './SpaceShoppingDepot';
 import RiskReturnTradeoff from './RiskReturnTradeoff';
 import EconomicTerms from './EconomicTerms';
+import MoneyFlow from './MoneyFlow';
+import RevenueMatching from './RevenueMatching';
 
 interface GameContainerProps {
   gameCode: string;
@@ -38,6 +40,12 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'economic_terms':
         return <EconomicTerms onComplete={onComplete} />;
+
+      case 'money_flow':
+        return <MoneyFlow onComplete={onComplete} />;
+
+      case 'revenue_matching':
+        return <RevenueMatching onComplete={onComplete} />;
 
       default:
         return (
