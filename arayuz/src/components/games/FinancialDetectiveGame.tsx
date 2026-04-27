@@ -427,22 +427,23 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
       {/* Main card */}
       <div className="bg-slate-900 border border-slate-700 rounded-3xl overflow-hidden shadow-2xl">
 
-        {/* News image + title */}
-        <div className="relative">
+        {/* News image */}
+        <div className="border-b border-slate-700/60">
           <img
             src={currentNews.image}
             alt={currentNews.title}
-            className="w-full object-contain max-h-80"
+            className="w-full object-contain"
           />
-          {/* Title overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent px-6 pt-8 pb-4">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-amber-400 text-xs font-bold uppercase tracking-widest bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded">
-                📰 Haber Dosyası #{currentNews.id}
-              </span>
-            </div>
-            <h2 className="text-white font-black text-xl leading-snug">{currentNews.title}</h2>
+        </div>
+
+        {/* Title bar (below image, not overlaid) */}
+        <div className="px-6 py-4 bg-slate-800/50 border-b border-slate-700/60">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-amber-400 text-xs font-bold uppercase tracking-widest bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded">
+              📰 Haber Dosyası #{currentNews.id}
+            </span>
           </div>
+          <h2 className="text-white font-black text-xl leading-snug">{currentNews.title}</h2>
         </div>
 
         {/* Stage content */}

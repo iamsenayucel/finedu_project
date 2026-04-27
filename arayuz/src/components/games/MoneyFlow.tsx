@@ -166,6 +166,22 @@ function StepSlot({ onDrop, className, children }: {
   );
 }
 
+function CardPoolZone({ onDrop, className, children }: {
+  onDrop: (item: CardDrag) => void; className?: string; children: React.ReactNode;
+}) {
+  const [{ isOver }, drop] = useDrop<CardDrag, void, { isOver: boolean }>({
+    accept: CARD,
+    drop: item => onDrop(item),
+    collect: m => ({ isOver: m.isOver() }),
+  });
+  return (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    <div ref={drop as any} className={`${className ?? ''} transition-all ${isOver ? 'ring-2 ring-blue-400/60' : ''}`}>
+      {children}
+    </div>
+  );
+}
+
 function PoolZone({ onDrop, className, children }: {
   onDrop: (item: StepDrag) => void; className?: string; children: React.ReactNode;
 }) {
@@ -267,6 +283,18 @@ function MoneyFlowGame({ onComplete }: MoneyFlowProps) {
     setScore(prev => prev + pts);
     setChecked(true);
   };
+
+  const handleP1PoolReturn = useCallback((item: CardDrag) => {
+    if (item.fromZone) {
+      setP1Placed(prev => ({ ...prev, [item.fromZone!]: null }));
+    }
+  }, []);
+
+  const handleP2PoolReturn = useCallback((item: CardDrag) => {
+    if (item.fromZone) {
+      setP2Placed(prev => ({ ...prev, [item.fromZone!]: null }));
+    }
+  }, []);
 
   // ── Phase 3 ──────────────────────────────────────────────────────────────────
   const handleP3SlotDrop = useCallback((item: StepDrag, slotIdx: number) => {
@@ -501,8 +529,14 @@ function MoneyFlowGame({ onComplete }: MoneyFlowProps) {
 
                   {/* Pool */}
                   <div className="mb-5">
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Kart Havuzu</p>
-                    <div className="flex gap-3 flex-wrap min-h-[60px] bg-slate-800/40 rounded-xl p-3 border border-dashed border-slate-600">
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
+                      Kart Havuzu
+                      <span className="ml-2 text-slate-600 font-normal normal-case">← geri almak için buraya bırak</span>
+                    </p>
+                    <CardPoolZone
+                      onDrop={handleP1PoolReturn}
+                      className="flex gap-3 flex-wrap min-h-[60px] bg-slate-800/40 rounded-xl p-3 border border-dashed border-slate-600"
+                    >
                       {p1Pool.map(card => (
                         <DragCard key={card.id} cardId={card.id} fromZone={null} disabled={checked}>
                           <div className="flex items-center gap-2 bg-slate-700 border-2 border-slate-500 hover:border-blue-400 rounded-xl px-4 py-2.5 text-white font-bold text-sm select-none">
@@ -514,7 +548,7 @@ function MoneyFlowGame({ onComplete }: MoneyFlowProps) {
                       {p1Pool.length === 0 && (
                         <p className="text-slate-600 text-xs italic self-center px-1">Tüm kartlar yerleştirildi</p>
                       )}
-                    </div>
+                    </CardPoolZone>
                   </div>
 
                   {/* Institution zones */}
@@ -593,8 +627,14 @@ function MoneyFlowGame({ onComplete }: MoneyFlowProps) {
 
                   {/* Pool */}
                   <div className="mb-5">
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Kart Havuzu</p>
-                    <div className="flex gap-3 flex-wrap min-h-[60px] bg-slate-800/40 rounded-xl p-3 border border-dashed border-slate-600">
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">
+                      Kart Havuzu
+                      <span className="ml-2 text-slate-600 font-normal normal-case">← geri almak için buraya bırak</span>
+                    </p>
+                    <CardPoolZone
+                      onDrop={handleP2PoolReturn}
+                      className="flex gap-3 flex-wrap min-h-[60px] bg-slate-800/40 rounded-xl p-3 border border-dashed border-slate-600"
+                    >
                       {p2Pool.map(flow => (
                         <DragCard key={flow.id} cardId={flow.id} fromZone={null} disabled={checked}>
                           <div className="flex items-center gap-2 bg-slate-700 border-2 border-slate-500 hover:border-purple-400 rounded-xl px-4 py-2.5 text-white font-bold text-sm select-none">
@@ -606,7 +646,7 @@ function MoneyFlowGame({ onComplete }: MoneyFlowProps) {
                       {p2Pool.length === 0 && (
                         <p className="text-slate-600 text-xs italic self-center px-1">Tüm kartlar yerleştirildi</p>
                       )}
-                    </div>
+                    </CardPoolZone>
                   </div>
 
                   {/* Connection rows */}

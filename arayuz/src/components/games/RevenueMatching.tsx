@@ -258,6 +258,12 @@ function RevenueMatchingGame({ onComplete }: RevenueMatchingProps) {
       setTimeout(() => {
         setShake(false);
         setFeedback(null);
+        if (cardIdx + 1 >= shuffled.length) {
+          onComplete?.(score);
+          setStage('finished');
+        } else {
+          setCardIdx(prev => prev + 1);
+        }
         setProcessing(false);
       }, 2800);
     }
