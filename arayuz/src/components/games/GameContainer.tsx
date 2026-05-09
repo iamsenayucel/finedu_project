@@ -8,6 +8,7 @@ import RiskReturnTradeoff from './RiskReturnTradeoff';
 import EconomicTerms from './EconomicTerms';
 import MoneyFlow from './MoneyFlow';
 import RevenueMatching from './RevenueMatching';
+import FutureChoice from './FutureChoice';
 
 interface GameContainerProps {
   gameCode: string;
@@ -46,6 +47,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'revenue_matching':
         return <RevenueMatching onComplete={onComplete} />;
+
+      case 'future_choice':
+        return <FutureChoice onComplete={onComplete} />;
 
       default:
         return (

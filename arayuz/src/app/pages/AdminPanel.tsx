@@ -21,7 +21,8 @@ const GAME_OPTIONS = [
   { value: "risk_return_tradeoff", label: "📈 Mirasın Kaderi - Risk & Getiri" },
   { value: "economic_terms", label: "💡 Ekonomi Terimleri - Kavram Eşleştirme" },
   { value: "money_flow", label: "💸 Para Akışı - Finansal Kurumlar" },
-  { value: "revenue_matching", label: "💰 Aktif & Pasif Gelir - Eşleştirme Oyunu" }
+  { value: "revenue_matching", label: "💰 Aktif & Pasif Gelir - Eşleştirme Oyunu" },
+  { value: "future_choice", label: "🎯 Geleceğini Seç - Risk mi Güven mi?" }
 ];
 
 export default function AdminPanel() {
