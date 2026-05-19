@@ -10,6 +10,7 @@ import MoneyFlow from './MoneyFlow';
 import RevenueMatching from './RevenueMatching';
 import FutureChoice from './FutureChoice';
 import InvestmentMethods from './InvestmentMethods';
+import ScamDetector from './ScamDetector';
 
 interface GameContainerProps {
   gameCode: string;
@@ -54,6 +55,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'investment_methods':
         return <InvestmentMethods onComplete={onComplete} />;
+
+      case 'scam_detector':
+        return <ScamDetector onComplete={onComplete} />;
 
       default:
         return (

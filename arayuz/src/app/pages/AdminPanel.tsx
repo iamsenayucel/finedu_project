@@ -23,7 +23,8 @@ const GAME_OPTIONS = [
   { value: "money_flow", label: "💸 Para Akışı - Finansal Kurumlar" },
   { value: "revenue_matching", label: "💰 Aktif & Pasif Gelir - Eşleştirme Oyunu" },
   { value: "future_choice",       label: "🎯 Geleceğini Seç - Risk mi Güven mi?" },
-  { value: "investment_methods",  label: "💹 Yasal Yatırım Yöntemleri - Kavram Eşleştirme" }
+  { value: "investment_methods",  label: "💹 Yasal Yatırım Yöntemleri - Kavram Eşleştirme" },
+  { value: "scam_detector",       label: "🕵️ Dolandırıcı Avı - Gerçek mi Tuzak mı?" }
 ];
 
 export default function AdminPanel() {

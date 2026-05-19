@@ -9,7 +9,8 @@
       "Bash(npx tsc:*)",
       "Bash(./node_modules/.bin/tsc --noEmit)",
       "Bash(node_modules/.bin/tsc --noEmit)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(dir \"c:\\\\Users\\\\yucel\\\\Desktop\\\\finedu_project\\\\arayuz\\\\public\\\\games\" /b)"
     ]
   }
 }
