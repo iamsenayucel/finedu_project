@@ -22,7 +22,8 @@ const GAME_OPTIONS = [
   { value: "economic_terms", label: "💡 Ekonomi Terimleri - Kavram Eşleştirme" },
   { value: "money_flow", label: "💸 Para Akışı - Finansal Kurumlar" },
   { value: "revenue_matching", label: "💰 Aktif & Pasif Gelir - Eşleştirme Oyunu" },
-  { value: "future_choice", label: "🎯 Geleceğini Seç - Risk mi Güven mi?" }
+  { value: "future_choice",       label: "🎯 Geleceğini Seç - Risk mi Güven mi?" },
+  { value: "investment_methods",  label: "💹 Yasal Yatırım Yöntemleri - Kavram Eşleştirme" }
 ];
 
 export default function AdminPanel() {

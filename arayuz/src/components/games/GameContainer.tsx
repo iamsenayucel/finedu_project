@@ -9,6 +9,7 @@ import EconomicTerms from './EconomicTerms';
 import MoneyFlow from './MoneyFlow';
 import RevenueMatching from './RevenueMatching';
 import FutureChoice from './FutureChoice';
+import InvestmentMethods from './InvestmentMethods';
 
 interface GameContainerProps {
   gameCode: string;
@@ -50,6 +51,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'future_choice':
         return <FutureChoice onComplete={onComplete} />;
+
+      case 'investment_methods':
+        return <InvestmentMethods onComplete={onComplete} />;
 
       default:
         return (
