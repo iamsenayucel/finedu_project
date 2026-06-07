@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const GAME_OPTIONS = [
   { value: "financial_detective", label: "🕵️‍♂️ Finansal Haber Dedektifi (10. Sınıf)" },
   { value: "drag_drop_needs", label: "🛒 İstek mi İhtiyaç mı? (İlkokul)" },
-  { value: "risk_hunter", label: "🎯 Risk Hunter - Portföy Yöneticisi" },
+  { value: "risk_hunter", label: "🎯 FinEdu Yatırım Okulu" },
   { value: "real_data_hunter", label: "🔍 Gerçek Veri Avı - Bilgi Doğrulama" },
   { value: "space_shopping_depot", label: "🚀 Uzay Alışveriş Deposu - İstek & İhtiyaç" },
   { value: "risk_return_tradeoff", label: "📈 Mirasın Kaderi - Risk & Getiri" },

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TrendingUp, Target, Award } from 'lucide-react';
 
 interface RiskReturnTradeoffProps {
   onComplete?: (score: number) => void;
@@ -178,36 +179,73 @@ export default function RiskReturnTradeoff({ onComplete }: RiskReturnTradeoffPro
   // ── GİRİŞ ────────────────────────────────────────────────────────────────────
   if (stage === 'intro') {
     return (
-      <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl relative"
-        style={{ aspectRatio: '16/9' }}>
-        <img src="/games/RiskReturnTradeoff/giriş.jpeg" alt="Giriş"
-          className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        <div className="absolute inset-0 flex flex-col items-center justify-end pb-10 px-6">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-            className="text-center">
-            <p className="text-indigo-300 font-semibold text-sm mb-3 tracking-widest uppercase">
-              Finansal Karar Simülasyonu
-            </p>
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-3 drop-shadow-lg">
-              Mirasın Kaderi
-            </h1>
-            <p className="text-slate-300 text-sm md:text-base mb-7 max-w-lg mx-auto leading-relaxed">
-              Piyasayı doğru oku, portföyünü akıllıca yönet. 6 kritik karar seni bekliyor.
-            </p>
-            <div className="flex items-center justify-center gap-6 mb-7">
-              {['📰 Piyasayı Analiz Et', '🎯 Karar Ver', '🏆 Rozet Kazan'].map((s, i) => (
-                <div key={i} className="flex items-center gap-2 bg-white/10 backdrop-blur px-3 py-1.5 rounded-full border border-white/20">
-                  <span className="text-xs font-bold text-white">{s}</span>
-                </div>
-              ))}
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
+          <div className="h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500" />
+
+          <div className="p-10 text-center">
+            <div className="flex justify-center items-center gap-3 mb-6">
+              <div className="w-16 h-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center border border-indigo-500/30">
+                <TrendingUp className="w-8 h-8 text-indigo-400" />
+              </div>
+              <div className="w-20 h-20 bg-violet-600/20 rounded-2xl flex items-center justify-center border border-violet-500/30">
+                <Target className="w-10 h-10 text-violet-400" />
+              </div>
+              <div className="w-16 h-16 bg-purple-600/20 rounded-2xl flex items-center justify-center border border-purple-500/30">
+                <Award className="w-8 h-8 text-purple-400" />
+              </div>
             </div>
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+
+            <h1 className="text-4xl font-black text-white mb-2">Mirasın Kaderi</h1>
+            <p className="text-slate-400 text-sm uppercase tracking-widest mb-6">Finansal Karar Simülasyonu</p>
+
+            <div className="bg-slate-700/50 rounded-2xl p-6 mb-8 border border-slate-600/50 text-left max-w-xl mx-auto">
+              <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                <span className="text-white font-bold">Görevin:</span> Piyasa koşullarını doğru analiz et ve portföyünü akıllıca yönet. Her karar seni ya kazanca taşır ya da zarara uğratır.
+              </p>
+              <div className="flex flex-col gap-2">
+                {[
+                  'Piyasa haberini oku ve analiz et',
+                  'Mevcut piyasa trendini teşhis et',
+                  'Portföyün için doğru hamleyi yap',
+                  'Rozetini kazan ve skoru yükselt',
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 text-slate-300 text-sm">
+                    <div className="w-5 h-5 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center font-bold flex-shrink-0">{i + 1}</div>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-6 mb-8 text-slate-400 text-sm">
+              <div className="text-center">
+                <div className="text-2xl font-black text-white">{QUESTIONS.length}</div>
+                <div>Karar</div>
+              </div>
+              <div className="w-px h-8 bg-slate-600" />
+              <div className="text-center">
+                <div className="text-2xl font-black text-white">{MAX_SCORE}</div>
+                <div>Maks. Puan</div>
+              </div>
+              <div className="w-px h-8 bg-slate-600" />
+              <div className="text-center">
+                <div className="text-2xl font-black text-white">2</div>
+                <div>Rozet</div>
+              </div>
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => setStage('playing')}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white text-lg font-black py-3.5 px-12 rounded-full shadow-2xl border-b-4 border-indigo-800">
+              className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-black text-xl py-4 px-14 rounded-full shadow-xl border-b-4 border-violet-800"
+            >
               OYUNA BAŞLA 🚀
             </motion.button>
-          </motion.div>
+          </div>
+
+          <div className="h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500" />
         </div>
       </div>
     );

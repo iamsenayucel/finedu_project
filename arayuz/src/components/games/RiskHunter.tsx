@@ -220,11 +220,11 @@ export default function RiskHunter({ onComplete }: RiskHunterProps) {
       <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl">
         <img
           src="/games/RiskHunter/giris.png"
-          alt="Risk Hunter Giriş"
+          alt="FinEdu Yatırım Okulu Giriş"
           className="w-full object-cover"
         />
         <div className="bg-slate-900 p-8 text-center">
-          <h1 className="text-3xl font-black text-white mb-2">Risk Hunter 🎯</h1>
+          <h1 className="text-3xl font-black text-white mb-2">FinEdu Yatırım Okulu 🎯</h1>
           <p className="text-slate-300 mb-1">
             Haberleri analiz et, piyasa yönünü tahmin et, portföyünü dağıt.
           </p>
