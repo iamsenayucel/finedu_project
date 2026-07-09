@@ -55,18 +55,26 @@ export default function ChatBot() {
         body: JSON.stringify({ message: text }),
       });
 
-      const data = await res.json();
+      let data: Record<string, string> = {};
+      try {
+        data = await res.json();
+      } catch {
+        // Sunucu JSON değil HTML döndürdü (endpoint henüz deploy edilmemiş olabilir)
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: res.ok ? data.reply : (data.error || 'Bir hata oluştu.'),
+          content: res.ok && data.reply
+            ? data.reply
+            : (data.error || `Sunucu hatası (${res.status}). Backend deploy edildi mi ve OPENAI_API_KEY tanımlı mı?`),
         },
       ]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: 'Bağlantı hatası. Lütfen tekrar deneyin.' },
+        { role: 'assistant', content: 'Sunucuya ulaşılamadı. İnternet bağlantını veya Render servisinin ayakta olup olmadığını kontrol et.' },
       ]);
     } finally {
       setIsLoading(false);
