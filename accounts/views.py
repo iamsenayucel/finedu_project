@@ -672,3 +672,61 @@ def api_admin_report_view(request):
         'grade_distribution': grade_dist,
         'top_students': top_students,
     })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def api_chatbot_view(request):
+    import requests as http_requests
+    import os
+
+    message = request.data.get('message', '').strip()
+    if not message:
+        return Response({'error': 'Mesaj boş olamaz.'}, status=400)
+
+    api_key = os.environ.get('OPENAI_API_KEY')
+    if not api_key:
+        return Response({'error': 'API yapılandırma hatası.'}, status=500)
+
+    system_prompt = (
+        "Sen FinEdu'nun yapay zeka asistanısın. FinEdu, Türk öğrencilere finansal okuryazarlık "
+        "öğreten bir eğitim platformudur.\n\n"
+        "Görevin:\n"
+        "- Finansal kavramları (bütçe, tasarruf, yatırım, enflasyon, faiz vb.) Türkçe olarak "
+        "sade ve anlaşılır şekilde açıklamak\n"
+        "- Platformdaki oyunlar ve eğitim içerikleri hakkında yardımcı olmak\n"
+        "- Öğrencileri finansal konularda bilinçlendirmek\n"
+        "- Kısa, net ve yaşa uygun cevaplar vermek\n\n"
+        "Her zaman Türkçe yanıt ver. Finansal eğitim dışındaki konularda şunu söyle: "
+        "'Üzgünüm, yalnızca finansal eğitim konularında yardımcı olabilirim.'"
+    )
+
+    try:
+        resp = http_requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'model': 'gpt-4o-mini',
+                'messages': [
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user', 'content': message},
+                ],
+                'max_tokens': 400,
+                'temperature': 0.7,
+            },
+            timeout=30,
+        )
+
+        if resp.status_code != 200:
+            return Response({'error': 'AI servisine ulaşılamadı.'}, status=502)
+
+        reply = resp.json()['choices'][0]['message']['content']
+        return Response({'reply': reply})
+
+    except http_requests.Timeout:
+        return Response({'error': 'İstek zaman aşımına uğradı. Lütfen tekrar deneyin.'}, status=504)
+    except Exception:
+        return Response({'error': 'Beklenmeyen bir hata oluştu.'}, status=500)
