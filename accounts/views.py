@@ -132,6 +132,9 @@ def unit_detail_view(request, unit_id):
 def current_user_dashboard_api(request):
     user = request.user
 
+    if user.role == 'STUDENT':
+        user.update_streak()
+
     user_data = dict(UserSerializer(user).data)
 
     user_data['total_score'] = user.total_score

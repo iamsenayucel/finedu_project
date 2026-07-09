@@ -531,6 +531,9 @@ export default function AdminPanel() {
                                   <th className="px-6 py-3 text-sm font-semibold">Ad Soyad</th>
                                   <th className="px-6 py-3 text-sm font-semibold">Rol</th>
                                   <th className="px-6 py-3 text-sm font-semibold">Seviye</th>
+                                  {roleGroup.id === "STUDENT" && (
+                                    <th className="px-6 py-3 text-sm font-semibold">Öğrenci Kodu</th>
+                                  )}
                                   <th className="px-6 py-3 text-sm font-semibold text-right">İşlemler</th>
                                 </tr>
                               </thead>
@@ -558,6 +561,15 @@ export default function AdminPanel() {
                                        u.grade_level === 'UNIVERSITY_FINANCE' ? 'Üniv. (Finans)' :
                                        u.grade_level === 'UNIVERSITY_GENERAL' ? 'Üniv. (Genel)' : "-"}
                                     </td>
+                                    {roleGroup.id === "STUDENT" && (
+                                      <td className="px-6 py-4">
+                                        {u.student_code ? (
+                                          <span className="font-mono text-xs bg-muted px-2 py-1 rounded border border-border">
+                                            {u.student_code}
+                                          </span>
+                                        ) : "-"}
+                                      </td>
+                                    )}
                                     <td className="px-6 py-4 text-right">
                                       {u.id !== currentUser?.id && (
                                         <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => handleDelete("USER", u.id)}>
