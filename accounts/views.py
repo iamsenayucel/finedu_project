@@ -179,10 +179,10 @@ def user_progress_api(request):
                 defaults={'is_completed': True, 'score': new_score}
             )
             
-            # Eğer içerik zaten daha önce tamamlandıysa ve bir oyunsa: Puanı GÜNCELLEME! (Sadece ilk oynayış geçerli)
             if not created:
                 progress.is_completed = True
-                # Eğer daha önce puan kaydedilmemişse ve şimdi bir puan geldiyse kaydet
+                progress.play_count += 1
+                # Puan sadece ilk oynayışta kaydedilir
                 if progress.score is None and new_score is not None:
                     progress.score = new_score
                 progress.save()
@@ -603,14 +603,16 @@ def api_admin_report_view(request):
     content_stats = []
     for c in contents:
         prog = UserProgress.objects.filter(content=c, is_completed=True)
-        cnt = prog.count()
+        unique_students = prog.count()
+        total_plays = prog.aggregate(total=Sum('play_count'))['total'] or 0
         avg = prog.aggregate(avg=Avg('score'))['avg']
         content_stats.append({
             'id': c.id,
             'title': c.title,
             'type': c.content_type,
             'unit': c.subtopic.unit.title,
-            'completions': cnt,
+            'completions': unique_students,
+            'play_count': total_plays,
             'avg_score': round(avg, 1) if avg else 0,
         })
     content_stats.sort(key=lambda x: x['completions'], reverse=True)

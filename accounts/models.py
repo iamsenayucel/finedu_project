@@ -94,6 +94,7 @@ class UserProgress(models.Model):
     content = models.ForeignKey(Content, on_delete=models.CASCADE)
     is_completed = models.BooleanField(default=False)
     score = models.IntegerField(null=True, blank=True)
+    play_count = models.IntegerField(default=1)
     date_completed = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return f"{self.student.username} - {self.content.title}"

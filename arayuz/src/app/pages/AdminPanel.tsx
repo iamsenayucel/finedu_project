@@ -58,7 +58,7 @@ export default function AdminPanel() {
   const [searchQuery, setSearchQuery] = useState("");
   const [report, setReport] = useState<any>(null);
   const [reportLoading, setReportLoading] = useState(false);
-  const [sortField, setSortField] = useState<'type' | 'completions' | 'avg_score'>('completions');
+  const [sortField, setSortField] = useState<'type' | 'completions' | 'play_count' | 'avg_score'>('play_count');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const fetchData = async () => {
@@ -743,8 +743,8 @@ export default function AdminPanel() {
                         <tr className="border-b border-border">
                           <th className="text-left py-2 px-3 font-bold text-muted-foreground">İçerik</th>
                           <th className="text-left py-2 px-3 font-bold text-muted-foreground">Ünite</th>
-                          {(['type', 'completions', 'avg_score'] as const).map((field) => {
-                            const labels: Record<string, string> = { type: 'Tür', completions: 'Tamamlama', avg_score: 'Ort. Puan' };
+                          {(['type', 'play_count', 'completions', 'avg_score'] as const).map((field) => {
+                            const labels: Record<string, string> = { type: 'Tür', play_count: 'Oynanma', completions: 'Tekil Öğrenci', avg_score: 'Ort. Puan' };
                             const active = sortField === field;
                             return (
                               <th
@@ -782,7 +782,8 @@ export default function AdminPanel() {
                                 {c.type === 'VIDEO' ? '🎬 Video' : '🎮 Oyun'}
                               </span>
                             </td>
-                            <td className="py-2 px-3 text-center font-bold">{c.completions}</td>
+                            <td className="py-2 px-3 text-center font-bold text-purple-600">{c.play_count}</td>
+                            <td className="py-2 px-3 text-center text-muted-foreground">{c.completions}</td>
                             <td className="py-2 px-3 text-center">
                               <span className={`font-bold ${c.avg_score >= 70 ? 'text-emerald-600' : c.avg_score >= 40 ? 'text-yellow-600' : 'text-red-500'}`}>
                                 {c.avg_score > 0 ? c.avg_score : '—'}
