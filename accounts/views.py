@@ -735,3 +735,9 @@ def api_chatbot_view(request):
         return Response({'error': 'İstek zaman aşımına uğradı. Lütfen tekrar deneyin.'}, status=504)
     except Exception:
         return Response({'error': 'Beklenmeyen bir hata oluştu.'}, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def api_health_view(request):
+    return Response({'status': 'ok'})

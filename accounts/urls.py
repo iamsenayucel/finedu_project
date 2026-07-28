@@ -19,6 +19,7 @@ from .views import (
     api_profile_view,
     api_admin_report_view,
     api_chatbot_view,
+    api_health_view,
 )
 
 # Router ve ViewSet'leri tamamen sildik, çünkü kendi özel API'lerimizi kullanıyoruz.
@@ -50,4 +51,5 @@ urlpatterns = [
     path('profile/', api_profile_view, name='api_profile'),
     path('admin-report/', api_admin_report_view, name='api_admin_report'),
     path('chatbot/', api_chatbot_view, name='api_chatbot'),
+    path('health/', api_health_view, name='api_health'),
 ]
