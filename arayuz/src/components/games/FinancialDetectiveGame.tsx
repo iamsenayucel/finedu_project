@@ -125,6 +125,69 @@ const CLASS_CONFIG: Record<string, { label: string; icon: string; color: string;
   },
 };
 
+const STEP_PANELS = [
+  {
+    // Adım 1 — reading
+    stepLabel: 'Adım 1 · Sosyal Medya İddiası',
+    dictionary: [
+      { term: 'Enflasyon', def: 'Mal ve hizmetlerin fiyatlarının genel düzeyindeki sürekli artıştır. Paranın alım gücünün düşmesi anlamına gelir.' },
+      { term: 'Düşüş Trendi', def: 'Bir ekonomik göstergenin belirli bir zaman dilimi içinde sürekli olarak aşağı yönlü hareket etme eğilimidir.' },
+      { term: 'Spekülatif Gönderi', def: 'Kesin bir veriye dayanmayan, genellikle belirli bir algı yaratmak için paylaşılan tahmini veya kışkırtıcı içerikler.' },
+    ],
+    strategyTitle: 'Tehlike İşaretlerini Tanı',
+    strategyTips: [
+      { title: 'Aşırı Duygu Kullanımı', desc: '"FLAŞ HABER", 🔥 ve 💚 gibi emojiler genellikle manipülatif gönderilerde dikkat çekmek için abartılı şekilde kullanılır.' },
+      { title: 'Kaynak Eksikliği', desc: '"Bu rakamlar ekonominin güçlü toparlandığını gösteriyor" denmiş ama "Hangi kuruma göre?" sorusunun cevabı yok.' },
+      { title: 'Stratejik Hamle', desc: '"Doğrulanmamış" ibaresi bir uyarıdır. Platformdaki dedikodulara değil, orijinal kaynağa gitmelisin.' },
+    ],
+  },
+  {
+    // Adım 2 — analyzing (ilk sorular)
+    stepLabel: 'Adım 2 · Kaynak Seçimi',
+    dictionary: [
+      { term: 'Resmi Veri Kurumu', def: 'Devlet tarafından yasal olarak yetkilendirilmiş, ulusal istatistikleri bilimsel yöntemlerle toplayıp yayınlayan tarafsız kurumlardır (TÜİK, Merkez Bankası).' },
+      { term: 'Birincil Kaynak', def: 'Verinin ilk elden üretildiği, doğrudan araştırmayı yapan orijinal kaynaktır. Doğrulamada en güvenilir adımdır.' },
+      { term: 'İkincil Kaynak', def: 'Birincil kaynaktaki veriyi alıp yorumlayan, özetleyen veya haberleştiren bloglar, gazeteler veya sosyal medya hesaplarıdır.' },
+    ],
+    strategyTitle: 'Güvenilirlik Hiyerarşisi',
+    strategyTips: [
+      { title: 'Sosyal Medya', desc: 'Anonim olabilir, manipülasyona açıktır. En düşük güvenilirlik düzeyi.' },
+      { title: 'Blog Siteleri', desc: 'Yazarın şahsi yorumunu içerir, veriyi işlerken hata yapılmış olabilir.' },
+      { title: 'Resmi Kurum (.gov.tr)', desc: 'Makroekonomik verilerin yasal birincil merkezidir. URL\'nin .gov veya .gov.tr uzantısı güvenilirlik işaretidir.' },
+    ],
+  },
+  {
+    // Adım 3 — analyzing (son sorular)
+    stepLabel: 'Adım 3 · Resmi Veri Analizi',
+    dictionary: [
+      { term: 'TÜFE', def: 'Tüketici Fiyat Endeksi. Hanehalklarının tüketim amacıyla satın aldığı mal ve hizmetlerin fiyatlarındaki değişimi ölçer. "Manşet enflasyon" olarak bilinir.' },
+      { term: 'ÜFE', def: 'Üretici Fiyat Endeksi. Üretici düzeyindeki fiyat değişimini ölçer. Gelecekteki tüketici enflasyonunun habercisidir.' },
+      { term: 'Yıllık Değişim', def: 'İlgili ayın endeks değerinin, bir önceki yılın aynı ayına göre yüzde kaç değiştiğini gösterir (Örn: Aralık 2024 vs Aralık 2023).' },
+    ],
+    strategyTitle: 'Tablo Okuma Sanatı',
+    strategyTips: [
+      { title: 'Dönem Kontrolü', desc: 'Baktığın veri güncel mi? Hangi yıl ve aya ait olduğunu mutlaka kontrol et.' },
+      { title: 'Doğru Metriği Seç', desc: 'İddia genel "enflasyon" üzerineyse, halkın hissettiği manşet enflasyon olan TÜFE\'ye odaklanmalısın.' },
+      { title: 'Gerçeği Not Al', desc: 'Resmi tablodaki veriyi iddia edilen rakamla karşılaştır. Farkın boyutuna dikkat et.' },
+    ],
+  },
+  {
+    // Adım 4 — classifying & feedback
+    stepLabel: 'Adım 4 · Karar ve Sınıflandırma',
+    dictionary: [
+      { term: 'Yanıltıcı Bilgi', def: 'Gerçeği yansıtmayan, bağlamından koparılmış veya kasıtlı olarak değiştirilmiş istatistiksel verilerin kitlelere sunulması.' },
+      { term: 'Eksik Bilgi', def: 'Verinin sadece işe gelen bir kısmının alınıp genel duruma mal edilmesi durumudur (Cherry-picking).' },
+      { term: 'Teyitçilik', def: 'Ortaya atılan şüpheli bir iddianın, şeffaf, tarafsız ve tekrarlanabilir bir metodoloji ile doğrulanması süreci.' },
+    ],
+    strategyTitle: 'Nihai Karar Anı',
+    strategyTips: [
+      { title: 'İki Veriyi Karşılaştır', desc: 'İddia edilen rakam ile resmi kurumun verisi arasındaki farkın boyutunu incele.' },
+      { title: 'Farkın Anlamı', desc: '13 katlık bir uçurum "yuvarlama hatası" değil, kitleleri yanıltmak için kurgulanmış bir senaryodur.' },
+      { title: 'Altın Kural', desc: 'Her finansal iddiayı resmi ve birincil kaynaklarla doğrula. Duygusal içerik her zaman şüpheyle karşıla.' },
+    ],
+  },
+];
+
 function getScoreRank(score: number, max: number) {
   const pct = score / max;
   if (pct >= 0.85) return { label: 'Baş Dedektif', icon: '🏆', color: 'text-yellow-400', desc: 'Finansal haberleri kusursuz analiz ettin!' };
@@ -400,8 +463,46 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
   }
 
   // ── GAME WRAPPER ───────────────────────────────────────────────────────────
+  const panelIndex =
+    stage === 'reading' ? 0
+    : stage === 'analyzing' ? (currentQuestionIndex < 2 ? 1 : 2)
+    : 3;
+  const panel = STEP_PANELS[panelIndex];
+
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex gap-4 items-start">
+
+        {/* ── SOL PANEL: Ekonomi Sözlüğü ── */}
+        <div className="w-56 flex-shrink-0 hidden lg:block sticky top-4">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={panelIndex + '-left'}
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.25 }}
+              className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
+            >
+              <div className="bg-gradient-to-r from-cyan-950 to-slate-900 border-b border-slate-700 px-4 py-3">
+                <p className="text-cyan-400 text-xs font-black uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</p>
+                <p className="text-slate-500 text-[10px] font-medium">{panel.stepLabel}</p>
+              </div>
+              <div className="divide-y divide-slate-800">
+                {panel.dictionary.map((entry, i) => (
+                  <div key={i} className="px-4 py-3">
+                    <p className="text-cyan-300 font-black text-xs mb-1">{entry.term}</p>
+                    <p className="text-slate-400 text-[11px] leading-relaxed">{entry.def}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* ── MERKEZ: Oyun İçeriği ── */}
+        <div className="flex-1 min-w-0">
+          <div className="w-full max-w-2xl mx-auto">
 
       {/* Progress bar header */}
       <div className="bg-slate-900 border border-slate-700 rounded-2xl px-5 py-3.5 mb-4 flex items-center justify-between shadow-lg">
@@ -645,6 +746,41 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
 
         </AnimatePresence>
       </div>
+
+          </div>{/* max-w-2xl */}
+        </div>{/* merkez */}
+
+        {/* ── SAĞ PANEL: Strateji Merkezi ── */}
+        <div className="w-56 flex-shrink-0 hidden lg:block sticky top-4">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={panelIndex + '-right'}
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 12 }}
+              transition={{ duration: 0.25 }}
+              className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
+            >
+              <div className="bg-gradient-to-r from-amber-950 to-slate-900 border-b border-slate-700 px-4 py-3">
+                <p className="text-amber-400 text-xs font-black uppercase tracking-widest mb-0.5">🎯 Strateji Merkezi</p>
+                <p className="text-slate-500 text-[10px] font-medium">{panel.strategyTitle}</p>
+              </div>
+              <div className="divide-y divide-slate-800">
+                {panel.strategyTips.map((tip, i) => (
+                  <div key={i} className="px-4 py-3">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-amber-500 text-[10px]">⚡</span>
+                      <p className="text-amber-300 font-black text-xs">{tip.title}</p>
+                    </div>
+                    <p className="text-slate-400 text-[11px] leading-relaxed">{tip.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+      </div>{/* flex row */}
     </div>
   );
 }
