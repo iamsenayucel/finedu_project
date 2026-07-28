@@ -474,7 +474,7 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
       <div className="flex gap-4 items-start">
 
         {/* ── SOL PANEL: Ekonomi Sözlüğü ── */}
-        <div className="w-56 flex-shrink-0 hidden lg:block sticky top-4">
+        <div className="w-64 flex-shrink-0 hidden lg:block sticky top-4">
           <AnimatePresence mode="wait">
             <motion.div
               key={panelIndex + '-left'}
@@ -484,15 +484,15 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
               transition={{ duration: 0.25 }}
               className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
             >
-              <div className="bg-gradient-to-r from-cyan-950 to-slate-900 border-b border-slate-700 px-4 py-3">
-                <p className="text-cyan-400 text-xs font-black uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</p>
-                <p className="text-slate-500 text-[10px] font-medium">{panel.stepLabel}</p>
+              <div className="bg-gradient-to-r from-cyan-950 to-slate-900 border-b border-slate-700 px-4 py-3.5">
+                <p className="text-cyan-400 text-sm font-black uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</p>
+                <p className="text-slate-500 text-xs font-medium">{panel.stepLabel}</p>
               </div>
               <div className="divide-y divide-slate-800">
                 {panel.dictionary.map((entry, i) => (
-                  <div key={i} className="px-4 py-3">
-                    <p className="text-cyan-300 font-black text-xs mb-1">{entry.term}</p>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">{entry.def}</p>
+                  <div key={i} className="px-4 py-3.5">
+                    <p className="text-cyan-300 font-black text-sm mb-1.5">{entry.term}</p>
+                    <p className="text-slate-400 text-xs leading-relaxed">{entry.def}</p>
                   </div>
                 ))}
               </div>
@@ -751,7 +751,7 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
         </div>{/* merkez */}
 
         {/* ── SAĞ PANEL: Strateji Merkezi ── */}
-        <div className="w-56 flex-shrink-0 hidden lg:block sticky top-4">
+        <div className="w-64 flex-shrink-0 hidden lg:block sticky top-4">
           <AnimatePresence mode="wait">
             <motion.div
               key={panelIndex + '-right'}
@@ -761,18 +761,18 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
               transition={{ duration: 0.25 }}
               className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
             >
-              <div className="bg-gradient-to-r from-amber-950 to-slate-900 border-b border-slate-700 px-4 py-3">
-                <p className="text-amber-400 text-xs font-black uppercase tracking-widest mb-0.5">🎯 Strateji Merkezi</p>
-                <p className="text-slate-500 text-[10px] font-medium">{panel.strategyTitle}</p>
+              <div className="bg-gradient-to-r from-amber-950 to-slate-900 border-b border-slate-700 px-4 py-3.5">
+                <p className="text-amber-400 text-sm font-black uppercase tracking-widest mb-0.5">🎯 Strateji Merkezi</p>
+                <p className="text-slate-500 text-xs font-medium">{panel.strategyTitle}</p>
               </div>
               <div className="divide-y divide-slate-800">
                 {panel.strategyTips.map((tip, i) => (
-                  <div key={i} className="px-4 py-3">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span className="text-amber-500 text-[10px]">⚡</span>
-                      <p className="text-amber-300 font-black text-xs">{tip.title}</p>
+                  <div key={i} className="px-4 py-3.5">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="text-amber-500 text-xs">⚡</span>
+                      <p className="text-amber-300 font-black text-sm">{tip.title}</p>
                     </div>
-                    <p className="text-slate-400 text-[11px] leading-relaxed">{tip.desc}</p>
+                    <p className="text-slate-400 text-xs leading-relaxed">{tip.desc}</p>
                   </div>
                 ))}
               </div>
