@@ -127,63 +127,87 @@ const CLASS_CONFIG: Record<string, { label: string; icon: string; color: string;
 
 const STEP_PANELS = [
   {
-    // Adım 1 — reading
-    stepLabel: 'Adım 1 · Sosyal Medya İddiası',
+    // Scenario 0: Merkez Bankası
+    stepLabel: 'Senaryo 1 · Merkez Bankası',
     dictionary: [
-      { term: 'Enflasyon', def: 'Mal ve hizmetlerin fiyatlarının genel düzeyindeki sürekli artıştır. Paranın alım gücünün düşmesi anlamına gelir.' },
-      { term: 'Düşüş Trendi', def: 'Bir ekonomik göstergenin belirli bir zaman dilimi içinde sürekli olarak aşağı yönlü hareket etme eğilimidir.' },
-      { term: 'Spekülatif Gönderi', def: 'Kesin bir veriye dayanmayan, genellikle belirli bir algı yaratmak için paylaşılan tahmini veya kışkırtıcı içerikler.' },
+      { term: 'Somut Veri (İstatistik)', def: '"Çok yükseldi, herkes alıyor" gibi yuvarlak laflar değil; "%45, 100 baz puan, 2. çeyrek" gibi matematikle ispatlanabilen net rakamlardır.' },
+      { term: 'Birincil Kaynak', def: "Haberin doğrudan muhatabıdır. Faiz haberi için tek birincil kaynak Merkez Bankası'nın resmi açıklamasıdır, bir fenomenin yorumu değil." },
+      { term: 'Manipülasyon (Yönlendirme)', def: 'Haberi yazan kişinin, senin korku veya açgözlülük gibi duygularını kullanarak seni belirli bir finansal karara (almaya veya satmaya) itme çabasıdır.' },
+      { term: 'Yatırım Tavsiyesi (Yasal Uyarı)', def: '"Hemen bu hisseyi alın, faizler düşüyor kesin kazandıracak" gibi yönlendirmelerdir. Güvenilir haber kurumları asla doğrudan yatırım tavsiyesi vermez.' },
     ],
-    strategyTitle: 'Tehlike İşaretlerini Tanı',
+    strategyTitle: 'Kontrol Listesi',
     strategyTips: [
-      { title: 'Aşırı Duygu Kullanımı', desc: '"FLAŞ HABER", 🔥 ve 💚 gibi emojiler genellikle manipülatif gönderilerde dikkat çekmek için abartılı şekilde kullanılır.' },
-      { title: 'Kaynak Eksikliği', desc: '"Bu rakamlar ekonominin güçlü toparlandığını gösteriyor" denmiş ama "Hangi kuruma göre?" sorusunun cevabı yok.' },
-      { title: 'Stratejik Hamle', desc: '"Doğrulanmamış" ibaresi bir uyarıdır. Platformdaki dedikodulara değil, orijinal kaynağa gitmelisin.' },
+      { title: '1. Rakamlar Nerede?', desc: 'Yazı sadece heyecanlı cümlelerden mi oluşuyor, yoksa iddialarını destekleyen net oranlar ve istatistikler içeriyor mu? (Veri kontrolü).' },
+      { title: '2. Bunu Kim Söylüyor?', desc: '"Uzmanlara göre..." gibi belirsiz ifadeler mi var, yoksa "TCMB açıklamasına göre..." gibi net, resmi bir kurum mu işaret ediliyor? (Kaynak kontrolü).' },
+      { title: '3. Duygu Mu, Mantık Mı?', desc: '"ÇÖKÜŞ, UÇUYORUZ, ŞOK" gibi abartılı kelimeler kullanılarak paniğe mi sürükleniyorsun? Güvenilir finans haberi sıkıcı ve soğukkanlıdır. (Abartı kontrolü).' },
+      { title: '4. Bana Ne Yaptırmak İstiyor?', desc: 'Haberi okuduktan sonra kendini acilen bir şey almak veya satmak zorunda hissediyorsan dikkat et! Gerçek haber kararı sana bırakır. (Tavsiye kontrolü).' },
     ],
   },
   {
-    // Adım 2 — analyzing (ilk sorular)
-    stepLabel: 'Adım 2 · Kaynak Seçimi',
+    // Scenario 1: Altın
+    stepLabel: 'Senaryo 2 · Altın Piyasası',
     dictionary: [
-      { term: 'Resmi Veri Kurumu', def: 'Devlet tarafından yasal olarak yetkilendirilmiş, ulusal istatistikleri bilimsel yöntemlerle toplayıp yayınlayan tarafsız kurumlardır (TÜİK, Merkez Bankası).' },
-      { term: 'Birincil Kaynak', def: 'Verinin ilk elden üretildiği, doğrudan araştırmayı yapan orijinal kaynaktır. Doğrulamada en güvenilir adımdır.' },
-      { term: 'İkincil Kaynak', def: 'Birincil kaynaktaki veriyi alıp yorumlayan, özetleyen veya haberleştiren bloglar, gazeteler veya sosyal medya hesaplarıdır.' },
+      { term: 'Güvenli Liman', def: 'Kriz, savaş veya yüksek enflasyon dönemlerinde yatırımcıların paralarının değerini korumak için sığındığı geleneksel varlıklardır. (Altın, en bilinen güvenli limandır).' },
+      { term: 'SPK Lisanslı Uzman', def: 'Sermaye Piyasası Kurulu tarafından onaylanmış, yaptığı yorumlardan yasal olarak sorumlu olan gerçek finansçıdır. (Anonim sosyal medya fenomenlerinden tamamen farklıdır).' },
+      { term: 'Volatilite (Dalgalanma)', def: "Fiyatların kısa bir zaman diliminde yukarı ve aşağı yönlü sert hareketler yapmasıdır. Piyasada dalgalanma olması bir çöküş değil, doğal bir süreçtir." },
+      { term: 'Vade Farkı (Kısa vs. Uzun)', def: '"Kısa vade" genellikle tahmin edilmesi zor ve belirsizdir. Gerçek analistler, dürüstlük gereği kısa vade için kesin konuşmaktan kaçınırlar.' },
     ],
-    strategyTitle: 'Güvenilirlik Hiyerarşisi',
+    strategyTitle: 'Kontrol Listesi',
     strategyTips: [
-      { title: 'Sosyal Medya', desc: 'Anonim olabilir, manipülasyona açıktır. En düşük güvenilirlik düzeyi.' },
-      { title: 'Blog Siteleri', desc: 'Yazarın şahsi yorumunu içerir, veriyi işlerken hata yapılmış olabilir.' },
-      { title: 'Resmi Kurum (.gov.tr)', desc: 'Makroekonomik verilerin yasal birincil merkezidir. URL\'nin .gov veya .gov.tr uzantısı güvenilirlik işaretidir.' },
+      { title: '1. Veriler Net mi?', desc: '"Altın fırladı, rekor kırdı" gibi yuvarlak laflar mı var, yoksa "Son 1 ayda %6" gibi zamanı ve oranı belli matematiksel bir kanıt var mı? (Veri Kontrolü).' },
+      { title: '2. Konuşan Kim?', desc: 'İddiayı atan kişi "Kulislerden duyduk" diyen isimsiz biri mi, yoksa adı, soyadı ve yasal unvanı açıkça yazan, sorumluluk sahibi bir profesyonel mi? (Kaynak Kontrolü).' },
+      { title: '3. Dürüstlük Testi', desc: '"Altın uçacak, treni kaçırma!" gibi abartılı bir coşku mu var? Uzman "Kısa vadede yön kesin değil" diyecek kadar dürüst, sakin bir dil mi kullanmış? (Abartı Kontrolü).' },
+      { title: '4. Emir mi, Analiz mi?', desc: 'Uzman sana "Hemen bütün nakdinle altın almalısın" diye emir mi veriyor? Yoksa sadece piyasanın fotoğrafını çekip kararı sana mı bırakıyor? (Yönlendirme Kontrolü).' },
     ],
   },
   {
-    // Adım 3 — analyzing (son sorular)
-    stepLabel: 'Adım 3 · Resmi Veri Analizi',
+    // Scenario 2: Kripto
+    stepLabel: 'Senaryo 3 · Kripto',
     dictionary: [
-      { term: 'TÜFE', def: 'Tüketici Fiyat Endeksi. Hanehalklarının tüketim amacıyla satın aldığı mal ve hizmetlerin fiyatlarındaki değişimi ölçer. "Manşet enflasyon" olarak bilinir.' },
-      { term: 'ÜFE', def: 'Üretici Fiyat Endeksi. Üretici düzeyindeki fiyat değişimini ölçer. Gelecekteki tüketici enflasyonunun habercisidir.' },
-      { term: 'Yıllık Değişim', def: 'İlgili ayın endeks değerinin, bir önceki yılın aynı ayına göre yüzde kaç değiştiğini gösterir (Örn: Aralık 2024 vs Aralık 2023).' },
+      { term: 'FOMO (Fırsatı Kaçırma Korkusu)', def: '"Herkes kazanıyor, sen izliyorsun, hemen almalısın!" hissi yaratarak seni panikle yanlış karar vermeye iten psikolojik bir manipülasyon taktiğidir.' },
+      { term: 'Bağımsız Analiz (Whitepaper)', def: 'Gerçek projelerin arkasında "süper kazanç" grafikleri değil; projenin ne işe yaradığını anlatan, resmi ve teknik bir rapor (whitepaper) bulunur.' },
+      { term: 'Gizli Reklam (Advertorial)', def: 'Haber gibi görünen ama aslında arkasında bir şirketin veya projenin parayla yaptırdığı tanıtım metinleridir.' },
     ],
-    strategyTitle: 'Tablo Okuma Sanatı',
+    strategyTitle: 'Kontrol Listesi',
     strategyTips: [
-      { title: 'Dönem Kontrolü', desc: 'Baktığın veri güncel mi? Hangi yıl ve aya ait olduğunu mutlaka kontrol et.' },
-      { title: 'Doğru Metriği Seç', desc: 'İddia genel "enflasyon" üzerineyse, halkın hissettiği manşet enflasyon olan TÜFE\'ye odaklanmalısın.' },
-      { title: 'Gerçeği Not Al', desc: 'Resmi tablodaki veriyi iddia edilen rakamla karşılaştır. Farkın boyutuna dikkat et.' },
+      { title: '1. Veriler Net mi?', desc: 'Yazıda sadece yukarı doğru çizilmiş sahte bir ok ve "süper kazanç" etiketleri mi var? Yoksa projenin teknolojisine dair gerçek teknik veriler sunulmuş mu? (Veri Kontrolü).' },
+      { title: '2. Konuşan Kim?', desc: '"Bazı yatırımcılar" veya "Sosyal medyada konuşulanlar" gibi yüzü olmayan, anonim bir kalabalık mı? Anonim hesaplar finansal tavsiye veremez! (Kaynak Kontrolü).' },
+      { title: '3. Dürüstlük Testi', desc: 'Haberin başlığı ve görselleri tamamen senin duygularına mı saldırıyor? Zengin olma hayali satmak, manipülasyonun en net işaretidir. (Abartı Kontrolü).' },
+      { title: '4. Emir mi, Analiz mi?', desc: 'Ortada hiçbir resmi açıklama yokken, seni doğrudan bu "harika projeye" katılmaya mı çağırıyor? Gizli bir reklam okuyor olabilirsin. (Yönlendirme Kontrolü).' },
     ],
   },
   {
-    // Adım 4 — classifying & feedback
-    stepLabel: 'Adım 4 · Karar ve Sınıflandırma',
+    // Scenario 3: Dijital
+    stepLabel: 'Senaryo 4 · Dijital Varlık',
     dictionary: [
-      { term: 'Yanıltıcı Bilgi', def: 'Gerçeği yansıtmayan, bağlamından koparılmış veya kasıtlı olarak değiştirilmiş istatistiksel verilerin kitlelere sunulması.' },
-      { term: 'Eksik Bilgi', def: 'Verinin sadece işe gelen bir kısmının alınıp genel duruma mal edilmesi durumudur (Cherry-picking).' },
-      { term: 'Teyitçilik', def: 'Ortaya atılan şüpheli bir iddianın, şeffaf, tarafsız ve tekrarlanabilir bir metodoloji ile doğrulanması süreci.' },
+      { term: 'Rezerv Karşılığı', def: 'Bir dijital varlığın değerini koruyabilmesi için, onu üreten şirketin kasasında gerçekten o miktarda fiziksel altın tutması zorunluluğudur.' },
+      { term: 'FUD (Korku, Belirsizlik ve Şüphe)', def: 'İnsanları paniğe sürükleyip ellerindeki yatırımları sattırmak veya bir piyasayı kötülemek için yayılan, kanıtsız ve söylentiye dayalı haber stratejisidir.' },
+      { term: 'Anonim Kaynak', def: 'Haberde adı, soyadı veya kurumu gizlenen ("Gizemli kaynak", "kulislerde konuşulanlar") kişilerdir. Yasal sorumlulukları olmadığı için söylediklerine güvenilmez.' },
+      { term: 'Bağımsız Denetim (Audit)', def: '"Kasada altın yok" veya "var" iddialarını kanıtlayabilecek tek şey; o şirketten bağımsız, resmi yeminli mali müşavirlerin hazırladığı denetim raporlarıdır.' },
     ],
-    strategyTitle: 'Nihai Karar Anı',
+    strategyTitle: 'Kontrol Listesi',
     strategyTips: [
-      { title: 'İki Veriyi Karşılaştır', desc: 'İddia edilen rakam ile resmi kurumun verisi arasındaki farkın boyutunu incele.' },
-      { title: 'Farkın Anlamı', desc: '13 katlık bir uçurum "yuvarlama hatası" değil, kitleleri yanıltmak için kurgulanmış bir senaryodur.' },
-      { title: 'Altın Kural', desc: 'Her finansal iddiayı resmi ve birincil kaynaklarla doğrula. Duygusal içerik her zaman şüpheyle karşıla.' },
+      { title: '1. Kanıt Nerede?', desc: '"Birebir eşleşmiyor" deniyor ama bunu ispatlayan resmi "Bağımsız Denetim Raporu" sunulmuş mu? Yoksa sadece kuru bir iddia mı? (Veri Kontrolü).' },
+      { title: '2. Maskenin Arkasında Kim Var?', desc: 'İddiayı atan kişi, yüzü ve yasal lisansı olan biri mi? Yoksa "Gizemli Kaynak" lakaplı, kim olduğu belirsiz bir dedikoducu mu? (Kaynak Kontrolü).' },
+      { title: '3. Korku mu Satıyor?', desc: '"Dijital Hava mı?" gibi dramatik bir başlık sana tarafsız bilgi vermekten ziyade, içindeki şüpheyi (FUD) tetikleyip tıklanma sayısını artırmak için mi seçilmiş? (Abartı Kontrolü).' },
+      { title: '4. Sorumluluk Kimde?', desc: 'Sana tavsiyeler veriyor. Peki bu anonim yazarın lafıyla işlem yapıp zarar edersen kimi mahkemeye vereceksin? Hiç kimseyi. Bu yüzden yönlendirmeler şüphelidir. (Tavsiye Kontrolü).' },
+    ],
+  },
+  {
+    // Scenario 4: Son Haber Kripto
+    stepLabel: 'Senaryo 5 · Sahte Kripto Fırsatı',
+    dictionary: [
+      { term: 'Sıfır Risk Yalanı', def: 'Finansal piyasalarda kâr potansiyeli arttıkça risk de mutlaka artar. "Garantili kazanç", "%100 getiri" ve "Sıfır risk" kelimeleri yan yana geliyorsa, bu bir yatırım değil dolandırıcılık işaretidir.' },
+      { term: 'Sahte Sosyal İspat', def: 'İnsanları ikna etmek için kullanılan; yüzü olmayan, sahte isimli ("Kullanıcı 8472" gibi) veya kurgulanmış başarı hikayeleridir.' },
+      { term: 'Zaman Tuzağı', def: '"Kontenjan doluyor", "Hemen tıkla", "Fırsat kaçıyor" gibi ifadelerle düşünme süreni elinden alıp, seni panikle hatalı karar vermeye zorlayan tehlikeli bir pazarlama taktiğidir.' },
+      { term: 'Yatırım Tuzağı', def: '"Hiçbir bilgiye gerek yok, evden çıkmadan zengin ol" gibi imkansız vaatlerle sunulan, aslında sadece senin cebindeki parayı kendi kasalarına aktarmayı hedefleyen kurmaca sistemlerdir.' },
+    ],
+    strategyTitle: 'Kontrol Listesi',
+    strategyTips: [
+      { title: '1. Risk Nerede?', desc: '"Kaybetmek yok", "%100 getiri" gibi sihirli sözcükler ve uydurulmuş oklar mı var? Unutma; risksiz, kolay ve devasa kazanç matematikte yoktur. (Veri Kontrolü).' },
+      { title: '2. Konuşan Gerçekten Kim?', desc: 'Sistemi öven ve "mucize" diyen kişi yasal, denetlenebilir bir kurum mu? Yoksa karanlık bir silüetten ibaret olan isimsiz bir kullanıcı mı? Yüzü olmayan tavsiyeye güvenilmez! (Kaynak Kontrolü).' },
+      { title: '3. Duygularını mı Avlıyor?', desc: '"YÜZYILIN FIRSATI" veya "Kısa Sürede Zengin Olun" gibi tamamen heyecanını ve kolaya kaçma arzunu hedef alan, mantık dışı abartılar var mı? (Abartı Kontrolü).' },
+      { title: '4. Seni Bir Şeye Zorluyor mu?', desc: 'Haberin sonunda seni doğrudan "HEMEN aşağıdaki butona tıkla" diyerek, düşünmene bile fırsat vermeden üye olmaya veya para yatırmaya mı itiyor? (Tavsiye/Yönlendirme Kontrolü).' },
     ],
   },
 ];
@@ -463,11 +487,7 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
   }
 
   // ── GAME WRAPPER ───────────────────────────────────────────────────────────
-  const panelIndex =
-    stage === 'reading' ? 0
-    : stage === 'analyzing' ? (currentQuestionIndex < 2 ? 1 : 2)
-    : 3;
-  const panel = STEP_PANELS[panelIndex];
+  const panel = STEP_PANELS[currentIndex ?? 0];
 
   return (
     <div className="w-full max-w-7xl mx-auto">
@@ -477,7 +497,7 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
         <div className="w-64 flex-shrink-0 hidden lg:block sticky top-4">
           <AnimatePresence mode="wait">
             <motion.div
-              key={panelIndex + '-left'}
+              key={currentIndex + '-left'}
               initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -12 }}
@@ -754,7 +774,7 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
         <div className="w-64 flex-shrink-0 hidden lg:block sticky top-4">
           <AnimatePresence mode="wait">
             <motion.div
-              key={panelIndex + '-right'}
+              key={currentIndex + '-right'}
               initial={{ opacity: 0, x: 12 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 12 }}

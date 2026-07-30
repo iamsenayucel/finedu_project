@@ -184,6 +184,23 @@ function DropZone({ category, count, onDrop }: {
   );
 }
 
+// ─── Side panel data ──────────────────────────────────────────────────────────
+const REVENUE_PANEL = {
+  dictionary: [
+    { term: 'Temettü (Kâr Payı)', def: 'Bir şirketin yıl sonunda elde ettiği kârdan, hisse senedi sahiplerine dağıttığı nakit ödemedir.' },
+    { term: 'Hisse Senedi', def: 'Borsada işlem gören dev bir şirkete senin de küçük bir oranda "ortak" olmanı sağlayan dijital tapudur.' },
+    { term: 'Faiz Getirisi', def: 'Nakit paranın bankada belirli bir süre bekletilmesi karşılığında, paranın senin için ürettiği ek kazançtır.' },
+    { term: 'Freelance (Serbest) Çalışma', def: 'Belirli bir patrona bağlı kalmadan, kendi becerilerini kullanarak proje bazlı iş teslim etme modelidir.' },
+    { term: 'Telif / İzlenme Hakkı', def: 'Geliştirdiğin bir uygulamanın veya çektiğin bir videonun, her kullanıldığında sana otomatik olarak ödediği paydır.' },
+  ],
+  strategyTitle: 'Strateji Merkezi',
+  strategyTips: [
+    { title: '💪 Aktif Gelir (Zaman = Para)', desc: 'Zamanını ve emeğini doğrudan parayla takas ettiğin modeldir. Çalışmayı bıraktığın an, gelir de anında durur.' },
+    { title: '🌴 Pasif Gelir (Sistem = Para)', desc: 'Bir kez emek harcayıp sistem kurduktan sonra, sen uyurken bile hesabına para akmaya devam eden modeldir.' },
+    { title: '💡 Dijital Eserler (Özel Durum)', desc: 'Başlangıçta yoğun "aktif" çaba gerektirir. Ürün bittikten sonra aylar boyunca para kazandırıyorsa, bu artık "Pasif Gelir"e dönüşmüştür.' },
+  ],
+};
+
 // ─── Main game component ──────────────────────────────────────────────────────
 interface RevenueMatchingProps { onComplete?: (score: number) => void }
 
@@ -427,7 +444,30 @@ function RevenueMatchingGame({ onComplete }: RevenueMatchingProps) {
   const progress    = (cardIdx / shuffled.length) * 100;
 
   return (
-    <div className="w-full max-w-5xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex items-start gap-4">
+        {/* Left Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <div
+            className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+            style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+          >
+            <div className="px-4 py-3.5 border-b border-cyan-800/40">
+              <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+            </div>
+            <div className="px-4 py-3.5 flex flex-col gap-3.5">
+              {REVENUE_PANEL.dictionary.map((item, i) => (
+                <div key={i}>
+                  <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Center */}
+        <div className="flex-1 min-w-0">
       <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
         {/* Progress bar */}
         <div className="h-1.5 bg-slate-100">
@@ -542,6 +582,29 @@ function RevenueMatchingGame({ onComplete }: RevenueMatchingProps) {
             )}
           </AnimatePresence>
         </div>
+      </div>
+        </div>
+
+        {/* Right Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <div
+            className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+            style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+          >
+            <div className="px-4 py-3.5 border-b border-amber-800/40">
+              <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 {REVENUE_PANEL.strategyTitle}</div>
+            </div>
+            <div className="px-4 py-3.5 flex flex-col gap-3.5">
+              {REVENUE_PANEL.strategyTips.map((tip, i) => (
+                <div key={i}>
+                  <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );

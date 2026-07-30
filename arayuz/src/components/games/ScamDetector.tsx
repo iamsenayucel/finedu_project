@@ -194,6 +194,84 @@ const SCENARIOS: Scenario[] = [
   },
 ];
 
+const SCAM_PANELS = [
+  {
+    // Part 1: Ponzi/Sahte Yatırım
+    dictionary: [
+      { term: 'Ponzi (Piramit) Düzeni', def: 'Gerçek ticaret olmayan, sadece sisteme yeni katılanların parasıyla eski üyelere ödeme yapılan yasadışı dolandırıcılık sistemidir. Yeni kurban gelmediği an çöker.' },
+      { term: 'Gerçek Dışı Getiri', def: '"Yüksek kazanç varsa, yüksek risk vardır." Günlük %5 veya aylık %300 gibi rakamlara "Garanti" kelimesi ekleniyorsa, bu matematiğe aykırıdır ve %100 tuzaktır.' },
+      { term: 'Zaman Baskısı', def: 'Dolandırıcıların en sevdiği taktiktir. "Sınırlı süre, fırsat bitiyor, hemen tıkla!" diyerek araştırma yapmanı ve mantığını kullanmanı engellemeye çalışırlar.' },
+      { term: 'Lisans (Yasal İzin)', def: "Türkiye'de yasal yatırım parası toplayabilmek için devlet kurumlarından (SPK veya BDDK) resmi lisans almak zorunludur. Sosyal medya gruplarından yasal yatırım yapılamaz." },
+    ],
+    strategyTitle: 'Tehlike İşaretleri',
+    strategyTips: [
+      { title: '🚩 "Sihirli" Garanti Tuzağı', desc: "İlanda 'Her ay %300-500 garanti kazanç' gibi bir vaat var mı? Seni dünyanın en zenginlerinden daha yüksek faizi 'garanti' eden sistem, seni dolandırıyordur." },
+      { title: '🚩 "Arkadaşını Getir" Tuzağı', desc: "Kazancın mantıklı bir ticaretten değil de sürekli yeni insanları sisteme sokmaktan geliyorsa, bu çok katmanlı bir piramit (Ponzi) düzenidir." },
+      { title: '🚩 Teknoloji Maskesi', desc: '"Yapay Zeka (AI)", "Kripto Botu" gibi havalı kelimeler mi var? Dolandırıcılar sistemi karmaşık göstererek seni etkiler. Nasıl para kazandığını anlamadığın işe girme.' },
+      { title: '🚩 "Önce Güvenlik" Kuralı', desc: '"Birazcık para atıp deneyeyim" demek bile tehlikelidir. Bir platforma para yatırmadan önce mutlaka devletin resmi kurumlarına (SPK/BDDK lisansı var mı?) bakarak sorgula.' },
+    ],
+  },
+  {
+    // Part 2: Sahte E-Ticaret
+    dictionary: [
+      { term: 'Oltalama', def: 'Tasarımı gerçeğine çok benzeyen ama asıl amacı kredi kartı ve şifre bilgilerini çalmak olan sahte web siteleridir.' },
+      { term: 'Yapay Sayaç', def: '"Stok tükeniyor! Son 14 dakika!" gibi sayaçlar, mantığını devre dışı bırakıp aceleyle ödeme yapmanı sağlamak için kurulan psikolojik bir baskı taktiğidir.' },
+      { term: 'Gölge Şirket', def: '"Hakkımızda", "İletişim", vergi numarası veya açık adresi bulunmayan; paranı aldıktan sonra muhatap bulamayacağın hayalet e-ticaret siteleridir.' },
+      { term: 'Alıcı Koruması', def: 'Köklü e-ticaret platformlarının sunduğu sistemdir. Ürün sana ulaşana kadar paran havuzda bekler, dolandırılma ihtimalin sıfıra yakındır.' },
+    ],
+    strategyTitle: 'Tehlike İşaretleri',
+    strategyTips: [
+      { title: '🚩 Mantık Filtresi', desc: '"Apple Watch\'ta %90 indirim" gibi uçuk fiyat ekonomik olarak imkansızdır. Bir fiyat gerçek olamayacak kadar iyiyse, emin ol gerçek değildir!' },
+      { title: '🚩 Doğrulama Filtresi', desc: 'Site ne kadar profesyonel görünürse görünsün; ödeme yapmadan önce sitenin "İletişim" sayfasına, kayıtlı şirket olup olmadığına ve gerçek kullanıcı şikayetlerine bak.' },
+      { title: '🚩 Güvenli Liman Kuralı', desc: 'Sosyal medyada karşına çıkan her süslü linke tıklayıp kart bilgilerini girmek mayın tarlasında yürümektir. Alışverişi yalnızca bilinen ve köklü platformlardan yap.' },
+    ],
+  },
+  {
+    // Part 3: SMS Oltalama
+    dictionary: [
+      { term: 'SMS Oltalama', def: "Dolandırıcıların e-posta yerine doğrudan cep telefonuna SMS atarak seni tuzağa (zararlı bir linke) çekme yöntemidir." },
+      { term: 'Başlık Sahteciliği', def: 'Mesajın gönderen kısmında "PTT", "Banka" veya "Devlet" yazması o mesajın gerçek olduğunu kanıtlamaz. Dolandırıcılar teknolojik yazılımlarla gönderici adını maskeleyebilirler.' },
+      { term: 'Mikro Ödeme', def: '"5 TL kargo", "9 TL gümrük vergisi" gibi küçük rakamlar sunarlar. Asıl amaç o 5 TL değil; ödeme için gireceğin kredi kartı bilgilerini ve şifreni ele geçirmektir!' },
+    ],
+    strategyTitle: 'Tehlike İşaretleri',
+    strategyTips: [
+      { title: '🚩 Mantıksız Talep', desc: 'Devlet kurumları veya resmi kargo şirketleri sana SMS içinde link gönderip "Teslimat için şu linkten 5 TL ödeyin" demez. Link üzerinden para istenmesi, sahte olduğunun en net kanıtıdır.' },
+      { title: '🚩 Zehirli Tıklama', desc: 'O linke tıkladığında karşına gerçek bir kargo takip ekranı çıkmaz. Telefonuna casus yazılım (virüs) iner ya da sahte ödeme ekranına yönlendirilip tüm bilgilerin çalınır.' },
+      { title: '🚩 Korunma Yolu', desc: "Bir kurumdan borç, kargo veya ceza mesajı aldığında kural şudur: Asla o SMS'in içindeki linke tıklama. Tarayıcını açıp kurumun resmi web sitesine kendin gir veya müşteri hizmetlerini ara." },
+    ],
+  },
+  {
+    // Part 4: Sahte Kiralık Ev
+    dictionary: [
+      { term: 'Kapora (Depozito) Avcılığı', def: 'Olmayan veya başkasına ait bir ev için, "Çok soran var, sen kaporayı gönder evi sana ayırayım" yalanıyla güven verip, parayı aldıktan sonra telefonu engelleme taktiğidir.' },
+      { term: 'Hayalet İlan (Çalıntı Görsel)', def: "Dolandırıcıların lüks otel odalarından veya yurtdışındaki emlak sitelerinden çaldıkları aşırı profesyonel fotoğraflarla kurguladıkları sahte ilanlardır." },
+      { term: '"Yurtdışındayım" Bahanesi', def: 'Dolandırıcının en büyük zayıflığı evi sana fiziksel olarak gösterememesidir. Bu yüzden "Şu an yurtdışındayım, kaporayı at anahtarı kargolayayım" gibi bahaneler uydururlar.' },
+      { term: 'Piyasa Gerçekliği', def: 'Gayrimenkul piyasasında "hayır kurumu" yoktur. Hiç kimse 15.000 TL edecek eşyalı lüks bir evi, tanımadığı birine 5.000 TL\'ye kiralamaz.' },
+    ],
+    strategyTitle: 'Tehlike İşaretleri',
+    strategyTips: [
+      { title: '🚩 Mantık Filtresi', desc: 'Milyonluk evini kiraya veren hiç kimse, yüzünü bile görmediği birine anahtarı kargoyla göndermez. "Yurtdışındayım, anahtarı kargolayacağım" en büyük dolandırıcılık işaretidir.' },
+      { title: '🚩 Korunma Filtresi', desc: 'Evi kendi gözlerinle görmeden, kapısını açmadan ve ev sahibinin kimliğinden %100 emin olmadan asla kimseye kapora veya depozito göndermemelisin.' },
+      { title: '🚩 Gerçeklik Filtresi', desc: 'Şehir merkezinde, eşyalı ve yeni bir dairenin fiyatı piyasa değerinin inanılmaz derecede altındaysa, "Bugün çok şanslıyım" diye düşünme. Bu bir dolandırıcılık tuzağıdır.' },
+    ],
+  },
+  {
+    // Part 5: Sahte Burs
+    dictionary: [
+      { term: 'Ön Ödeme (Dosya Masrafı) Yalanı', def: '"Sana büyük para vereceğiz ama önce sen bize küçük bir işlem/dosya parası gönder" şeklindeki klasik tuzaktır. Sana maddi yardım yapacak kurum, senden asla para istemez!' },
+      { term: 'Veri Avcılığı', def: 'Asıl tehlike; T.C. Kimlik numaranı, banka hesap bilgilerini ve şifrelerini ele geçirip senin adına yasal olmayan riskli finansal davranışlar gerçekleştirmektir.' },
+      { term: 'Sahte Sosyal İspat', def: 'İlandaki "Bursum hemen yattı, Allah razı olsun" yazan yorumların %100\'ü, seni ikna etmek için bot (sahte) hesaplarla yazılmış kurgulardır.' },
+      { term: 'Resmi Kurum', def: 'KYK (Devlet), üniversiteler veya Ticaret Odası\'na kayıtlı köklü vakıflardır. Gerçek burslar ".gov.tr" veya ".edu.tr" veya resmi ".org.tr" uzantılı sitelerden duyurulur.' },
+    ],
+    strategyTitle: 'Tehlike İşaretleri',
+    strategyTips: [
+      { title: '🚩 Mantık Filtresi', desc: 'Eğer bir burs ilanı, sana para yatırmak için "başvuru ücreti" veya "banka doğrulama ücreti" talep ediyorsa, bu en büyük kırmızı bayraktır. Paraya ihtiyacı olan öğrenciden para istenmez!' },
+      { title: '🚩 Duyuru Kaynağı Doğrulama', desc: 'Gerçek bir burs programı; anonim sosyal medya sayfalarından veya WhatsApp gruplarından dağıtılmaz. Yalnızca okul, üniversite veya resmi devlet kurumları aracılığıyla duyurulur.' },
+      { title: '🚩 "Şüphe ve Şikayet" Filtresi', desc: 'Burs vereceğini söyleyen kurum banka şifrelerini veya e-Devlet bilgilerini istiyorsa hemen dur. Bilgilerini asla verme ve şüpheliyse yetkililere (CİMER / Emniyet) bildir.' },
+    ],
+  },
+];
+
 type Stage = 'intro' | 'preview' | 'question' | 'final';
 interface Props { onComplete?: (score: number) => void; }
 
@@ -213,6 +291,7 @@ export default function ScamDetector({ onComplete }: Props) {
 
   const sc = SCENARIOS[scenarioIdx];
   const q = sc.questions[questionIdx];
+  const panel = SCAM_PANELS[Math.min(scenarioIdx, 4)];
 
   const handleAnswer = useCallback((optIdx: number) => {
     if (locked) return;
@@ -305,137 +384,257 @@ export default function ScamDetector({ onComplete }: Props) {
 
   // ── PREVIEW ───────────────────────────────────────────────────────────────
   if (stage === 'preview') return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
-        <Bar cls="from-red-600 via-orange-500 to-amber-500" />
-        <div className="p-6 md:p-8">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2">
-              <span className="bg-red-900/50 border border-red-700 text-red-300 text-xs font-bold px-3 py-1 rounded-full">
-                {sc.fraudIcon} {sc.fraudType}
-              </span>
-            </div>
-            <span className="text-slate-400 text-sm font-bold">{scenarioIdx + 1} / {SCENARIOS.length}</span>
-          </div>
-
-          <div className="flex gap-1.5 mb-6">
-            {SCENARIOS.map((_, i) => (
-              <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i < scenarioIdx ? 'bg-red-500' : i === scenarioIdx ? 'bg-orange-400' : 'bg-slate-700'}`} />
-            ))}
-          </div>
-
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex items-start gap-4">
+        {/* Left Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
           <AnimatePresence mode="wait">
-            <motion.div key={sc.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <h2 className="text-white font-black text-2xl mb-4">{sc.title}</h2>
-
-              <div className="rounded-2xl overflow-hidden border border-slate-700 mb-5 bg-slate-800">
-                <img
-                  src={sc.image}
-                  alt={sc.title}
-                  className="w-full object-contain max-h-72"
-                />
+            <motion.div
+              key={`left-${scenarioIdx}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
               </div>
-
-              <div className="bg-slate-800 rounded-2xl p-5 border border-slate-700 mb-6">
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Senaryo Açıklaması</p>
-                <p className="text-slate-200 text-sm leading-relaxed">{sc.description}</p>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.dictionary.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                  </div>
+                ))}
               </div>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                onClick={() => setStage('question')}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-4 rounded-2xl shadow-lg border-b-4 border-orange-800"
-              >
-                Soruları Yanıtla <ArrowRight className="w-5 h-5" />
-              </motion.button>
             </motion.div>
           </AnimatePresence>
         </div>
-        <Bar cls="from-red-600 via-orange-500 to-amber-500" />
+
+        {/* Center */}
+        <div className="flex-1 min-w-0">
+          <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
+            <Bar cls="from-red-600 via-orange-500 to-amber-500" />
+            <div className="p-6 md:p-8">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <span className="bg-red-900/50 border border-red-700 text-red-300 text-xs font-bold px-3 py-1 rounded-full">
+                    {sc.fraudIcon} {sc.fraudType}
+                  </span>
+                </div>
+                <span className="text-slate-400 text-sm font-bold">{scenarioIdx + 1} / {SCENARIOS.length}</span>
+              </div>
+
+              <div className="flex gap-1.5 mb-6">
+                {SCENARIOS.map((_, i) => (
+                  <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i < scenarioIdx ? 'bg-red-500' : i === scenarioIdx ? 'bg-orange-400' : 'bg-slate-700'}`} />
+                ))}
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div key={sc.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <h2 className="text-white font-black text-2xl mb-4">{sc.title}</h2>
+
+                  <div className="rounded-2xl overflow-hidden border border-slate-700 mb-5 bg-slate-800">
+                    <img
+                      src={sc.image}
+                      alt={sc.title}
+                      className="w-full object-contain max-h-72"
+                    />
+                  </div>
+
+                  <div className="bg-slate-800 rounded-2xl p-5 border border-slate-700 mb-6">
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Senaryo Açıklaması</p>
+                    <p className="text-slate-200 text-sm leading-relaxed">{sc.description}</p>
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                    onClick={() => setStage('question')}
+                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-4 rounded-2xl shadow-lg border-b-4 border-orange-800"
+                  >
+                    Soruları Yanıtla <ArrowRight className="w-5 h-5" />
+                  </motion.button>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            <Bar cls="from-red-600 via-orange-500 to-amber-500" />
+          </div>
+        </div>
+
+        {/* Right Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`right-${scenarioIdx}`}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-amber-800/40">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 Tehlike İşaretleri</div>
+                <div className="text-amber-600 text-xs">{panel.strategyTitle}</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.strategyTips.map((tip, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
 
   // ── QUESTION ──────────────────────────────────────────────────────────────
   if (stage === 'question') return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
-        <Bar cls="from-red-600 via-orange-500 to-amber-500" />
-        <div className="p-6 md:p-8">
-          <div className="flex items-center justify-between mb-3">
-            <span className="bg-orange-900/50 border border-orange-700 text-orange-300 text-xs font-bold px-3 py-1 rounded-full">
-              {sc.fraudIcon} {sc.title}
-            </span>
-            <span className="text-slate-400 text-sm font-bold">Soru {questionIdx + 1} / {sc.questions.length}</span>
-          </div>
-
-          <div className="flex gap-1.5 mb-5">
-            {sc.questions.map((_, i) => (
-              <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i < questionIdx ? 'bg-orange-500' : i === questionIdx ? 'bg-amber-400' : 'bg-slate-700'}`} />
-            ))}
-          </div>
-
-          <div className="rounded-2xl overflow-hidden border border-slate-700/60 mb-5 bg-slate-800/60">
-            <img src={sc.image} alt={sc.title} className="w-full object-contain max-h-48 opacity-90" />
-          </div>
-
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex items-start gap-4">
+        {/* Left Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
           <AnimatePresence mode="wait">
-            <motion.div key={`${scenarioIdx}-${questionIdx}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <div className="bg-slate-800 rounded-2xl p-5 border border-slate-700 mb-4">
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Soru</p>
-                <p className="text-white font-bold text-base leading-relaxed">{q.text}</p>
+            <motion.div
+              key={`left-${scenarioIdx}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
               </div>
-
-              <div className="space-y-2.5 mb-4">
-                {q.options.map((opt, i) => {
-                  const isCorrectOpt = i === q.correct;
-                  const isSelected = selectedOpt === i;
-                  const showFb = feedback !== null;
-                  return (
-                    <motion.button
-                      key={i}
-                      whileHover={locked ? {} : { scale: 1.01, x: 4 }}
-                      whileTap={locked ? {} : { scale: 0.98 }}
-                      animate={isSelected && feedback && !feedback.correct ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-                      transition={{ duration: 0.3 }}
-                      onClick={() => handleAnswer(i)}
-                      disabled={locked}
-                      className={`w-full flex items-center gap-3 rounded-2xl px-5 py-4 border-2 text-left text-sm font-bold transition-all
-                        ${showFb
-                          ? isCorrectOpt
-                            ? 'border-emerald-500 bg-emerald-900/40 text-emerald-300'
-                            : isSelected
-                              ? 'border-red-500 bg-red-900/40 text-red-300'
-                              : 'border-slate-700 bg-slate-800/40 text-slate-500 opacity-40'
-                          : 'border-slate-600 bg-slate-800 hover:border-orange-500 hover:bg-slate-700 text-white'}`}
-                    >
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 border
-                        ${showFb && isCorrectOpt ? 'bg-emerald-600 border-emerald-500 text-white'
-                          : showFb && isSelected ? 'bg-red-700 border-red-500 text-white'
-                          : 'bg-slate-700 border-slate-600 text-slate-300'}`}>
-                        {String.fromCharCode(65 + i)}
-                      </span>
-                      <span className="flex-1">{opt}</span>
-                      {showFb && isCorrectOpt && <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />}
-                      {showFb && isSelected && !isCorrectOpt && <XCircle className="w-4 h-4 text-red-400 shrink-0" />}
-                    </motion.button>
-                  );
-                })}
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.dictionary.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                  </div>
+                ))}
               </div>
-
-              {feedback && (
-                <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-                  className={`flex items-start gap-3 rounded-xl px-5 py-3.5 border ${feedback.correct ? 'bg-emerald-900/40 border-emerald-700/50' : 'bg-red-900/30 border-red-700/50'}`}>
-                  {feedback.correct
-                    ? <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                    : <XCircle    className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />}
-                  <p className={`text-sm ${feedback.correct ? 'text-emerald-300' : 'text-red-300'}`}>{feedback.text}</p>
-                </motion.div>
-              )}
             </motion.div>
           </AnimatePresence>
         </div>
-        <Bar cls="from-red-600 via-orange-500 to-amber-500" />
+
+        {/* Center */}
+        <div className="flex-1 min-w-0">
+          <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
+            <Bar cls="from-red-600 via-orange-500 to-amber-500" />
+            <div className="p-6 md:p-8">
+              <div className="flex items-center justify-between mb-3">
+                <span className="bg-orange-900/50 border border-orange-700 text-orange-300 text-xs font-bold px-3 py-1 rounded-full">
+                  {sc.fraudIcon} {sc.title}
+                </span>
+                <span className="text-slate-400 text-sm font-bold">Soru {questionIdx + 1} / {sc.questions.length}</span>
+              </div>
+
+              <div className="flex gap-1.5 mb-5">
+                {sc.questions.map((_, i) => (
+                  <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i < questionIdx ? 'bg-orange-500' : i === questionIdx ? 'bg-amber-400' : 'bg-slate-700'}`} />
+                ))}
+              </div>
+
+              <div className="rounded-2xl overflow-hidden border border-slate-700/60 mb-5 bg-slate-800/60">
+                <img src={sc.image} alt={sc.title} className="w-full object-contain max-h-48 opacity-90" />
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div key={`${scenarioIdx}-${questionIdx}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                  <div className="bg-slate-800 rounded-2xl p-5 border border-slate-700 mb-4">
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Soru</p>
+                    <p className="text-white font-bold text-base leading-relaxed">{q.text}</p>
+                  </div>
+
+                  <div className="space-y-2.5 mb-4">
+                    {q.options.map((opt, i) => {
+                      const isCorrectOpt = i === q.correct;
+                      const isSelected = selectedOpt === i;
+                      const showFb = feedback !== null;
+                      return (
+                        <motion.button
+                          key={i}
+                          whileHover={locked ? {} : { scale: 1.01, x: 4 }}
+                          whileTap={locked ? {} : { scale: 0.98 }}
+                          animate={isSelected && feedback && !feedback.correct ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+                          transition={{ duration: 0.3 }}
+                          onClick={() => handleAnswer(i)}
+                          disabled={locked}
+                          className={`w-full flex items-center gap-3 rounded-2xl px-5 py-4 border-2 text-left text-sm font-bold transition-all
+                            ${showFb
+                              ? isCorrectOpt
+                                ? 'border-emerald-500 bg-emerald-900/40 text-emerald-300'
+                                : isSelected
+                                  ? 'border-red-500 bg-red-900/40 text-red-300'
+                                  : 'border-slate-700 bg-slate-800/40 text-slate-500 opacity-40'
+                              : 'border-slate-600 bg-slate-800 hover:border-orange-500 hover:bg-slate-700 text-white'}`}
+                        >
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 border
+                            ${showFb && isCorrectOpt ? 'bg-emerald-600 border-emerald-500 text-white'
+                              : showFb && isSelected ? 'bg-red-700 border-red-500 text-white'
+                              : 'bg-slate-700 border-slate-600 text-slate-300'}`}>
+                            {String.fromCharCode(65 + i)}
+                          </span>
+                          <span className="flex-1">{opt}</span>
+                          {showFb && isCorrectOpt && <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />}
+                          {showFb && isSelected && !isCorrectOpt && <XCircle className="w-4 h-4 text-red-400 shrink-0" />}
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+
+                  {feedback && (
+                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
+                      className={`flex items-start gap-3 rounded-xl px-5 py-3.5 border ${feedback.correct ? 'bg-emerald-900/40 border-emerald-700/50' : 'bg-red-900/30 border-red-700/50'}`}>
+                      {feedback.correct
+                        ? <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                        : <XCircle    className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />}
+                      <p className={`text-sm ${feedback.correct ? 'text-emerald-300' : 'text-red-300'}`}>{feedback.text}</p>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            <Bar cls="from-red-600 via-orange-500 to-amber-500" />
+          </div>
+        </div>
+
+        {/* Right Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`right-${scenarioIdx}`}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-amber-800/40">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 Tehlike İşaretleri</div>
+                <div className="text-amber-600 text-xs">{panel.strategyTitle}</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.strategyTips.map((tip, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

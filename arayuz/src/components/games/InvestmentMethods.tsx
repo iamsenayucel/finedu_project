@@ -72,6 +72,41 @@ const RISK_GROUPS = [
   { dot: '🔴', label: 'Yüksek Risk', items: 'Hisse Senedi / Döviz',            text: 'Çünkü piyasa koşullarına bağlı olarak hızlı yükselip düşebilir.',          cls: 'border-red-500/40     bg-red-900/20'     },
 ];
 
+const INVESTMENT_PANELS = {
+  tools: {
+    dictionary: [
+      { term: 'Birikim', def: 'Kazanılan paranın anında harcanmayıp, gelecekteki bir hedef veya güvence için kenara ayrılmış halidir.' },
+      { term: 'Vade', def: "Paranın bankada veya devlette 'kilitli' kalması için baştan anlaşılan süredir. Süre dolmadan parayı çekersen faiz kazancını kaybedersin." },
+      { term: 'Portföy Yöneticisi', def: 'Piyasaları ve grafikleri senin yerine okuyup, paranı en doğru araçlara dağıtarak yöneten lisanslı finans profesyonelidir.' },
+      { term: 'Devlet Katkısı', def: 'Sen geleceğin için para biriktirdikçe, devletin de seni teşvik etmek amacıyla kendi kasasından senin hesabına eklediği karşılıksız paradır.' },
+      { term: 'Kâr Payı', def: 'Ticaret yapan bir kurumun elde ettiği kazancı (veya zararı), oraya para yatıran kişilerle bölüşme durumudur.' },
+    ],
+    strategyTitle: 'Yatırım Araçları',
+    strategyTips: [
+      { title: 'Hisse Senedi', desc: "Borsadaki şirketlerin küçük bir parçasıdır. Şirkete 'ortak' olursun; şirket büyürse sen de kazanırsın." },
+      { title: 'Vadeli Mevduat', desc: 'Paranı bir süreliğine bankaya emanet etmektir. Süre sonunda garantili ve düşük riskli faiz getirisi sağlar.' },
+      { title: 'Devlet Tahvili', desc: "Devletin, belirli bir süre sonra faiziyle geri ödemek üzere kendi vatandaşından resmi olarak borç almasıdır." },
+      { title: 'Yatırım Fonu', desc: 'İçinde farklı yatırım araçlarının bulunduğu ve paranı profesyonel uzmanların yönettiği finansal sepettir.' },
+      { title: 'BES (Bireysel Emeklilik)', desc: 'Gelecekteki rahatlığın için kurulan, en büyük avantajı devlet katkısı olan uzun vadeli birikim sistemidir.' },
+    ],
+  },
+  risk: {
+    dictionary: [
+      { term: 'Devlet/Banka Güvencesi', def: 'Paranın batma ihtimalinin neredeyse sıfır olmasıdır. Bir devletin borcunu ödeyememesi çok ekstrem bir durumdur, bu yüzden en güvenli yapılar bunlardır.' },
+      { term: 'Sabit Getiri', def: 'Gelecekte ne kadar kazanacağını bugünden kuruşu kuruşuna bilmektir. Sürpriz yoktur; bu da stresi ve riski ortadan kaldırır.' },
+      { term: 'Riski Dağıtmak', def: "Tüm yumurtaları aynı sepete koymamaktır. Bir sistemin içinde ne kadar farklı araç varsa, çöküş riski o kadar azalır." },
+      { term: 'Piyasa Koşulları (Volatilite)', def: 'Fiyatların dünyadaki haberlere, savaşlara veya krizlere göre saniyeler içinde aşağı veya yukarı sert hareketler yapabilmesidir.' },
+      { term: 'Performans Bağımlılığı', def: 'Kazancının, başkalarının (örneğin bir şirketin CEO\'sunun) alacağı kararlara bağlı olması durumudur. Kontrol sende değilse risk yüksektir.' },
+    ],
+    strategyTitle: 'Risk Dağılım Haritası',
+    strategyTips: [
+      { title: '🟢 Düşük Risk', desc: 'Sürpriz sevmeyenler içindir. Getiri baştan bellidir, kayıp riski yoktur. → Vadeli Mevduat (banka güvencesi), Devlet Tahvili (devlet güvencesi).' },
+      { title: '🟡 Orta Risk', desc: 'Fiyatlar dalgalanır ama tamamen kontrolden çıkmaz. → Altın (tarih boyunca sıfırlanmamıştır), Yatırım Fonu (uzmanlar yönetir, risk törpülenir).' },
+      { title: '🔴 Yüksek Risk', desc: 'Çok kazandırabilir ama bir gecede büyük paralar da kaybettirebilir. → Hisse Senedi (performansa bağlı), Döviz (tahmin edilmesi en zor alan).' },
+    ],
+  },
+};
+
 const PTS_MATCH    = 5;
 const PTS_SCENARIO = 7;
 const PTS_RISK     = 5;
@@ -223,79 +258,126 @@ export default function InvestmentMethods({ onComplete }: Props) {
   // ── MATCHING ──────────────────────────────────────────────────────────────
   if (stage === 'matching') {
     const current = shuffled[matchIdx];
+    const panel = INVESTMENT_PANELS.tools;
     return (
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
-          <Bar cls="from-emerald-500 via-teal-500 to-blue-500" />
-          <div className="p-6 md:p-8">
-            <div className="flex items-center justify-between mb-5">
-              <span className="bg-emerald-900/50 border border-emerald-700 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full">
-                Seviye 1 — Kavram Eşleştirme
-              </span>
-              <span className="text-slate-400 text-sm font-bold">{matchIdx + 1} / {shuffled.length}</span>
+      <div className="w-full max-w-7xl mx-auto">
+        <div className="flex items-start gap-4">
+          {/* Left Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <div
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.dictionary.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                  </div>
+                ))}
+              </div>
             </div>
+          </div>
 
-            <div className="flex gap-1.5 mb-6">
-              {shuffled.map((c, i) => (
-                <div key={c.id} className={`h-1.5 flex-1 rounded-full transition-all ${matched.has(c.id) ? 'bg-emerald-500' : i === matchIdx ? 'bg-teal-400' : 'bg-slate-700'}`} />
-              ))}
+          {/* Center */}
+          <div className="flex-1 min-w-0">
+            <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
+              <Bar cls="from-emerald-500 via-teal-500 to-blue-500" />
+              <div className="p-6 md:p-8">
+                <div className="flex items-center justify-between mb-5">
+                  <span className="bg-emerald-900/50 border border-emerald-700 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full">
+                    Seviye 1 — Kavram Eşleştirme
+                  </span>
+                  <span className="text-slate-400 text-sm font-bold">{matchIdx + 1} / {shuffled.length}</span>
+                </div>
+
+                <div className="flex gap-1.5 mb-6">
+                  {shuffled.map((c, i) => (
+                    <div key={c.id} className={`h-1.5 flex-1 rounded-full transition-all ${matched.has(c.id) ? 'bg-emerald-500' : i === matchIdx ? 'bg-teal-400' : 'bg-slate-700'}`} />
+                  ))}
+                </div>
+
+                <AnimatePresence mode="wait">
+                  <motion.div key={current.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="bg-slate-800 rounded-2xl p-6 border border-slate-700 mb-6">
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Bu açıklama hangi yatırım aracına aittir?</p>
+                    <p className="text-white text-base leading-relaxed font-medium">{current.desc}</p>
+                    {matchResult === 'wrong' && (
+                      <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
+                        className="mt-4 flex items-center gap-2 bg-red-900/40 border border-red-700/50 rounded-xl px-4 py-2.5">
+                        <XCircle className="w-4 h-4 text-red-400 shrink-0" />
+                        <span className="text-red-300 text-sm font-bold">
+                          Doğru cevap: <span className="text-white">{current.icon} {current.name}</span>
+                        </span>
+                      </motion.div>
+                    )}
+                    {matchResult === 'correct' && (
+                      <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
+                        className="mt-4 flex items-center gap-2 bg-emerald-900/40 border border-emerald-700/50 rounded-xl px-4 py-2.5">
+                        <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="text-emerald-300 text-sm font-bold">+{PTS_MATCH} puan kazandın!</span>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Yatırım araçları</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {CONCEPTS.map(c => {
+                    const isAlreadyMatched = matched.has(c.id);
+                    const isClickedCorrect = clickedId === c.id && matchResult === 'correct';
+                    const isClickedWrong   = clickedId === c.id && matchResult === 'wrong';
+                    const isShowCorrect    = matchResult === 'wrong' && c.id === current.id;
+                    const showAny          = matchResult !== null;
+                    return (
+                      <motion.button
+                        key={c.id}
+                        whileHover={isAlreadyMatched || matchLocked ? {} : { scale: 1.03 }}
+                        whileTap={isAlreadyMatched || matchLocked ? {} : { scale: 0.97 }}
+                        animate={isClickedWrong ? { x: [0, -6, 6, -4, 4, 0] } : {}}
+                        transition={{ duration: 0.3 }}
+                        onClick={() => handleMatchClick(c.id)}
+                        disabled={isAlreadyMatched || matchLocked}
+                        className={`flex items-center gap-2 rounded-xl px-3 py-3 border-2 text-sm font-bold transition-all
+                          ${isAlreadyMatched  ? 'opacity-30 cursor-not-allowed border-emerald-800 bg-emerald-900/10 text-emerald-400' :
+                            isClickedCorrect  ? 'border-emerald-500 bg-emerald-900/50 text-emerald-300' :
+                            isClickedWrong    ? 'border-red-500 bg-red-900/40 text-red-300' :
+                            isShowCorrect     ? 'border-emerald-400 bg-emerald-900/30 text-emerald-300 ring-1 ring-emerald-400/40' :
+                            showAny           ? 'opacity-40 cursor-not-allowed border-slate-700 bg-slate-800 text-slate-500' :
+                            'border-slate-600 bg-slate-800 hover:border-teal-500 hover:bg-slate-700 text-white'}`}
+                      >
+                        <span className="text-lg shrink-0">{c.icon}</span>
+                        <span className="leading-tight">{c.name}</span>
+                        {isAlreadyMatched && <CheckCircle className="w-3.5 h-3.5 text-emerald-500 ml-auto shrink-0" />}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
+          </div>
 
-            <AnimatePresence mode="wait">
-              <motion.div key={current.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-                className="bg-slate-800 rounded-2xl p-6 border border-slate-700 mb-6">
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Bu açıklama hangi yatırım aracına aittir?</p>
-                <p className="text-white text-base leading-relaxed font-medium">{current.desc}</p>
-                {matchResult === 'wrong' && (
-                  <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 flex items-center gap-2 bg-red-900/40 border border-red-700/50 rounded-xl px-4 py-2.5">
-                    <XCircle className="w-4 h-4 text-red-400 shrink-0" />
-                    <span className="text-red-300 text-sm font-bold">
-                      Doğru cevap: <span className="text-white">{current.icon} {current.name}</span>
-                    </span>
-                  </motion.div>
-                )}
-                {matchResult === 'correct' && (
-                  <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 flex items-center gap-2 bg-emerald-900/40 border border-emerald-700/50 rounded-xl px-4 py-2.5">
-                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span className="text-emerald-300 text-sm font-bold">+{PTS_MATCH} puan kazandın!</span>
-                  </motion.div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Yatırım araçları</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {CONCEPTS.map(c => {
-                const isAlreadyMatched = matched.has(c.id);
-                const isClickedCorrect = clickedId === c.id && matchResult === 'correct';
-                const isClickedWrong   = clickedId === c.id && matchResult === 'wrong';
-                const isShowCorrect    = matchResult === 'wrong' && c.id === current.id;
-                const showAny          = matchResult !== null;
-                return (
-                  <motion.button
-                    key={c.id}
-                    whileHover={isAlreadyMatched || matchLocked ? {} : { scale: 1.03 }}
-                    whileTap={isAlreadyMatched || matchLocked ? {} : { scale: 0.97 }}
-                    animate={isClickedWrong ? { x: [0, -6, 6, -4, 4, 0] } : {}}
-                    transition={{ duration: 0.3 }}
-                    onClick={() => handleMatchClick(c.id)}
-                    disabled={isAlreadyMatched || matchLocked}
-                    className={`flex items-center gap-2 rounded-xl px-3 py-3 border-2 text-sm font-bold transition-all
-                      ${isAlreadyMatched  ? 'opacity-30 cursor-not-allowed border-emerald-800 bg-emerald-900/10 text-emerald-400' :
-                        isClickedCorrect  ? 'border-emerald-500 bg-emerald-900/50 text-emerald-300' :
-                        isClickedWrong    ? 'border-red-500 bg-red-900/40 text-red-300' :
-                        isShowCorrect     ? 'border-emerald-400 bg-emerald-900/30 text-emerald-300 ring-1 ring-emerald-400/40' :
-                        showAny           ? 'opacity-40 cursor-not-allowed border-slate-700 bg-slate-800 text-slate-500' :
-                        'border-slate-600 bg-slate-800 hover:border-teal-500 hover:bg-slate-700 text-white'}`}
-                  >
-                    <span className="text-lg shrink-0">{c.icon}</span>
-                    <span className="leading-tight">{c.name}</span>
-                    {isAlreadyMatched && <CheckCircle className="w-3.5 h-3.5 text-emerald-500 ml-auto shrink-0" />}
-                  </motion.button>
-                );
-              })}
+          {/* Right Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <div
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-amber-800/40">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 Yatırım Araçları</div>
+                <div className="text-amber-600 text-xs">{panel.strategyTitle}</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.strategyTips.map((tip, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -306,75 +388,122 @@ export default function InvestmentMethods({ onComplete }: Props) {
   // ── SCENARIOS ─────────────────────────────────────────────────────────────
   if (stage === 'scenarios') {
     const s = SCENARIOS[scenarioIdx];
+    const panel = INVESTMENT_PANELS.tools;
     return (
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
-          <Bar cls="from-blue-500 via-indigo-500 to-purple-500" />
-          <div className="p-6 md:p-8">
-            <div className="flex items-center justify-between mb-5">
-              <span className="bg-blue-900/50 border border-blue-700 text-blue-300 text-xs font-bold px-3 py-1 rounded-full">
-                Seviye 2 — Senaryolar
-              </span>
-              <span className="text-slate-400 text-sm font-bold">{scenarioIdx + 1} / {SCENARIOS.length}</span>
-            </div>
-            <div className="flex gap-1.5 mb-6">
-              {SCENARIOS.map((_, i) => (
-                <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i < scenarioIdx ? 'bg-blue-500' : i === scenarioIdx ? 'bg-indigo-400' : 'bg-slate-700'}`} />
-              ))}
-            </div>
-
-            <AnimatePresence mode="wait">
-              <motion.div key={s.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 mb-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="text-4xl">{s.avatar}</span>
-                    <div>
-                      <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Senaryo</p>
-                      <p className="text-white font-black text-lg">{s.person}</p>
-                    </div>
+      <div className="w-full max-w-7xl mx-auto">
+        <div className="flex items-start gap-4">
+          {/* Left Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <div
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.dictionary.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
                   </div>
-                  <p className="text-slate-300 text-sm leading-relaxed mb-4">{s.story}</p>
-                  <p className="text-white font-bold text-sm">💬 {s.question}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Center */}
+          <div className="flex-1 min-w-0">
+            <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
+              <Bar cls="from-blue-500 via-indigo-500 to-purple-500" />
+              <div className="p-6 md:p-8">
+                <div className="flex items-center justify-between mb-5">
+                  <span className="bg-blue-900/50 border border-blue-700 text-blue-300 text-xs font-bold px-3 py-1 rounded-full">
+                    Seviye 2 — Senaryolar
+                  </span>
+                  <span className="text-slate-400 text-sm font-bold">{scenarioIdx + 1} / {SCENARIOS.length}</span>
+                </div>
+                <div className="flex gap-1.5 mb-6">
+                  {SCENARIOS.map((_, i) => (
+                    <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i < scenarioIdx ? 'bg-blue-500' : i === scenarioIdx ? 'bg-indigo-400' : 'bg-slate-700'}`} />
+                  ))}
                 </div>
 
-                <div className="space-y-2.5 mb-4">
-                  {s.options.map((opt, i) => {
-                    const isCorrectOpt = i === s.correct;
-                    const showFb = scenarioResult !== null;
-                    return (
-                      <motion.button
-                        key={i}
-                        whileHover={scenarioLocked ? {} : { scale: 1.01, x: 4 }}
-                        whileTap={scenarioLocked ? {} : { scale: 0.98 }}
-                        onClick={() => handleScenarioClick(i)}
-                        disabled={scenarioLocked}
-                        className={`w-full flex items-center gap-3 rounded-2xl px-5 py-4 border-2 text-left text-sm font-bold transition-all
-                          ${showFb
-                            ? isCorrectOpt ? 'border-emerald-500 bg-emerald-900/40 text-emerald-300' : 'border-slate-700 bg-slate-800/40 text-slate-500 opacity-50'
-                            : 'border-slate-600 bg-slate-800 hover:border-blue-500 hover:bg-slate-700 text-white'}`}
-                      >
-                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 border
-                          ${showFb && isCorrectOpt ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-slate-700 border-slate-600 text-slate-300'}`}>
-                          {String.fromCharCode(65 + i)}
-                        </span>
-                        {opt}
-                        {showFb && isCorrectOpt && <CheckCircle className="w-4 h-4 text-emerald-400 ml-auto shrink-0" />}
-                      </motion.button>
-                    );
-                  })}
-                </div>
+                <AnimatePresence mode="wait">
+                  <motion.div key={s.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                    <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 mb-5">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-4xl">{s.avatar}</span>
+                        <div>
+                          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Senaryo</p>
+                          <p className="text-white font-black text-lg">{s.person}</p>
+                        </div>
+                      </div>
+                      <p className="text-slate-300 text-sm leading-relaxed mb-4">{s.story}</p>
+                      <p className="text-white font-bold text-sm">💬 {s.question}</p>
+                    </div>
 
-                {scenarioResult && (
-                  <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-                    className={`flex items-start gap-3 rounded-xl px-5 py-3.5 border ${scenarioResult.correct ? 'bg-emerald-900/40 border-emerald-700/50' : 'bg-red-900/30 border-red-700/50'}`}>
-                    {scenarioResult.correct
-                      ? <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                      : <XCircle    className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />}
-                    <p className={`text-sm ${scenarioResult.correct ? 'text-emerald-300' : 'text-red-300'}`}>{scenarioResult.text}</p>
+                    <div className="space-y-2.5 mb-4">
+                      {s.options.map((opt, i) => {
+                        const isCorrectOpt = i === s.correct;
+                        const showFb = scenarioResult !== null;
+                        return (
+                          <motion.button
+                            key={i}
+                            whileHover={scenarioLocked ? {} : { scale: 1.01, x: 4 }}
+                            whileTap={scenarioLocked ? {} : { scale: 0.98 }}
+                            onClick={() => handleScenarioClick(i)}
+                            disabled={scenarioLocked}
+                            className={`w-full flex items-center gap-3 rounded-2xl px-5 py-4 border-2 text-left text-sm font-bold transition-all
+                              ${showFb
+                                ? isCorrectOpt ? 'border-emerald-500 bg-emerald-900/40 text-emerald-300' : 'border-slate-700 bg-slate-800/40 text-slate-500 opacity-50'
+                                : 'border-slate-600 bg-slate-800 hover:border-blue-500 hover:bg-slate-700 text-white'}`}
+                          >
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 border
+                              ${showFb && isCorrectOpt ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-slate-700 border-slate-600 text-slate-300'}`}>
+                              {String.fromCharCode(65 + i)}
+                            </span>
+                            {opt}
+                            {showFb && isCorrectOpt && <CheckCircle className="w-4 h-4 text-emerald-400 ml-auto shrink-0" />}
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+
+                    {scenarioResult && (
+                      <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
+                        className={`flex items-start gap-3 rounded-xl px-5 py-3.5 border ${scenarioResult.correct ? 'bg-emerald-900/40 border-emerald-700/50' : 'bg-red-900/30 border-red-700/50'}`}>
+                        {scenarioResult.correct
+                          ? <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                          : <XCircle    className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />}
+                        <p className={`text-sm ${scenarioResult.correct ? 'text-emerald-300' : 'text-red-300'}`}>{scenarioResult.text}</p>
+                      </motion.div>
+                    )}
                   </motion.div>
-                )}
-              </motion.div>
-            </AnimatePresence>
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <div
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-amber-800/40">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 Yatırım Araçları</div>
+                <div className="text-amber-600 text-xs">{panel.strategyTitle}</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.strategyTips.map((tip, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -385,75 +514,122 @@ export default function InvestmentMethods({ onComplete }: Props) {
   if (stage === 'risk') {
     const item = RISK_ITEMS[riskIdx];
     const correctLevel = RISK_LEVELS.find(l => l.id === item.risk)!;
+    const panel = INVESTMENT_PANELS.risk;
     return (
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
-          <Bar cls="from-amber-500 via-orange-500 to-red-500" />
-          <div className="p-6 md:p-8">
-            <div className="flex items-center justify-between mb-5">
-              <span className="bg-amber-900/50 border border-amber-700 text-amber-300 text-xs font-bold px-3 py-1 rounded-full">
-                Seviye 3 — Risk Seviyeleri
-              </span>
-              <span className="text-slate-400 text-sm font-bold">{riskIdx + 1} / {RISK_ITEMS.length}</span>
-            </div>
-            <div className="flex gap-1.5 mb-6">
-              {RISK_ITEMS.map((_, i) => (
-                <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i < riskIdx ? 'bg-amber-500' : i === riskIdx ? 'bg-orange-400' : 'bg-slate-700'}`} />
-              ))}
-            </div>
-
-            <AnimatePresence mode="wait">
-              <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 mb-5">
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">Bu yatırım aracının risk seviyesi nedir?</p>
-                  <div className="flex items-center gap-4">
-                    <span className="text-5xl shrink-0">{item.icon}</span>
-                    <div>
-                      <p className="text-white font-black text-2xl">{item.name}</p>
-                      <p className="text-slate-400 text-sm mt-1">{item.desc}</p>
-                    </div>
+      <div className="w-full max-w-7xl mx-auto">
+        <div className="flex items-start gap-4">
+          {/* Left Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <div
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.dictionary.map((item_d, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item_d.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item_d.def}</div>
                   </div>
-                  {riskResult && (
-                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-                      className={`mt-4 flex items-center gap-2 rounded-xl px-4 py-2.5 border ${riskResult.correct ? 'bg-emerald-900/40 border-emerald-700/50' : 'bg-red-900/30 border-red-700/50'}`}>
-                      {riskResult.correct
-                        ? <><CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" /><span className="text-emerald-300 text-sm font-bold">+{PTS_RISK} puan!</span></>
-                        : <><XCircle    className="w-4 h-4 text-red-400 shrink-0" /><span className="text-red-300 text-sm font-bold">Doğru cevap: {correctLevel.dot} {correctLevel.label}</span></>
-                      }
-                    </motion.div>
-                  )}
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Center */}
+          <div className="flex-1 min-w-0">
+            <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
+              <Bar cls="from-amber-500 via-orange-500 to-red-500" />
+              <div className="p-6 md:p-8">
+                <div className="flex items-center justify-between mb-5">
+                  <span className="bg-amber-900/50 border border-amber-700 text-amber-300 text-xs font-bold px-3 py-1 rounded-full">
+                    Seviye 3 — Risk Seviyeleri
+                  </span>
+                  <span className="text-slate-400 text-sm font-bold">{riskIdx + 1} / {RISK_ITEMS.length}</span>
+                </div>
+                <div className="flex gap-1.5 mb-6">
+                  {RISK_ITEMS.map((_, i) => (
+                    <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i < riskIdx ? 'bg-amber-500' : i === riskIdx ? 'bg-orange-400' : 'bg-slate-700'}`} />
+                  ))}
                 </div>
 
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Risk seviyesini seç</p>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                  {RISK_LEVELS.map(rl => {
-                    const isClicked  = clickedRisk === rl.id;
-                    const isCorrect  = rl.id === item.risk;
-                    const showResult = riskResult !== null;
-                    return (
-                      <motion.button
-                        key={rl.id}
-                        whileHover={riskLocked ? {} : { scale: 1.05, y: -2 }}
-                        whileTap={riskLocked ? {} : { scale: 0.95 }}
-                        animate={isClicked && !riskResult?.correct ? { x: [0, -5, 5, -3, 3, 0] } : {}}
-                        transition={{ duration: 0.3 }}
-                        onClick={() => handleRiskClick(rl.id)}
-                        disabled={riskLocked}
-                        className={`flex flex-col items-center gap-1.5 rounded-xl py-3 px-2 border-2 text-xs font-bold transition-all
-                          ${showResult
-                            ? isCorrect  ? 'border-emerald-500 bg-emerald-900/50 text-emerald-300'
-                              : isClicked ? 'border-red-500 bg-red-900/40 text-red-300'
-                              : 'border-slate-700 bg-slate-800/40 text-slate-600 opacity-40'
-                            : rl.cls}`}
-                      >
-                        <span className="text-base">{rl.dot}</span>
-                        <span className="leading-tight text-center">{rl.label}</span>
-                      </motion.button>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            </AnimatePresence>
+                <AnimatePresence mode="wait">
+                  <motion.div key={item.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                    <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 mb-5">
+                      <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">Bu yatırım aracının risk seviyesi nedir?</p>
+                      <div className="flex items-center gap-4">
+                        <span className="text-5xl shrink-0">{item.icon}</span>
+                        <div>
+                          <p className="text-white font-black text-2xl">{item.name}</p>
+                          <p className="text-slate-400 text-sm mt-1">{item.desc}</p>
+                        </div>
+                      </div>
+                      {riskResult && (
+                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
+                          className={`mt-4 flex items-center gap-2 rounded-xl px-4 py-2.5 border ${riskResult.correct ? 'bg-emerald-900/40 border-emerald-700/50' : 'bg-red-900/30 border-red-700/50'}`}>
+                          {riskResult.correct
+                            ? <><CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" /><span className="text-emerald-300 text-sm font-bold">+{PTS_RISK} puan!</span></>
+                            : <><XCircle    className="w-4 h-4 text-red-400 shrink-0" /><span className="text-red-300 text-sm font-bold">Doğru cevap: {correctLevel.dot} {correctLevel.label}</span></>
+                          }
+                        </motion.div>
+                      )}
+                    </div>
+
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-3">Risk seviyesini seç</p>
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                      {RISK_LEVELS.map(rl => {
+                        const isClicked  = clickedRisk === rl.id;
+                        const isCorrect  = rl.id === item.risk;
+                        const showResult = riskResult !== null;
+                        return (
+                          <motion.button
+                            key={rl.id}
+                            whileHover={riskLocked ? {} : { scale: 1.05, y: -2 }}
+                            whileTap={riskLocked ? {} : { scale: 0.95 }}
+                            animate={isClicked && !riskResult?.correct ? { x: [0, -5, 5, -3, 3, 0] } : {}}
+                            transition={{ duration: 0.3 }}
+                            onClick={() => handleRiskClick(rl.id)}
+                            disabled={riskLocked}
+                            className={`flex flex-col items-center gap-1.5 rounded-xl py-3 px-2 border-2 text-xs font-bold transition-all
+                              ${showResult
+                                ? isCorrect  ? 'border-emerald-500 bg-emerald-900/50 text-emerald-300'
+                                  : isClicked ? 'border-red-500 bg-red-900/40 text-red-300'
+                                  : 'border-slate-700 bg-slate-800/40 text-slate-600 opacity-40'
+                                : rl.cls}`}
+                          >
+                            <span className="text-base">{rl.dot}</span>
+                            <span className="leading-tight text-center">{rl.label}</span>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <div
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-amber-800/40">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 Risk Dağılım Haritası</div>
+                <div className="text-amber-600 text-xs">{panel.strategyTitle}</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.strategyTips.map((tip, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -462,37 +638,83 @@ export default function InvestmentMethods({ onComplete }: Props) {
 
   // ── RISK SUMMARY ──────────────────────────────────────────────────────────
   if (stage === 'risk_summary') return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
-        <Bar cls="from-amber-500 via-orange-500 to-red-500" />
-        <div className="p-6 md:p-8">
-          <div className="text-center mb-8">
-            <span className="bg-orange-900/50 border border-orange-700 text-orange-300 text-xs font-bold px-3 py-1 rounded-full">
-              Risk Seviyeleri Özeti
-            </span>
-            <h2 className="text-white font-black text-2xl mt-4 mb-2">Yatırım Araçlarının Risk Grupları</h2>
-            <p className="text-slate-400 text-sm">Her grubun neden o risk seviyesinde olduğuna bakalım:</p>
-          </div>
-          <div className="space-y-4 mb-8">
-            {RISK_GROUPS.map((g, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.12 }}
-                className={`rounded-2xl p-5 border ${g.cls}`}>
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className="text-xl">{g.dot}</span>
-                  <span className="text-white font-black text-base">{g.label}</span>
-                  <span className="ml-auto text-slate-400 text-xs font-bold bg-slate-800/80 px-2 py-0.5 rounded-full shrink-0">{g.items}</span>
-                </div>
-                <p className="text-slate-300 text-sm leading-relaxed">{g.text}</p>
-              </motion.div>
-            ))}
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-            onClick={() => { onComplete?.(totalScore); setStage('final'); }}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black py-4 rounded-2xl shadow-lg border-b-4 border-teal-800"
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex items-start gap-4">
+        {/* Left Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <div
+            className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+            style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
           >
-            Sonuçları Gör <ArrowRight className="w-5 h-5" />
-          </motion.button>
+            <div className="px-4 py-3.5 border-b border-cyan-800/40">
+              <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+            </div>
+            <div className="px-4 py-3.5 flex flex-col gap-3.5">
+              {INVESTMENT_PANELS.risk.dictionary.map((item, i) => (
+                <div key={i}>
+                  <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Center */}
+        <div className="flex-1 min-w-0">
+          <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
+            <Bar cls="from-amber-500 via-orange-500 to-red-500" />
+            <div className="p-6 md:p-8">
+              <div className="text-center mb-8">
+                <span className="bg-orange-900/50 border border-orange-700 text-orange-300 text-xs font-bold px-3 py-1 rounded-full">
+                  Risk Seviyeleri Özeti
+                </span>
+                <h2 className="text-white font-black text-2xl mt-4 mb-2">Yatırım Araçlarının Risk Grupları</h2>
+                <p className="text-slate-400 text-sm">Her grubun neden o risk seviyesinde olduğuna bakalım:</p>
+              </div>
+              <div className="space-y-4 mb-8">
+                {RISK_GROUPS.map((g, i) => (
+                  <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.12 }}
+                    className={`rounded-2xl p-5 border ${g.cls}`}>
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <span className="text-xl">{g.dot}</span>
+                      <span className="text-white font-black text-base">{g.label}</span>
+                      <span className="ml-auto text-slate-400 text-xs font-bold bg-slate-800/80 px-2 py-0.5 rounded-full shrink-0">{g.items}</span>
+                    </div>
+                    <p className="text-slate-300 text-sm leading-relaxed">{g.text}</p>
+                  </motion.div>
+                ))}
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                onClick={() => { onComplete?.(totalScore); setStage('final'); }}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black py-4 rounded-2xl shadow-lg border-b-4 border-teal-800"
+              >
+                Sonuçları Gör <ArrowRight className="w-5 h-5" />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <div
+            className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+            style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+          >
+            <div className="px-4 py-3.5 border-b border-amber-800/40">
+              <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 Risk Dağılım Haritası</div>
+              <div className="text-amber-600 text-xs">{INVESTMENT_PANELS.risk.strategyTitle}</div>
+            </div>
+            <div className="px-4 py-3.5 flex flex-col gap-3.5">
+              {INVESTMENT_PANELS.risk.strategyTips.map((tip, i) => (
+                <div key={i}>
+                  <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

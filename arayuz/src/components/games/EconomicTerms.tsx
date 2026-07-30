@@ -202,6 +202,29 @@ function DefinitionBox({ pair, droppedTermId, onDrop, onRemove, validationState 
   );
 }
 
+// ─── Yan panel verisi ─────────────────────────────────────────────────────────
+const ECONOMIC_PANEL = {
+  dictionary: [
+    { term: 'Bütçe', def: 'Gelirlerin ve giderlerin önceden planlanmasıdır. Paranın nereye gittiğini merak etmek yerine, ona nereye gideceğini söylemektir.' },
+    { term: 'Brüt / Net Kazanç', def: 'Brüt, vergiler kesilmeden önceki büyük rakamdır. Net ise vergiler ödendikten sonra senin cebine giren temiz paradır.' },
+    { term: 'Enflasyon', def: 'Piyasada satılan ürün ve hizmetlerin fiyatlarının sürekli artmasıdır. Tasarruf ettiğin paranın alım gücü durduğu yerde erir.' },
+    { term: 'Yatırım', def: 'Parayı enflasyona karşı korumak ve büyütmek için finansal araçlarda (hisse, fon vb.) değerlendirme işidir.' },
+  ],
+  strategyTitle: 'Eşleştirme Rehberi',
+  institutions: [
+    { term: 'Birey', def: 'Sistemi başlatan ana karakterdir. Hem çalışıp kazanır hem de o parayı harcar.' },
+    { term: 'Şirket', def: 'Ürün/hizmet geliştirir, para kazanır ve seni işe alarak ödeme yapar.' },
+    { term: 'Banka', def: 'Paran için güvenli bir saklama alanı ve ihtiyaç anında borç (kredi) merkezidir.' },
+    { term: 'Devlet', def: 'Topluma yol, okul, hastane gibi hizmetler sunan ve bunları fonlayan otoritedir.' },
+  ],
+  movements: [
+    { term: 'Maaş', def: 'Harcadığın emeğin ve zamanının karşılığında sana ödenen düzenli ücrettir.' },
+    { term: 'Harcama', def: 'İhtiyaçlarını veya arzularını karşılamak için paranın senden çıkış anıdır.' },
+    { term: 'Tasarruf', def: 'Kazancının hepsini tüketmeyip, yarına hazırlık için kenara ayırmaktır.' },
+    { term: 'Vergi', def: 'Toplum hizmetlerinin sürebilmesi için, kazancından yetkili otoriteye verilen yasal paydır.' },
+  ],
+};
+
 // ─── ANA BİLEŞEN ──────────────────────────────────────────────────────────────
 
 export default function EconomicTerms({ onComplete }: EconomicTermsProps) {
@@ -366,7 +389,31 @@ export default function EconomicTerms({ onComplete }: EconomicTermsProps) {
   // ── OYUN ───────────────────────────────────────────────────────────────────
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="w-full max-w-5xl mx-auto">
+      <div className="w-full max-w-7xl mx-auto">
+      <div className="flex items-start gap-4">
+
+        {/* Left Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <div
+            className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+            style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+          >
+            <div className="px-4 py-3.5 border-b border-cyan-800/40">
+              <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+            </div>
+            <div className="px-4 py-3.5 flex flex-col gap-3.5">
+              {ECONOMIC_PANEL.dictionary.map((item, i) => (
+                <div key={i}>
+                  <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Center */}
+        <div className="flex-1 min-w-0">
 
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl px-5 py-3 mb-4 flex items-center justify-between shadow-lg">
@@ -471,6 +518,38 @@ export default function EconomicTerms({ onComplete }: EconomicTermsProps) {
             </AnimatePresence>
           </div>
         </div>
+        </div>
+
+        {/* Right Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <div
+            className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+            style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+          >
+            <div className="px-4 py-3.5 border-b border-amber-800/40">
+              <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 {ECONOMIC_PANEL.strategyTitle}</div>
+            </div>
+            <div className="px-4 py-3.5 flex flex-col gap-3">
+              <div className="text-amber-400 text-xs font-semibold mb-0.5">Kurumlar ve Kişiler</div>
+              {ECONOMIC_PANEL.institutions.map((item, i) => (
+                <div key={i}>
+                  <div className="text-sm font-bold text-amber-300 mb-1.5">{item.term}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                </div>
+              ))}
+              <div className="border-t border-amber-900/30 my-1" />
+              <div className="text-amber-400 text-xs font-semibold mb-0.5">Paranın Hareketleri</div>
+              {ECONOMIC_PANEL.movements.map((item, i) => (
+                <div key={i}>
+                  <div className="text-sm font-bold text-amber-300 mb-1.5">{item.term}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>
       </div>
     </DndProvider>
   );

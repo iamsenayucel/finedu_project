@@ -198,6 +198,75 @@ function PoolZone({ onDrop, className, children }: {
   );
 }
 
+// ─── Yan panel verisi ─────────────────────────────────────────────────────────
+const MONEY_FLOW_PANELS = {
+  phase1: {
+    dictionary: [
+      { term: 'Devlet / Hazine', def: 'Ülkenin kasasıdır. Yol, hastane, okul yapmak için paraya ihtiyaç duyar ve bunu vatandaşlardan toplar.' },
+      { term: 'Firmalar / Şirketler', def: 'Üretim yapan yerlerdir. Mal veya hizmet satarak ayakta kalırlar, bunun karşılığında nakit elde ederler.' },
+      { term: 'Finans Sektörü / Banka', def: 'Paranın toplandığı ve dağıtıldığı havuzdur. Kullanılmayan parayı güvende tutar ve ihtiyacı olana borç verir.' },
+    ],
+    strategyTitle: 'Strateji Merkezi',
+    strategyTips: [
+      { title: 'Vergi Kimin Hakkı?', desc: 'Yaptığın alışverişlerden veya kazandığın maaştan kesilen zorunlu paydır. Bu parayı doğrudan bir "Şirket" alamaz, ülkeyi yöneten asıl kasaya gider.' },
+      { title: 'Harcama Nereye Gider?', desc: 'Yeni bir telefon veya kıyafet aldığında, cebinden çıkan para bu ürünü üreten ve satan ticari kurumlara akar.' },
+      { title: 'Tasarruf Nerede Bekler?', desc: 'Harcamadığın ve kenara ayırdığın para yastık altında erir. Güvenle büyümesi için finansal bir havuza aktarman gerekir.' },
+    ],
+  },
+  phase2: {
+    dictionary: [
+      { term: 'Maaş', def: 'Bir bireyin emeği karşılığında, çalıştığı ticari kurumdan her ay düzenli olarak aldığı ödemedir.' },
+      { term: 'Kredi', def: 'Bireyin veya şirketin nakit ihtiyacını karşılamak için, ileride faiziyle ödemek şartıyla finansal havuzdan çektiği borç paradır.' },
+      { term: 'Vergi', def: 'Bireylerin veya kurumların, kamu hizmetlerinin yürütülebilmesi için devlete ödediği zorunlu katkı payıdır.' },
+    ],
+    strategyTitle: 'Strateji Merkezi',
+    strategyTips: [
+      { title: 'Birey ➡️ Devlet', desc: 'Sen devlete çalışmıyorsan devlet sana durduk yere para vermez. Ancak sen, kazancının bir kısmını yasal zorunluluk olarak ona ödersin.' },
+      { title: 'Şirket ➡️ Birey', desc: 'Bir şirket durduk yere kimseye para dağıtmaz. Bu para, o şirkette çalışan kişinin emeğinin ve zamanının karşılığıdır.' },
+      { title: 'Banka ➡️ Birey', desc: 'Bir birey bankadan yüklü miktarda para alıyorsa, bu genellikle ev/araba almak veya iş kurmak için talep ettiği borç paradır.' },
+    ],
+  },
+  phase3: [
+    {
+      dictionary: [
+        { term: 'Kredi Notu (Skoru)', def: 'Senin geçmişteki borç ödeme alışkanlıklarının karne notudur. Banka, sana güvenip güvenmeyeceğini bu nota bakarak anlar.' },
+        { term: 'Kredi Başvurusu', def: 'İhtiyacın olan borç parayı alabilmek için bankaya resmi talepte bulunma sürecidir.' },
+      ],
+      strategyTitle: 'Strateji Merkezi',
+      strategyTips: [
+        { title: 'Önce Talep Et', desc: 'Hiçbir banka sen istemeden "Gidip şu eve bakayım" demez. Süreç daima senin ilk adımı atmanla başlar.' },
+        { title: 'Sonra Güven Testi', desc: 'Kapıyı çaldıktan sonra banka hemen parayı vermez. Önce "Bu kişi bana paramı geri ödeyebilir mi?" diye senin geçmişini inceler.' },
+        { title: 'En Son Teslimat', desc: 'Tüm incelemeler olumlu biterse, ancak o zaman para senin kullanımına açılır.' },
+      ],
+    },
+    {
+      dictionary: [
+        { term: 'Brüt Maaş', def: 'İşverenin senin için ödediği toplam paradır (Kesintiler yapılmadan önceki büyük rakam).' },
+        { term: 'Net Maaş', def: 'Devlet ve sigorta payları kesildikten sonra, doğrudan senin cebine giren harcanabilir paradır.' },
+        { term: 'Vergi ve Sigorta Kesintisi', def: 'Yasal olarak, maaşın sana ulaşmadan önce kaynağından (şirket tarafından) kesilen zorunlu ödemelerdir.' },
+      ],
+      strategyTitle: 'Strateji Merkezi',
+      strategyTips: [
+        { title: 'Eylemden Önce Kazanç Olmaz', desc: 'Para kazanabilmek için önce o şirketin kapısından içeri adım atmalı ve emeğini ortaya koymalısın.' },
+        { title: 'Devletin Payı Önceliklidir', desc: 'Senin paran hesabına geçmeden önce, sistem otomatik olarak yasal kesintileri (vergi vb.) brüt paranın içinden alır.' },
+        { title: 'Kalan Senin', desc: 'Tüm yasal yükümlülükler şirket tarafından halledildikten sonra, en son kalan temiz para senin banka hesabına düşer.' },
+      ],
+    },
+    {
+      dictionary: [
+        { term: 'Aracı Kurum (Broker)', def: 'Senin tek başına borsaya girip hisse alman yasaktır. Senin adına bu işlemi yapmaya devletten yetki almış yasal köprülerdir.' },
+        { term: 'Fon Transferi', def: 'Banka hesabındaki normal parayı, yatırım yapabilmek için açtığın özel yatırım hesabına aktarma işlemidir.' },
+      ],
+      strategyTitle: 'Strateji Merkezi',
+      strategyTips: [
+        { title: 'Önce Köprüyü Kur', desc: 'Borsada işlem yapabilmek için öncelikle sana yasal olarak kapıyı açacak bir hesaba (aracı kuruma) kayıt olman gerekir.' },
+        { title: 'Kasayı Doldur', desc: 'Hesabın açılması yetmez, içi boş bir hesapla yatırım yapamazsın. Kendi bankandan bu yeni yatırım hesabına sermaye (nakit) yollamalısın.' },
+        { title: 'Harekete Geç (Alım Yap)', desc: 'Yasal hesabın var, içinde yatırım sermayen de var. Artık piyasaya girip araştırdığın şirketin hissesini sepetine ekleyebilirsin.' },
+      ],
+    },
+  ],
+};
+
 // ─── Main game ────────────────────────────────────────────────────────────────
 
 interface MoneyFlowProps { onComplete?: (score: number) => void }
@@ -481,8 +550,44 @@ function MoneyFlowGame({ onComplete }: MoneyFlowProps) {
   const phaseNames = ['Kurumu Eşleştir', 'Akışı Adlandır', 'Senaryoyu Sırala'];
   const phaseIcons = ['🏛️', '🔀', '🔢'];
 
+  const panel = phase === 1 ? MONEY_FLOW_PANELS.phase1
+    : phase === 2 ? MONEY_FLOW_PANELS.phase2
+    : MONEY_FLOW_PANELS.phase3[p3Idx];
+  const panelKey = phase === 3 ? `3-${p3Idx}` : `${phase}`;
+
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex items-start gap-4">
+
+        {/* Left Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`left-${panelKey}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.dictionary.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Center */}
+        <div className="flex-1 min-w-0">
       <div className="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
         {/* Top bar */}
         <div className={`h-1.5 bg-gradient-to-r ${phaseColors[phase]}`} />
@@ -911,6 +1016,36 @@ function MoneyFlowGame({ onComplete }: MoneyFlowProps) {
             </motion.div>
           </AnimatePresence>
         </div>
+      </div>
+        </div>
+
+        {/* Right Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`right-${panelKey}`}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-amber-800/40">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 {panel.strategyTitle}</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.strategyTips.map((tip, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
       </div>
     </div>
   );

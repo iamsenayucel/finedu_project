@@ -149,6 +149,138 @@ function getPerformance(score: number) {
   return { label: 'Gelişime İhtiyaç Var', color: 'text-red-400', icon: '📚' };
 }
 
+const RISK_PANELS = [
+  {
+    // Scenario 0: Dalgalı Piyasa (Yüksek Volatilite)
+    direction: {
+      dictionary: [
+        { term: 'Kâr Marjı', def: 'Şirketin yaptığı satıştan tüm masraflar çıkarıldığında elinde kalan net kazançtır.' },
+        { term: 'Jeopolitik Gerginlik', def: 'Ülkeler arasındaki siyasi krizler veya savaş ihtimalleridir. Piyasaları her zaman tedirgin eder.' },
+        { term: 'Tedarik Zinciri Aksaklığı', def: 'Ürünlerin fabrikadan tüketiciye gidiş yolunda yaşanan gecikmelerdir. Maliyetleri aniden artırır.' },
+      ],
+      strategyTitle: 'Dedektif Köşesi',
+      strategyTips: [
+        { title: 'Haberdeki Çelişkilere Bak', desc: 'Bir yanda "Kârlar artıyor" yazarken hemen altında "Tedarik zincirinde engeller var" deniyor. Piyasada iyi ve kötü haber aynı anda var.' },
+        { title: 'Grafiği Oku', desc: 'Ekranda fiyat çizgileri bir aşağı bir yukarı sert zikzaklar çiziyor. Belirgin bir yön yok.' },
+        { title: 'Uzman Ne Diyor?', desc: '"Karışık sinyaller görüyoruz" cümlesi, piyasanın ne yapacağına karar veremediğinin en büyük kanıtıdır.' },
+        { title: 'Nihai Karar', desc: 'Bu piyasa ne sürekli yükselir ne de sürekli düşer; sadece sert çalkalanır!' },
+      ],
+    },
+    allocation: {
+      dictionary: [
+        { term: '🏛 Mevduat', def: 'Paranı bankaya emanet edip önceden belirlenmiş sabit bir faiz almaktır. Sürprizi yoktur, garantidir.' },
+        { term: '📜 Tahvil', def: 'Devlete veya büyük şirketlere borç vermektir. Vade sonunda paranı faiziyle geri alırsın. Riski çok düşüktür.' },
+        { term: '🥇 Altın', def: 'Yüzyıllardır krizlerin ve belirsizliklerin güvenli limanıdır. Savaşta veya panikte değeri artar.' },
+        { term: '📈 Hisse Senedi', def: 'Bir şirkete ortak olmaktır. Şirket büyürse sen de kazanırsın, batarsa paran erir. Risklidir.' },
+        { term: '₿ Kripto Para', def: 'Dijital varlıklardır. En hızlı kazandıran ama en hızlı kaybettiren en riskli araçtır.' },
+      ],
+      strategyTitle: 'Dalgalı Piyasada Ne Yapmalı?',
+      strategyTips: [
+        { title: 'Çeşitlendirme Hayat Kurtarır', desc: 'Sular çok dalgalı, gemiyi tek bir yere bağlama. Paranı farklı araçlara böl.' },
+        { title: 'Nakit Kurşun Bırak (Mevduat)', desc: 'Piyasalar aniden düştüğünde fırsatları dipten toplamak için kenarda nakdin olmalı.' },
+        { title: 'Dengeleyici Kullan (Altın)', desc: 'Hisse ve kriptodaki sert düşüşleri yastık gibi yumuşatması için altın oranını dengede tut.' },
+        { title: 'Riski Abartma (Hisse & Kripto)', desc: 'Bu araçlarda fırsat çoktur ama yüksek oranlarda girmek bu dalgalı havada paranı büyük bir tehlikeye atmaktır.' },
+      ],
+    },
+  },
+  {
+    // Scenario 1: Durağan Piyasa (Yatay Seyir)
+    direction: {
+      dictionary: [
+        { term: 'Konsolidasyon', def: "Şirketlerin yeni yatırımlar yapmak yerine mevcut durumu koruduğu, piyasanın dinlendiği süreçtir." },
+        { term: 'Bütçe Disiplini', def: '"Titizlikle değerlendiriliyor" denmesi, şirketlerin para harcarken frene bastığı anlamına gelir.' },
+        { term: 'Hacim Dengelenmesi', def: 'Alım-satım işlemlerinin çılgın seviyelerden normal, sakin seviyelere inmesidir.' },
+      ],
+      strategyTitle: 'Dedektif Köşesi',
+      strategyTips: [
+        { title: 'Kelime Avı', desc: 'Haberlerdeki "Normalleşiyor", "Dengeleniyor", "Optimize ediliyor" kelimeleri heyecanın bittiğini gösterir.' },
+        { title: 'Grafiği Oku', desc: 'Çizgiler neredeyse düz bir ip gibi. Getiriler +%0.1 veya -%0.2 gibi yok denecek kadar az.' },
+        { title: 'Uzman Ne Diyor?', desc: '"Yatay seyir ve sınırlı büyüme potansiyeli..." ifadesi piyasada yaprak kıpırdamadığının net özetidir.' },
+        { title: 'Nihai Karar', desc: 'Bu piyasa fırtına öncesi sessizlikte veya yaz uykusunda.' },
+      ],
+    },
+    allocation: {
+      dictionary: [
+        { term: '🏛 Mevduat', def: 'Paran bankada sabit faizle güvende.' },
+        { term: '📜 Tahvil', def: 'Devlete borç ver, garanti getiri sağla.' },
+        { term: '🥇 Altın', def: 'Fiziksel değer, enflasyon kalkanı.' },
+        { term: '📈 Hisse Senedi', def: 'Şirket ortaklığı, büyüme odaklı.' },
+        { term: '₿ Kripto Para', def: 'Dijital, yüksek riskli teknoloji yatırımı.' },
+      ],
+      strategyTitle: 'Durağan Piyasada Ne Yapmalı?',
+      strategyTips: [
+        { title: 'Sabit Getiriye Yüklen (Tahvil & Mevduat)', desc: 'Fiyatların artmadığı bu dönemde, sana garanti getiri sunan risksiz araçların ağırlığını artır.' },
+        { title: 'Seçici Ol (Hisse)', desc: '"Temettü" (kâr payı) dağıtan sağlam şirketleri seçerek nakit akışı sağla.' },
+        { title: 'Uykudaki Varlıklara Dikkat (Kripto & Altın)', desc: 'Büyük sıçramalar beklenmediği için paranın çoğunu buralarda uyutmak sana vakit kaybettirir. Oranları düşük tut.' },
+      ],
+    },
+  },
+  {
+    // Scenario 2: Düşüş Piyasası (Ekonomik Daralma)
+    direction: {
+      dictionary: [
+        { term: 'Ekonomik Daralma (Resesyon)', def: 'Ülke ekonomisinin küçülmesi, şirketlerin üretiminin düşmesi ve işsizliğin artmasıdır.' },
+        { term: 'İstihdamın Dondurulması', def: 'Şirketlerin yeni işçi alımını durdurması, kriz önlemi almasıdır.' },
+        { term: 'Navlun', def: 'Malların gemiyle taşınması için ödenen ücrettir. Fiyatların düşmesi, dünyada ticaretin yavaşladığı anlamına gelir.' },
+      ],
+      strategyTitle: 'Dedektif Köşesi',
+      strategyTips: [
+        { title: 'Kırmızı Alarmlar', desc: '"Beklenmedik düşüş", "Yatırımlar askıya alınıyor", "Talep zayıf" kelimeleri sistemin kan kaybettiğini gösterir.' },
+        { title: 'Grafiği Oku', desc: 'BİST 100 ve Kripto eksilerde (-%5.2, -%12.5). Oklar kırmızı ve hızla aşağıyı gösteriyor.' },
+        { title: 'Uzman Ne Diyor?', desc: '"Risker barındırıyor, temkinli olmak anahtardır, savunmaya geçin" uyarısı tehlike çanlarının çaldığı anı belirtir.' },
+        { title: 'Nihai Karar', desc: 'Ekonomi freni patlamış kamyon gibi yokuş aşağı gidiyor.' },
+      ],
+    },
+    allocation: {
+      dictionary: [
+        { term: '🏛 Mevduat', def: 'Paran bankada sabit faizle güvende.' },
+        { term: '📜 Tahvil', def: 'Devlete borç ver, garanti getiri sağla.' },
+        { term: '🥇 Altın', def: 'Fiziksel değer, krizlerin koruyucu kalkanı.' },
+        { term: '📈 Hisse Senedi', def: 'Şirket ortaklığı, krizde en çok darbe alan yer.' },
+        { term: '₿ Kripto Para', def: 'Dijital, yüksek riskli, panik anında en çok çakılan varlık.' },
+      ],
+      strategyTitle: 'Düşüş Piyasasında Ne Yapmalı?',
+      strategyTips: [
+        { title: 'Kalkanları Kaldır (Altın)', desc: 'Kriz anlarında yatırımcılar paniğe kapılıp güvenli liman olan altına koşar. Altın ağırlığını ciddi oranda artır.' },
+        { title: 'Garantici Ol (Mevduat & Tahvil)', desc: 'Paranın erimesini engellemek için nakitte kal veya devlet garantili tahvillere sığın.' },
+        { title: 'Tehlikeden Kaç (Hisse & Kripto)', desc: 'Şirket kârlarının çakıldığı bu dönemde, riskli varlıkları portföyünden hızla temizle (oranları minimuma çek).' },
+      ],
+    },
+  },
+  {
+    // Scenario 3: Yükseliş Piyasası (Büyüme)
+    direction: {
+      dictionary: [
+        { term: 'Küresel Faiz Oranı', def: 'Merkez bankalarının paranın maliyetini belirlediği orandır. Faizlerin düşmesi, kredileri ucuzlatır ve yatırımları patlatır.' },
+        { term: 'Q1 (İlk Çeyrek)', def: "Şirketlerin Ocak-Şubat-Mart aylarındaki performansını ifade eder." },
+        { term: 'Stratejik Tesis', def: 'Yenilenebilir enerji gibi devletlerin çok önem verdiği, teşvik ve para yağdırdığı dev yatırımlardır.' },
+      ],
+      strategyTitle: 'Dedektif Köşesi',
+      strategyTips: [
+        { title: 'Coşkuyu Hisset', desc: '"Kârlar uçtu", "Yatırımlar hızlanıyor", "Rekor hacim" kelimeleri piyasada bahar havası estiğinin kanıtıdır.' },
+        { title: 'Grafiği Oku', desc: 'Tüm oklar yemyeşil ve yukarı bakıyor! Hisse senetleri ve Kripto çok yüksek pozitif getiriler yazmış.' },
+        { title: 'Uzman Ne Diyor?', desc: '"Gerçek fırsatlar barındırıyor, uzun vade kazandırır" cümlesi piyasaya güvenin tam olduğunu söyler.' },
+        { title: 'Nihai Karar', desc: 'Piyasada boğalar sahnede! Herkes kazanmaya odaklanmış, fiyatlar roketliyor.' },
+      ],
+    },
+    allocation: {
+      dictionary: [
+        { term: '🏛 Mevduat', def: 'Paran bankada güvende ama yükselen piyasanın kazancını kaçırır.' },
+        { term: '📜 Tahvil', def: 'Garanti getiri ama coşkulu büyümeden pay alamaz.' },
+        { term: '🥇 Altın', def: 'Güvenlidir ancak ekonomi uçarken yatırımcılar altına değil riske koşar.' },
+        { term: '📈 Hisse Senedi', def: 'Büyüyen şirketlerin ortaklığı. Bu havanın yıldızıdır.' },
+        { term: '₿ Kripto Para', def: 'Dijital varlıklar. Risk iştahı arttığında en çok paranın aktığı yerdir.' },
+      ],
+      strategyTitle: 'Yükseliş Piyasasında Ne Yapmalı?',
+      strategyTips: [
+        { title: 'Risk İştahını Aç (Hisse & Kripto)', desc: 'Büyüme dönemlerinde en çok kazandıranlar şirketler ve dijital varlıklardır. Cesurca artır, rüzgarı arkana al.' },
+        { title: 'Fırsatları Kaçırma (Mevduat & Tahvil)', desc: 'Her şey değer kazanırken paranı düşük faizde uyutmak sana potansiyel kazancı kaçırttırır. Sabit getirili araçların oranını azalt.' },
+        { title: 'Dengeyi Unutma (Altın)', desc: 'Gökyüzü güneşli olsa da, beklenmedik sarsıntılara karşı yedeğinde her zaman küçük bir miktar koruma bırak.' },
+      ],
+    },
+  },
+];
+
 export default function RiskHunter({ onComplete }: RiskHunterProps) {
   const [stage, setStage] = useState<Stage>('intro');
   const [scenarioIndex, setScenarioIndex] = useState(0);
@@ -284,7 +416,46 @@ export default function RiskHunter({ onComplete }: RiskHunterProps) {
   }
 
   // ── SCENARIO WRAPPER ──────────────────────────────────────────────────────
+  const scenarioPanel = RISK_PANELS[Math.min(scenarioIndex, RISK_PANELS.length - 1)];
+  const isAllocPhase = stage === 'allocation' || stage === 'feedback';
+  const panel = isAllocPhase ? scenarioPanel.allocation : scenarioPanel.direction;
+  const panelKey = `${scenarioIndex}-${isAllocPhase ? 'alloc' : 'dir'}`;
+
   return (
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex items-start gap-4">
+
+        {/* Left Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`left-${panelKey}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">
+                  📖 {isAllocPhase ? 'Yatırım Araçlarını Tanı' : 'Ekonomi Sözlüğü'}
+                </div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.dictionary.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Center */}
+        <div className="flex-1 min-w-0">
     <div className="w-full max-w-4xl mx-auto bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
 
       {/* Progress Header */}
@@ -542,6 +713,37 @@ export default function RiskHunter({ onComplete }: RiskHunterProps) {
         })()}
 
       </AnimatePresence>
+    </div>
+        </div>
+
+        {/* Right Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`right-${panelKey}`}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-amber-800/40">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 {panel.strategyTitle}</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.strategyTips.map((tip, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+      </div>
     </div>
   );
 }

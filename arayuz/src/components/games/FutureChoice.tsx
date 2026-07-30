@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, TrendingDown, ArrowRight, CheckCircle } from 'lucide-react';
 
@@ -177,6 +177,74 @@ const PROFILES: Record<RiskProfile, {
   },
 };
 
+// ─── Side panel data ──────────────────────────────────────────────────────────
+const FUTURE_PANEL = {
+  dictionary: [
+    { term: 'Risk Toleransı', def: 'Bir karar alırken veya yatırım yaparken, paranın veya düzeninin kaybolma ihtimaline karşı gösterebildiğin dayanıklılık seviyesidir.' },
+    { term: 'Fırsat Maliyeti', def: 'Bir seçeneği tercih ettiğinde, vazgeçtiğin diğer seçeneğin sana sunacağı kazançtır. "Güvenli" yolu seçtiğinde, "Büyük Kazanç" ihtimalinden vazgeçersin.' },
+    { term: 'Sabit Gelir', def: 'Piyasalar çökse de, işler kötü gitse de her ayın belirli bir gününde hesaba yatan, miktarı önceden belli olan nakit akışıdır.' },
+    { term: 'Portföy Çeşitlendirmesi', def: '"Tüm yumurtaları aynı sepete koymama" kuralıdır. Elindeki sermayeyi güvenli ve riskli alanlara dağıtarak toplam riski düşürme stratejisidir.' },
+    { term: 'Esneklik', def: 'Sadece parayla ölçülemeyen; çalışma saatlerini kendin belirleyebilme, kimseye hesap vermeme ve kendi fikirlerini hayata geçirebilme özgürlüğüdür.' },
+  ],
+  strategyTitle: 'Kariyer Yolları Analizi',
+  strategyTips: [
+    { title: '🏛 Devlet Memurluğu', desc: '✅ En büyük avantajı düzenli maaş ve yüksek iş güvencesidir. ❌ Dezavantajı gelir tavanının belli olmasıdır.' },
+    { title: '🏢 Özel Sektör', desc: '✅ En büyük avantajı performansa dayalı hızlı maaş artışıdır. ❌ Dezavantajı küçülmede işten çıkarılma riskidir.' },
+    { title: '🚀 Girişimcilik', desc: '✅ En büyük avantajı özgürlük ve sınırsız kazanç potansiyelidir. ❌ Dezavantajı sabit gelirin olmaması, ilk yıllarda zarar riskidir.' },
+  ],
+};
+
+function FuturePanels({ children }: { children: ReactNode }) {
+  return (
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex items-start gap-4">
+        {/* Left Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <div
+            className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+            style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+          >
+            <div className="px-4 py-3.5 border-b border-cyan-800/40">
+              <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+            </div>
+            <div className="px-4 py-3.5 flex flex-col gap-3.5">
+              {FUTURE_PANEL.dictionary.map((item, i) => (
+                <div key={i}>
+                  <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Center */}
+        <div className="flex-1 min-w-0">{children}</div>
+
+        {/* Right Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <div
+            className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+            style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+          >
+            <div className="px-4 py-3.5 border-b border-amber-800/40">
+              <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 {FUTURE_PANEL.strategyTitle}</div>
+            </div>
+            <div className="px-4 py-3.5 flex flex-col gap-3.5">
+              {FUTURE_PANEL.strategyTips.map((tip, i) => (
+                <div key={i}>
+                  <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmtTL(n: number) {
   return n.toLocaleString('tr-TR') + ' TL';
@@ -330,7 +398,7 @@ export default function FutureChoice({ onComplete }: FutureChoiceProps) {
   if (stage === 'career_result') {
     const chosen = DOORS.find(d => d.id === careerChoice)!;
     return (
-      <div className="w-full max-w-4xl mx-auto">
+      <FuturePanels>
         <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
           <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500" />
 
@@ -405,14 +473,14 @@ export default function FutureChoice({ onComplete }: FutureChoiceProps) {
             </motion.div>
           </AnimatePresence>
         </div>
-      </div>
+      </FuturePanels>
     );
   }
 
   // ── INVESTMENT ────────────────────────────────────────────────────────────
   if (stage === 'investment') {
     return (
-      <div className="w-full max-w-4xl mx-auto">
+      <FuturePanels>
         <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
           <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500" />
           <div className="p-8">
@@ -490,7 +558,7 @@ export default function FutureChoice({ onComplete }: FutureChoiceProps) {
             </div>
           </div>
         </div>
-      </div>
+      </FuturePanels>
     );
   }
 
@@ -502,7 +570,7 @@ export default function FutureChoice({ onComplete }: FutureChoiceProps) {
     const isRisky     = investChoice === 'risk';
 
     return (
-      <div className="w-full max-w-4xl mx-auto">
+      <FuturePanels>
         <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
           <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500" />
           <div className="p-8">
@@ -572,14 +640,14 @@ export default function FutureChoice({ onComplete }: FutureChoiceProps) {
             </motion.button>
           </div>
         </div>
-      </div>
+      </FuturePanels>
     );
   }
 
   // ── CRISIS ────────────────────────────────────────────────────────────────
   if (stage === 'crisis') {
     return (
-      <div className="w-full max-w-4xl mx-auto">
+      <FuturePanels>
         <div className="bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden">
           <div className="h-1.5 bg-gradient-to-r from-orange-500 via-red-500 to-rose-600" />
           <div className="p-8">
@@ -641,7 +709,7 @@ export default function FutureChoice({ onComplete }: FutureChoiceProps) {
             </div>
           </div>
         </div>
-      </div>
+      </FuturePanels>
     );
   }
 

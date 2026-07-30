@@ -125,6 +125,88 @@ function choiceLetter(id: string, selected: string | null, correct: string) {
   return { bg: 'bg-slate-700 text-slate-500', icon: id };
 }
 
+// ─── Yan panel verisi ─────────────────────────────────────────────────────────
+const MIRAS_PANELS = [
+  {
+    dictionary: [
+      { term: 'Boğa Piyasası', def: 'Fiyatların sürekli yükseldiği, yatırımcıların aşırı iyimser olduğu ve sürekli alım yaptığı piyasa dönemidir.' },
+      { term: 'Faiz İndirimi', def: 'Merkez bankasının paranın maliyetini düşürmesidir. İnsanlar bankaya para yatırmak yerine borsaya veya ticarete yönelir, piyasa canlanır.' },
+      { term: 'Tarihi Zirve', def: 'Bir endeksin (örn: BİST 100) bugüne kadar ulaştığı en yüksek puan veya fiyat seviyesidir.' },
+    ],
+    strategyTitle: 'Dedektif Köşesi',
+    strategyTips: [
+      { title: 'Coşkulu Başlıklar', desc: '"Rekor", "Zirve", "Para Yağmuru" kelimeleri piyasanın adeta bir parti havasında olduğunu gösterir.' },
+      { title: 'Grafik Yönü', desc: 'Ekranda roketler uçuşuyor ve trend çizgisi net bir şekilde "Yukarı"yı gösteriyor.' },
+      { title: 'Uzman Psikolojisi', desc: 'Sosyal medyadaki "Herkes kazanıyor, sen neredesin?" baskısı, tam bir boğa piyasası (FOMO) işaretidir.' },
+    ],
+  },
+  {
+    dictionary: [
+      { term: '💼 Güvenli Kasa (%80)', def: 'Paran sadece yatar. Düşmez ama yükselen enflasyon ve piyasa karşısında erir (Fırsat Maliyeti).' },
+      { term: '💼 Dengeli Şirket (%10)', def: 'Sağlam adımlarla büyüyen, güvenilir şirket hisseleridir.' },
+      { term: '💼 Uçuş Teknolojileri (%10)', def: 'Piyasayı yukarı taşıyan ana motordur. En çok kazandıran ama aynı zamanda en riskli olan gruptur.' },
+    ],
+    strategyTitle: 'Boğa Piyasasında Ne Yapmalı?',
+    strategyTips: [
+      { title: 'Fırsat Maliyetinden Kaç', desc: "Dışarıda para yağarken, paranın %80'ini kasada uyutmak en büyük zarardır. Rüzgarı arkana al." },
+      { title: 'Hücuma Geç (Riski Artır)', desc: 'Güvenli kasanın kilidini kırmalısın. Nakdin bir kısmıyla hemen yükselen trende (teknoloji ve şirket hisselerine) katıl.' },
+      { title: 'Panik Yapma, Satma', desc: '"Bu yükseliş yalan" diyerek elindeki hisseyi satıp tamamen nakde geçmek, seni bu coşkulu partinin tamamen dışına atar.' },
+    ],
+  },
+  {
+    dictionary: [
+      { term: 'Ayı Piyasası', def: 'Fiyatların sürekli düştüğü, karamsarlığın hakim olduğu ve yatırımcıların panikle kaçtığı piyasa dönemidir.' },
+      { term: 'Panik Satışı', def: '"Daha da düşecek" korkusuyla mantıksızca her şeyi zararına satmasıdır.' },
+      { term: 'Kurşun Kalmadı (Likidite Krizi)', def: 'Piyasada nakit paranın (kurşunun) tükenmesi, kimsenin alım yapacak gücünün kalmaması durumudur.' },
+    ],
+    strategyTitle: 'Dedektif Köşesi',
+    strategyTips: [
+      { title: 'Korku Manşetleri', desc: '"Çöküş", "Sıfırlanıyoruz", "Sert Çakıldı" kelimeleri sistemde büyük bir kriz olduğunu haykırıyor.' },
+      { title: 'Grafik Yönü', desc: 'Tüm endeksler kırmızıya boyanmış (Örn: NASDAQ -%12.30) ve oklar şelale gibi aşağı iniyor.' },
+      { title: 'Uzman Uyarısı', desc: '"Düzeltme değil, tam bir çöküş" ifadesi, bu düşüşün kısa süreli olmadığını kanıtlar.' },
+    ],
+  },
+  {
+    dictionary: [
+      { term: '💼 Güvenli Kasa (%10)', def: 'Kriz anlarında cankurtaran simidindir, ancak sende şu an çok az var.' },
+      { term: '💼 Dengeli Şirket (%40)', def: 'Sağlam olsalar da genel piyasa çöküşünden onlar da yara alır ve erir.' },
+      { term: '💼 Uçuk Teknoloji (%50)', def: 'Krizlerde en hızlı çakılan, en çok değer kaybeden riskli varlıklardır.' },
+    ],
+    strategyTitle: 'Ayı Piyasasında Ne Yapmalı?',
+    strategyTips: [
+      { title: 'Zararın Neresinden Dönülse Kârdır', desc: "Portföyün %90'ı eriyen varlıklarda! Bekleyip \"Elbet yükselir\" demek paranı sıfırlayabilir." },
+      { title: 'Nakit Oranını Artır (Tedbir Al)', desc: 'En çok düşen uçuk teknolojilerden bir kısmını satarak kasadaki nakit (kurşun) miktarını artırmalısın.' },
+      { title: 'Kahramanlık Yapma (Gözü Kara Olma)', desc: 'Kalan son %10 nakitini de "Nasılsa çok düştü" diyerek batan gemiye yatırmak, tüm cephaneni çöpe atmaktır.' },
+    ],
+  },
+  {
+    dictionary: [
+      { term: 'Yatay Trend', def: 'Fiyatların belirli bir sınır içinde sıkıştığı, ne net bir yükselişin ne de net bir düşüşün olduğu sıkıcı dönemdir.' },
+      { term: 'FOMO (Fırsatı Kaçırma Korkusu)', def: '"Herkes kazanıyor ben geri kaldım" korkusuyla aniden parlayan bir şeye para yatırma psikolojisidir.' },
+      { term: 'Pasif Gelir (Temettü)', def: 'Sen uyurken bile, şirketlerin kârından sana düzenli olarak ödediği yorulmadan kazanılan paradır.' },
+    ],
+    strategyTitle: 'Dedektif Köşesi',
+    strategyTips: [
+      { title: 'Uyku Modu', desc: '"Büyük Sessizlik", "Duraklama" kelimeleri ve esneyen yatırımcı görseli piyasanın uykuda olduğunu gösterir.' },
+      { title: 'Grafik Yönü', desc: 'Çizgiler hastanedeki düz kalp atışı (EKG) cihazı gibi, hiçbir hareket yok.' },
+      { title: 'Uzman Tavsiyesi', desc: '"Sıkıntıdan işlem yapmayın, portföyü eritmeyin" uyarısı, hareketsiz kalmanın şu an en iyi hareket olduğunu söyler.' },
+    ],
+  },
+  {
+    dictionary: [
+      { term: '💼 Temettü Hisseleri (%50)', def: 'Fiyatı artmasa da sana düzenli olarak nakit harçlık (pasif gelir) ödeyen altın yumurtlayan tavuklardır.' },
+      { term: '💼 Güvenli Kasa (%40)', def: 'Piyasada gerçek bir fırsat (düşüş veya yükseliş) çıktığında kullanmak üzere pusuya yatmış nakit cephanen.' },
+      { term: '💼 Macera Fonu / Nova-X (Tuzak)', def: 'Yatay piyasanın sıkıntısından doğan, bir anda %150 artan ama altı boş, aşırı riskli ve spekülatif bir tuzaktır.' },
+    ],
+    strategyTitle: 'Durgun Piyasada Ne Yapmalı?',
+    strategyTips: [
+      { title: 'Altın Yumurtlayan Tavuğu Kesme', desc: 'Düzenli ödeme yapan temettü hisselerini satıp, geçici heveslere (Nova-X) girmek elindeki hazır geliri yok eder.' },
+      { title: 'Sabırlı Ol, İzleyici Kal', desc: 'Temettü hisselerini tut. Oradan gelen harçlıkları kasaya ekle ve piyasada gerçek bir yön oluşana kadar bekle.' },
+      { title: 'Sıkıntıdan Panikleme', desc: 'Piyasada hiçbir şey olmuyor diye huzursuzlanıp tüm portföyü bozmak, acemi yatırımcıların yaptığı en büyük hatadır.' },
+    ],
+  },
+];
+
 // ─── ANA BİLEŞEN ──────────────────────────────────────────────────────────────
 
 export default function RiskReturnTradeoff({ onComplete }: RiskReturnTradeoffProps) {
@@ -305,8 +387,41 @@ export default function RiskReturnTradeoff({ onComplete }: RiskReturnTradeoffPro
   }
 
   // ── OYUN ─────────────────────────────────────────────────────────────────────
+  const panel = MIRAS_PANELS[qIndex];
+
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex items-start gap-4">
+
+        {/* Left Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`left-${qIndex}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.dictionary.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Center */}
+        <div className="flex-1 min-w-0">
       {/* Header bar */}
       <div className="bg-slate-900 rounded-t-2xl px-5 py-2.5 flex items-center justify-between border-b border-slate-700">
         <div className="flex items-center gap-3">
@@ -399,6 +514,36 @@ export default function RiskReturnTradeoff({ onComplete }: RiskReturnTradeoffPro
           </div>
         </motion.div>
       </AnimatePresence>
+        </div>
+
+        {/* Right Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`right-${qIndex}`}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-amber-800/40">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 {panel.strategyTitle}</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {panel.strategyTips.map((tip, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+      </div>
     </div>
   );
 }
