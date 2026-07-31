@@ -290,69 +290,132 @@ export default function RealDataHunter({ onComplete }: RealDataHunterProps) {
 
   // ── INTRO ────────────────────────────────────────────────────────────────
   if (stage === 'intro') {
+    const introPanel = STEP_PANELS[0];
     return (
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
-          {/* Top accent */}
-          <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+      <div className="w-full max-w-7xl mx-auto">
+        <div className="flex items-start gap-4">
 
-          <div className="p-10 text-center">
-            {/* Icon cluster */}
-            <div className="flex justify-center items-center gap-3 mb-6">
-              <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center border border-blue-500/30">
-                <Search className="w-8 h-8 text-blue-400" />
+          {/* Left Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <motion.div
+              initial={{ opacity: 0, x: -24 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+                <div className="text-cyan-600 text-xs">{introPanel.stepLabel}</div>
               </div>
-              <div className="w-20 h-20 bg-purple-600/20 rounded-2xl flex items-center justify-center border border-purple-500/30">
-                <ShieldCheck className="w-10 h-10 text-purple-400" />
-              </div>
-              <div className="w-16 h-16 bg-pink-600/20 rounded-2xl flex items-center justify-center border border-pink-500/30">
-                <Database className="w-8 h-8 text-pink-400" />
-              </div>
-            </div>
-
-            <h1 className="text-4xl font-black text-white mb-2">Gerçek Veri Avı</h1>
-            <p className="text-slate-400 text-sm uppercase tracking-widest mb-6">Finansal Bilgi Doğrulama Merkezi</p>
-
-            <div className="bg-slate-700/50 rounded-2xl p-6 mb-8 border border-slate-600/50 text-left max-w-xl mx-auto">
-              <p className="text-slate-300 text-sm leading-relaxed mb-3">
-                <span className="text-white font-bold">Görevin:</span> Sosyal medyada yayılan ekonomik iddiaları analiz edecek ve resmi kaynaklarla karşılaştırarak doğru sınıflandırmayı yapacaksın.
-              </p>
-              <div className="flex flex-col gap-2">
-                {['İddiaları incele', 'Doğru kaynağı bul', 'Gerçek veriyi tespit et', 'Doğru sınıflandır'].map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 text-slate-300 text-sm">
-                    <div className="w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold flex-shrink-0">{i + 1}</div>
-                    {item}
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {introPanel.dictionary.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div className="flex items-center justify-center gap-6 mb-8 text-slate-400 text-sm">
-              <div className="text-center">
-                <div className="text-2xl font-black text-white">4</div>
-                <div>Adım</div>
-              </div>
-              <div className="w-px h-8 bg-slate-600" />
-              <div className="text-center">
-                <div className="text-2xl font-black text-white">40</div>
-                <div>Maks. Puan</div>
-              </div>
-              <div className="w-px h-8 bg-slate-600" />
-              <div className="text-center">
-                <div className="text-2xl font-black text-white">0</div>
-                <div>Başlangıç</div>
-              </div>
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={() => setStage('step1')}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black text-xl py-4 px-14 rounded-full shadow-xl border-b-4 border-purple-800"
-            >
-              Analizi Başlat 🔍
-            </motion.button>
+            </motion.div>
           </div>
+
+          {/* Center */}
+          <div className="flex-1 min-w-0">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.4 }}
+              className="w-full max-w-4xl mx-auto"
+            >
+              <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
+                {/* Top accent */}
+                <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+
+                <div className="p-10 text-center">
+                  {/* Icon cluster */}
+                  <div className="flex justify-center items-center gap-3 mb-6">
+                    <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center border border-blue-500/30">
+                      <Search className="w-8 h-8 text-blue-400" />
+                    </div>
+                    <div className="w-20 h-20 bg-purple-600/20 rounded-2xl flex items-center justify-center border border-purple-500/30">
+                      <ShieldCheck className="w-10 h-10 text-purple-400" />
+                    </div>
+                    <div className="w-16 h-16 bg-pink-600/20 rounded-2xl flex items-center justify-center border border-pink-500/30">
+                      <Database className="w-8 h-8 text-pink-400" />
+                    </div>
+                  </div>
+
+                  <h1 className="text-4xl font-black text-white mb-2">Gerçek Veri Avı</h1>
+                  <p className="text-slate-400 text-sm uppercase tracking-widest mb-6">Finansal Bilgi Doğrulama Merkezi</p>
+
+                  <div className="bg-slate-700/50 rounded-2xl p-6 mb-8 border border-slate-600/50 text-left max-w-xl mx-auto">
+                    <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                      <span className="text-white font-bold">Görevin:</span> Sosyal medyada yayılan ekonomik iddiaları analiz edecek ve resmi kaynaklarla karşılaştırarak doğru sınıflandırmayı yapacaksın.
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      {['İddiaları incele', 'Doğru kaynağı bul', 'Gerçek veriyi tespit et', 'Doğru sınıflandır'].map((item, i) => (
+                        <div key={i} className="flex items-center gap-2 text-slate-300 text-sm">
+                          <div className="w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold flex-shrink-0">{i + 1}</div>
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-6 mb-8 text-slate-400 text-sm">
+                    <div className="text-center">
+                      <div className="text-2xl font-black text-white">4</div>
+                      <div>Adım</div>
+                    </div>
+                    <div className="w-px h-8 bg-slate-600" />
+                    <div className="text-center">
+                      <div className="text-2xl font-black text-white">40</div>
+                      <div>Maks. Puan</div>
+                    </div>
+                    <div className="w-px h-8 bg-slate-600" />
+                    <div className="text-center">
+                      <div className="text-2xl font-black text-white">0</div>
+                      <div>Başlangıç</div>
+                    </div>
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => setStage('step1')}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black text-xl py-4 px-14 rounded-full shadow-xl border-b-4 border-purple-800"
+                  >
+                    Analizi Başlat 🔍
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Right Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <motion.div
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-amber-800/40">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 Strateji Merkezi</div>
+                <div className="text-amber-600 text-xs">{introPanel.strategyTitle}</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {introPanel.strategyTips.map((tip, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
         </div>
       </div>
     );

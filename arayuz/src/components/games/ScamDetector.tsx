@@ -337,47 +337,106 @@ export default function ScamDetector({ onComplete }: Props) {
 
   // ── INTRO ─────────────────────────────────────────────────────────────────
   if (stage === 'intro') return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden border border-slate-700 shadow-2xl relative">
-        <Bar cls="from-red-600 via-orange-500 to-amber-500" />
-        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
-          <div className="absolute -top-24 -left-24 w-80 h-80 bg-red-500/8 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-orange-500/8 rounded-full blur-3xl" />
-        </div>
-        <div className="relative px-8 pt-10 pb-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5">
-            <ShieldAlert className="w-3.5 h-3.5" /> Dolandırıcı Tespiti
-          </div>
-          <h1 className="text-4xl font-black text-white mb-3">
-            Dolandırıcı Avı:<br />
-            <span className="text-orange-400">Gerçek mi, Tuzak mı?</span>
-          </h1>
-          <p className="text-slate-300 text-base leading-relaxed max-w-xl mx-auto mb-2">
-            5 farklı gerçek dolandırıcılık senaryosunu inceleyecek ve her birindeki tehlike işaretlerini tespit edeceksin.
-          </p>
-          <p className="text-slate-400 text-sm leading-relaxed max-w-xl mx-auto mb-8">
-            Her senaryo 3 sorudan oluşuyor. Toplam 100 puan üzerinden değerlendirileceksin.
-          </p>
-          <div className="flex justify-center gap-3 mb-10 flex-wrap">
-            {SCENARIOS.map((s, i) => (
-              <div key={s.id} className="flex flex-col items-center bg-slate-700/60 border border-slate-600 rounded-2xl px-4 py-3">
-                <span className="text-xl mb-1">{s.fraudIcon}</span>
-                <span className="text-white text-xs font-bold text-center leading-tight max-w-[80px]">{s.title}</span>
-                <span className="text-red-400 text-xs font-bold mt-0.5">{i + 1}. Senaryo</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="px-8 pb-8 flex justify-center">
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => setStage('preview')}
-            className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-4 px-10 rounded-2xl shadow-lg border-b-4 border-orange-800"
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex items-start gap-4">
+        {/* Left Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+            style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
           >
-            Oyuna Başla <ArrowRight className="w-5 h-5" />
-          </motion.button>
+            <div className="px-4 py-3.5 border-b border-cyan-800/40">
+              <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+            </div>
+            <div className="px-4 py-3.5 flex flex-col gap-3.5">
+              {panel.dictionary.map((item, i) => (
+                <div key={i}>
+                  <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
         </div>
-        <Bar cls="from-red-600 via-orange-500 to-amber-500" />
+
+        {/* Center */}
+        <div className="flex-1 min-w-0">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.4 }}
+            className="w-full max-w-4xl mx-auto"
+          >
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden border border-slate-700 shadow-2xl relative">
+              <Bar cls="from-red-600 via-orange-500 to-amber-500" />
+              <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
+                <div className="absolute -top-24 -left-24 w-80 h-80 bg-red-500/8 rounded-full blur-3xl" />
+                <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-orange-500/8 rounded-full blur-3xl" />
+              </div>
+              <div className="relative px-8 pt-10 pb-4 text-center">
+                <div className="inline-flex items-center gap-2 bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5">
+                  <ShieldAlert className="w-3.5 h-3.5" /> Dolandırıcı Tespiti
+                </div>
+                <h1 className="text-4xl font-black text-white mb-3">
+                  Dolandırıcı Avı:<br />
+                  <span className="text-orange-400">Gerçek mi, Tuzak mı?</span>
+                </h1>
+                <p className="text-slate-300 text-base leading-relaxed max-w-xl mx-auto mb-2">
+                  5 farklı gerçek dolandırıcılık senaryosunu inceleyecek ve her birindeki tehlike işaretlerini tespit edeceksin.
+                </p>
+                <p className="text-slate-400 text-sm leading-relaxed max-w-xl mx-auto mb-8">
+                  Her senaryo 3 sorudan oluşuyor. Toplam 100 puan üzerinden değerlendirileceksin.
+                </p>
+                <div className="flex justify-center gap-3 mb-10 flex-wrap">
+                  {SCENARIOS.map((s, i) => (
+                    <div key={s.id} className="flex flex-col items-center bg-slate-700/60 border border-slate-600 rounded-2xl px-4 py-3">
+                      <span className="text-xl mb-1">{s.fraudIcon}</span>
+                      <span className="text-white text-xs font-bold text-center leading-tight max-w-[80px]">{s.title}</span>
+                      <span className="text-red-400 text-xs font-bold mt-0.5">{i + 1}. Senaryo</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="px-8 pb-8 flex justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  onClick={() => setStage('preview')}
+                  className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-4 px-10 rounded-2xl shadow-lg border-b-4 border-orange-800"
+                >
+                  Oyuna Başla <ArrowRight className="w-5 h-5" />
+                </motion.button>
+              </div>
+              <Bar cls="from-red-600 via-orange-500 to-amber-500" />
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Right Panel */}
+        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
+            className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+            style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+          >
+            <div className="px-4 py-3.5 border-b border-amber-800/40">
+              <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 Tehlike İşaretleri</div>
+              <div className="text-amber-600 text-xs">{panel.strategyTitle}</div>
+            </div>
+            <div className="px-4 py-3.5 flex flex-col gap-3.5">
+              {panel.strategyTips.map((tip, i) => (
+                <div key={i}>
+                  <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                  <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

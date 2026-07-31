@@ -328,7 +328,40 @@ export default function FutureChoice({ onComplete }: FutureChoiceProps) {
   // ── INTRO ─────────────────────────────────────────────────────────────────
   if (stage === 'intro') {
     return (
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full max-w-7xl mx-auto">
+        <div className="flex items-start gap-4">
+
+          {/* Left Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <motion.div
+              initial={{ opacity: 0, x: -24 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {FUTURE_PANEL.dictionary.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Center */}
+          <div className="flex-1 min-w-0">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45, duration: 0.4 }}
+        className="w-full max-w-4xl mx-auto"
+      >
         <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden border border-slate-700 shadow-2xl">
           <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500" />
 
@@ -389,6 +422,33 @@ export default function FutureChoice({ onComplete }: FutureChoiceProps) {
           </div>
 
           <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 mt-6" />
+        </div>
+      </motion.div>
+          </div>
+
+          {/* Right Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <motion.div
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-amber-800/40">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 {FUTURE_PANEL.strategyTitle}</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {FUTURE_PANEL.strategyTips.map((tip, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
         </div>
       </div>
     );

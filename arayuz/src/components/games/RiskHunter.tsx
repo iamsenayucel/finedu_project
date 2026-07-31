@@ -346,80 +346,21 @@ export default function RiskHunter({ onComplete }: RiskHunterProps) {
     }
   };
 
-  // ── INTRO ─────────────────────────────────────────────────────────────────
-  if (stage === 'intro') {
-    return (
-      <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl">
-        <img
-          src="/games/RiskHunter/giris.png"
-          alt="FinEdu Yatırım Okulu Giriş"
-          className="w-full object-cover"
-        />
-        <div className="bg-slate-900 p-8 text-center">
-          <h1 className="text-3xl font-black text-white mb-2">FinEdu Yatırım Okulu 🎯</h1>
-          <p className="text-slate-300 mb-1">
-            Haberleri analiz et, piyasa yönünü tahmin et, portföyünü dağıt.
-          </p>
-          <p className="text-slate-400 text-sm mb-6">
-            100.000 TL bütçenle 4 senaryo seni bekliyor.
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setStage('direction')}
-            className="bg-emerald-500 hover:bg-emerald-400 text-white text-xl font-black py-4 px-12 rounded-full shadow-lg border-b-4 border-emerald-700"
-          >
-            OYUNA BAŞLA 🚀
-          </motion.button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── FINISHED ──────────────────────────────────────────────────────────────
-  if (stage === 'finished') {
-    const perf = getPerformance(totalScore);
-    const bands = [
-      { label: 'Mükemmel', range: '70–80', color: 'bg-emerald-500', active: totalScore >= 70 },
-      { label: 'İyi', range: '50–69', color: 'bg-blue-500', active: totalScore >= 50 && totalScore < 70 },
-      { label: 'Riskli', range: '30–49', color: 'bg-yellow-500', active: totalScore >= 30 && totalScore < 50 },
-      { label: 'Geliştir', range: '0–29', color: 'bg-red-500', active: totalScore < 30 },
-    ];
-    return (
-      <div className="w-full max-w-4xl mx-auto p-10 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl shadow-2xl text-center border border-slate-700">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-          className="text-8xl mb-4"
-        >
-          {perf.icon}
-        </motion.div>
-        <h2 className="text-4xl font-black text-white mb-3">Görev Tamamlandı!</h2>
-        <p className={`text-2xl font-bold mb-8 ${perf.color}`}>{perf.label}</p>
-        <div className="inline-block bg-white text-slate-900 text-4xl font-black py-4 px-12 rounded-full shadow-xl mb-8">
-          {totalScore} / 80 Puan
-        </div>
-        <div className="grid grid-cols-4 gap-3">
-          {bands.map(b => (
-            <div
-              key={b.label}
-              className={`p-3 rounded-xl text-white text-sm font-bold transition-opacity ${b.active ? b.color : 'bg-slate-700 opacity-40'}`}
-            >
-              <div>{b.label}</div>
-              <div className="text-xs opacity-80 mt-0.5">{b.range} puan</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // ── SCENARIO WRAPPER ──────────────────────────────────────────────────────
+  // ── SCENARIO WRAPPER (panels persist across intro / gameplay / finished) ──
   const scenarioPanel = RISK_PANELS[Math.min(scenarioIndex, RISK_PANELS.length - 1)];
   const isAllocPhase = stage === 'allocation' || stage === 'feedback';
-  const panel = isAllocPhase ? scenarioPanel.allocation : scenarioPanel.direction;
-  const panelKey = `${scenarioIndex}-${isAllocPhase ? 'alloc' : 'dir'}`;
+  const panel = stage === 'intro' || stage === 'finished'
+    ? RISK_PANELS[0].direction
+    : (isAllocPhase ? scenarioPanel.allocation : scenarioPanel.direction);
+  const panelKey = stage === 'intro' || stage === 'finished' ? 'static' : `${scenarioIndex}-${isAllocPhase ? 'alloc' : 'dir'}`;
+
+  const perf = stage === 'finished' ? getPerformance(totalScore) : null;
+  const bands = [
+    { label: 'Mükemmel', range: '70–80', color: 'bg-emerald-500', active: totalScore >= 70 },
+    { label: 'İyi', range: '50–69', color: 'bg-blue-500', active: totalScore >= 50 && totalScore < 70 },
+    { label: 'Riskli', range: '30–49', color: 'bg-yellow-500', active: totalScore >= 30 && totalScore < 50 },
+    { label: 'Geliştir', range: '0–29', color: 'bg-red-500', active: totalScore < 30 },
+  ];
 
   return (
     <div className="w-full max-w-7xl mx-auto">
@@ -427,35 +368,122 @@ export default function RiskHunter({ onComplete }: RiskHunterProps) {
 
         {/* Left Panel */}
         <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`left-${panelKey}`}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
-              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
-            >
-              <div className="px-4 py-3.5 border-b border-cyan-800/40">
-                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">
-                  📖 {isAllocPhase ? 'Yatırım Araçlarını Tanı' : 'Ekonomi Sözlüğü'}
-                </div>
-              </div>
-              <div className="px-4 py-3.5 flex flex-col gap-3.5">
-                {panel.dictionary.map((item, i) => (
-                  <div key={i}>
-                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
-                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`left-${panelKey}`}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+                style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+              >
+                <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                  <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">
+                    📖 {isAllocPhase ? 'Yatırım Araçlarını Tanı' : 'Ekonomi Sözlüğü'}
                   </div>
-                ))}
-              </div>
-            </motion.div>
-          </AnimatePresence>
+                </div>
+                <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                  {panel.dictionary.map((item, i) => (
+                    <div key={i}>
+                      <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                      <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
         </div>
 
         {/* Center */}
         <div className="flex-1 min-w-0">
+          <AnimatePresence mode="wait">
+
+          {/* ── INTRO ── */}
+          {stage === 'intro' && (
+            <motion.div
+              key="intro"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ delay: 0.45, duration: 0.4 }}
+              className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl"
+            >
+              <img
+                src="/games/RiskHunter/giris.png"
+                alt="FinEdu Yatırım Okulu Giriş"
+                className="w-full object-cover"
+              />
+              <div className="bg-slate-900 p-8 text-center">
+                <h1 className="text-3xl font-black text-white mb-2">FinEdu Yatırım Okulu 🎯</h1>
+                <p className="text-slate-300 mb-1">
+                  Haberleri analiz et, piyasa yönünü tahmin et, portföyünü dağıt.
+                </p>
+                <p className="text-slate-400 text-sm mb-6">
+                  100.000 TL bütçenle 4 senaryo seni bekliyor.
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setStage('direction')}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-white text-xl font-black py-4 px-12 rounded-full shadow-lg border-b-4 border-emerald-700"
+                >
+                  OYUNA BAŞLA 🚀
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── FINISHED ── */}
+          {stage === 'finished' && perf && (
+            <motion.div
+              key="finished"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="w-full max-w-4xl mx-auto p-10 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl shadow-2xl text-center border border-slate-700"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+                className="text-8xl mb-4"
+              >
+                {perf.icon}
+              </motion.div>
+              <h2 className="text-4xl font-black text-white mb-3">Görev Tamamlandı!</h2>
+              <p className={`text-2xl font-bold mb-8 ${perf.color}`}>{perf.label}</p>
+              <div className="inline-block bg-white text-slate-900 text-4xl font-black py-4 px-12 rounded-full shadow-xl mb-8">
+                {totalScore} / 80 Puan
+              </div>
+              <div className="grid grid-cols-4 gap-3">
+                {bands.map(b => (
+                  <div
+                    key={b.label}
+                    className={`p-3 rounded-xl text-white text-sm font-bold transition-opacity ${b.active ? b.color : 'bg-slate-700 opacity-40'}`}
+                  >
+                    <div>{b.label}</div>
+                    <div className="text-xs opacity-80 mt-0.5">{b.range} puan</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── OYUN AŞAMALARI ── */}
+          {(stage === 'direction' || stage === 'allocation' || stage === 'feedback') && (
+          <motion.div
+            key="playing"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
     <div className="w-full max-w-4xl mx-auto bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
 
       {/* Progress Header */}
@@ -714,33 +742,43 @@ export default function RiskHunter({ onComplete }: RiskHunterProps) {
 
       </AnimatePresence>
     </div>
+          </motion.div>
+          )}
+
+          </AnimatePresence>
         </div>
 
         {/* Right Panel */}
         <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`right-${panelKey}`}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
-              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
-            >
-              <div className="px-4 py-3.5 border-b border-amber-800/40">
-                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 {panel.strategyTitle}</div>
-              </div>
-              <div className="px-4 py-3.5 flex flex-col gap-3.5">
-                {panel.strategyTips.map((tip, i) => (
-                  <div key={i}>
-                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
-                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`right-${panelKey}`}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
+                className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+                style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+              >
+                <div className="px-4 py-3.5 border-b border-amber-800/40">
+                  <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 {panel.strategyTitle}</div>
+                </div>
+                <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                  {panel.strategyTips.map((tip, i) => (
+                    <div key={i}>
+                      <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                      <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
         </div>
 
       </div>

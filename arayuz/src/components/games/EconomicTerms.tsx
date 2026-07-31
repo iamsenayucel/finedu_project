@@ -299,52 +299,120 @@ export default function EconomicTerms({ onComplete }: EconomicTermsProps) {
   // ── GİRİŞ ──────────────────────────────────────────────────────────────────
   if (stage === 'intro') {
     return (
-      <div className="w-full max-w-4xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-10 text-center relative">
-          {/* Dekoratif arka plan noktaları */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {PAIRS.map((p, i) => (
-              <motion.div key={i}
-                className="absolute text-4xl opacity-10 select-none"
-                style={{ top: `${10 + (i * 11) % 80}%`, left: `${5 + (i * 13) % 90}%` }}
-                animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
-                transition={{ duration: 3 + i * 0.4, repeat: Infinity }}>
-                {p.emoji}
-              </motion.div>
-            ))}
+      <div className="w-full max-w-7xl mx-auto">
+        <div className="flex items-start gap-4">
+
+          {/* Left Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <motion.div
+              initial={{ opacity: 0, x: -24 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3.5">
+                {ECONOMIC_PANEL.dictionary.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
           </div>
 
-          <div className="relative z-10">
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.1 }}
-              className="text-6xl mb-4">💡</motion.div>
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-3">
-              Ekonomi Terimleri
-            </h1>
-            <p className="text-indigo-200 text-base mb-2 max-w-lg mx-auto leading-relaxed">
-              Kavramları doğru açıklamalarıyla eşleştir!
-            </p>
-            <p className="text-indigo-300 text-sm mb-8 max-w-md mx-auto">
-              8 ekonomi terimini doğru tanımlarına sürükle ve bırak.
-              Her doğru eşleşme <span className="text-yellow-300 font-bold">10 puan</span> kazandırır.
-            </p>
-
-            {/* Kavram önizleme */}
-            <div className="flex flex-wrap justify-center gap-2 mb-8">
-              {PAIRS.map(p => (
-                <div key={p.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 border border-white/20 text-white text-sm font-bold`}>
-                  <span>{p.emoji}</span><span>{p.term}</span>
+          {/* Center */}
+          <div className="flex-1 min-w-0">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.4 }}
+              className="w-full max-w-4xl mx-auto"
+            >
+              <div className="rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 p-10 text-center relative">
+                {/* Dekoratif arka plan noktaları */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                  {PAIRS.map((p, i) => (
+                    <motion.div key={i}
+                      className="absolute text-4xl opacity-10 select-none"
+                      style={{ top: `${10 + (i * 11) % 80}%`, left: `${5 + (i * 13) % 90}%` }}
+                      animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+                      transition={{ duration: 3 + i * 0.4, repeat: Infinity }}>
+                      {p.emoji}
+                    </motion.div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-              onClick={() => setStage('playing')}
-              className="bg-white text-indigo-700 font-black text-xl py-4 px-12 rounded-full shadow-2xl hover:bg-indigo-50 transition-colors">
-              OYUNA BAŞLA 🚀
-            </motion.button>
+                <div className="relative z-10">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.1 }}
+                    className="text-6xl mb-4">💡</motion.div>
+                  <h1 className="text-3xl md:text-4xl font-black text-white mb-3">
+                    Ekonomi Terimleri
+                  </h1>
+                  <p className="text-indigo-200 text-base mb-2 max-w-lg mx-auto leading-relaxed">
+                    Kavramları doğru açıklamalarıyla eşleştir!
+                  </p>
+                  <p className="text-indigo-300 text-sm mb-8 max-w-md mx-auto">
+                    8 ekonomi terimini doğru tanımlarına sürükle ve bırak.
+                    Her doğru eşleşme <span className="text-yellow-300 font-bold">10 puan</span> kazandırır.
+                  </p>
+
+                  {/* Kavram önizleme */}
+                  <div className="flex flex-wrap justify-center gap-2 mb-8">
+                    {PAIRS.map(p => (
+                      <div key={p.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 border border-white/20 text-white text-sm font-bold`}>
+                        <span>{p.emoji}</span><span>{p.term}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                    onClick={() => setStage('playing')}
+                    className="bg-white text-indigo-700 font-black text-xl py-4 px-12 rounded-full shadow-2xl hover:bg-indigo-50 transition-colors">
+                    OYUNA BAŞLA 🚀
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </motion.div>
+
+          {/* Right Panel */}
+          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
+            <motion.div
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-4 py-3.5 border-b border-amber-800/40">
+                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 {ECONOMIC_PANEL.strategyTitle}</div>
+              </div>
+              <div className="px-4 py-3.5 flex flex-col gap-3">
+                <div className="text-amber-400 text-xs font-semibold mb-0.5">Kurumlar ve Kişiler</div>
+                {ECONOMIC_PANEL.institutions.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                  </div>
+                ))}
+                <div className="border-t border-amber-900/30 my-1" />
+                <div className="text-amber-400 text-xs font-semibold mb-0.5">Paranın Hareketleri</div>
+                {ECONOMIC_PANEL.movements.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-sm font-bold text-amber-300 mb-1.5">{item.term}</div>
+                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
+        </div>
       </div>
     );
   }
