@@ -282,6 +282,7 @@ const Bar = ({ cls }: { cls: string }) => (
 export default function ScamDetector({ onComplete }: Props) {
   const [stage, setStage] = useState<Stage>('intro');
   const [leavingIntro, setLeavingIntro] = useState(false);
+  const [studyPage, setStudyPage] = useState(0);
   const [scenarioIdx, setScenarioIdx] = useState(0);
   const [questionIdx, setQuestionIdx] = useState(0);
   const [score, setScore] = useState(0);
@@ -336,12 +337,16 @@ export default function ScamDetector({ onComplete }: Props) {
     setFeedback(null);
   }, []);
 
-  // ── INTRO: büyük sözlük + strateji inceleme ekranı ─────────────────────────
+  // ── INTRO: büyük sözlük + strateji inceleme ekranı (sayfalı) ────────────────
   if (stage === 'intro') {
+    const studyPanel = SCAM_PANELS[studyPage];
+    const isLastPage = studyPage === SCAM_PANELS.length - 1;
     const startGame = () => {
       setLeavingIntro(true);
       setTimeout(() => setStage('preview'), 380);
     };
+    const nextPage = () => setStudyPage(p => Math.min(p + 1, SCAM_PANELS.length - 1));
+    const prevPage = () => setStudyPage(p => Math.max(p - 1, 0));
     return (
     <div className="w-full max-w-5xl mx-auto">
       {/* Kompakt başlık */}
@@ -354,16 +359,16 @@ export default function ScamDetector({ onComplete }: Props) {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-5 mb-6">
+      <div className="grid md:grid-cols-2 gap-5 mb-5">
         {/* Sol: Ekonomi Sözlüğü (büyük) */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {!leavingIntro && (
             <motion.div
-              key="dict"
+              key={`dict-${studyPage}`}
               initial={{ opacity: 0, x: -24 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -80 }}
-              transition={{ duration: 0.35 }}
+              exit={{ opacity: 0, x: -60 }}
+              transition={{ duration: 0.3 }}
               className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
               style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
             >
@@ -371,7 +376,7 @@ export default function ScamDetector({ onComplete }: Props) {
                 <div className="text-cyan-400 text-base font-black uppercase tracking-widest">📖 Ekonomi Sözlüğü</div>
               </div>
               <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
-                {panel.dictionary.map((item, i) => (
+                {studyPanel.dictionary.map((item, i) => (
                   <div key={i}>
                     <div className="text-base font-bold text-cyan-300 mb-1.5">{item.term}</div>
                     <div className="text-sm text-slate-400 leading-relaxed">{item.def}</div>
@@ -383,23 +388,23 @@ export default function ScamDetector({ onComplete }: Props) {
         </AnimatePresence>
 
         {/* Sağ: Tehlike İşaretleri (büyük) */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {!leavingIntro && (
             <motion.div
-              key="strat"
+              key={`strat-${studyPage}`}
               initial={{ opacity: 0, x: 24 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 80 }}
-              transition={{ duration: 0.35 }}
+              exit={{ opacity: 0, x: 60 }}
+              transition={{ duration: 0.3 }}
               className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
               style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
             >
               <div className="px-5 py-4 border-b border-amber-800/40">
                 <div className="text-amber-400 text-base font-black uppercase tracking-widest">🎯 Tehlike İşaretleri</div>
-                <div className="text-amber-600 text-xs mt-0.5">{panel.strategyTitle}</div>
+                <div className="text-amber-600 text-xs mt-0.5">{studyPanel.strategyTitle}</div>
               </div>
               <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
-                {panel.strategyTips.map((tip, i) => (
+                {studyPanel.strategyTips.map((tip, i) => (
                   <div key={i}>
                     <div className="text-base font-bold text-amber-300 mb-1.5">{tip.title}</div>
                     <div className="text-sm text-slate-400 leading-relaxed">{tip.desc}</div>
@@ -412,15 +417,55 @@ export default function ScamDetector({ onComplete }: Props) {
       </div>
 
       {!leavingIntro && (
-        <div className="flex justify-center">
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={startGame}
-            className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-4 px-10 rounded-2xl shadow-lg border-b-4 border-orange-800"
-          >
-            Oyuna Geç <ArrowRight className="w-5 h-5" />
-          </motion.button>
-        </div>
+        <>
+          {/* Sayfalama */}
+          <div className="flex items-center justify-center gap-4 mb-5">
+            <button
+              onClick={prevPage}
+              disabled={studyPage === 0}
+              className="text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed font-bold text-sm px-3 py-1.5 transition-colors"
+            >
+              ← Önceki
+            </button>
+            <div className="flex gap-1.5">
+              {SCAM_PANELS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setStudyPage(i)}
+                  className={`h-2 rounded-full transition-all ${i === studyPage ? 'bg-red-400 w-6' : 'bg-slate-700 w-2 hover:bg-slate-600'}`}
+                />
+              ))}
+            </div>
+            <span className="text-slate-500 text-xs font-medium w-14">{studyPage + 1} / {SCAM_PANELS.length}</span>
+            <button
+              onClick={nextPage}
+              disabled={isLastPage}
+              className="text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed font-bold text-sm px-3 py-1.5 transition-colors"
+            >
+              Sonraki →
+            </button>
+          </div>
+
+          <div className="flex justify-center">
+            {isLastPage ? (
+              <motion.button
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                onClick={startGame}
+                className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-4 px-10 rounded-2xl shadow-lg border-b-4 border-orange-800"
+              >
+                Oyuna Geç <ArrowRight className="w-5 h-5" />
+              </motion.button>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                onClick={nextPage}
+                className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-black py-4 px-10 rounded-2xl shadow-lg border-b-4 border-slate-900"
+              >
+                Sonraki Sayfa <ArrowRight className="w-5 h-5" />
+              </motion.button>
+            )}
+          </div>
+        </>
       )}
     </div>
     );

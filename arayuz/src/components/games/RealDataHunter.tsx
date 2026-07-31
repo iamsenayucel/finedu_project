@@ -245,6 +245,7 @@ function OfficialDataPanel() {
 export default function RealDataHunter({ onComplete }: RealDataHunterProps) {
   const [stage, setStage] = useState<Stage>('intro');
   const [leavingIntro, setLeavingIntro] = useState(false);
+  const [studyPage, setStudyPage] = useState(0);
   const [stepIndex, setStepIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [history, setHistory] = useState<AnswerRecord[]>([]);
@@ -289,13 +290,16 @@ export default function RealDataHunter({ onComplete }: RealDataHunterProps) {
     setShowFeedback(false);
   };
 
-  // ── INTRO: büyük sözlük + strateji inceleme ekranı ─────────────────────────
+  // ── INTRO: büyük sözlük + strateji inceleme ekranı (sayfalı) ────────────────
   if (stage === 'intro') {
-    const introPanel = STEP_PANELS[0];
+    const introPanel = STEP_PANELS[studyPage];
+    const isLastPage = studyPage === STEP_PANELS.length - 1;
     const startGame = () => {
       setLeavingIntro(true);
       setTimeout(() => setStage('step1'), 380);
     };
+    const nextPage = () => setStudyPage(p => Math.min(p + 1, STEP_PANELS.length - 1));
+    const prevPage = () => setStudyPage(p => Math.max(p - 1, 0));
     return (
       <div className="w-full max-w-5xl mx-auto">
         {/* Kompakt başlık */}
@@ -306,16 +310,16 @@ export default function RealDataHunter({ onComplete }: RealDataHunterProps) {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-5 mb-6">
+        <div className="grid md:grid-cols-2 gap-5 mb-5">
           {/* Sol: Ekonomi Sözlüğü (büyük) */}
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {!leavingIntro && (
               <motion.div
-                key="dict"
+                key={`dict-${studyPage}`}
                 initial={{ opacity: 0, x: -24 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -80 }}
-                transition={{ duration: 0.35 }}
+                exit={{ opacity: 0, x: -60 }}
+                transition={{ duration: 0.3 }}
                 className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
                 style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
               >
@@ -335,14 +339,14 @@ export default function RealDataHunter({ onComplete }: RealDataHunterProps) {
           </AnimatePresence>
 
           {/* Sağ: Strateji Merkezi (büyük) */}
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {!leavingIntro && (
               <motion.div
-                key="strat"
+                key={`strat-${studyPage}`}
                 initial={{ opacity: 0, x: 24 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 80 }}
-                transition={{ duration: 0.35 }}
+                exit={{ opacity: 0, x: 60 }}
+                transition={{ duration: 0.3 }}
                 className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
                 style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
               >
@@ -364,16 +368,57 @@ export default function RealDataHunter({ onComplete }: RealDataHunterProps) {
         </div>
 
         {!leavingIntro && (
-          <div className="flex justify-center">
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={startGame}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black text-xl py-4 px-14 rounded-full shadow-xl border-b-4 border-purple-800"
-            >
-              Oyuna Geç 🔍
-            </motion.button>
-          </div>
+          <>
+            {/* Sayfalama */}
+            <div className="flex items-center justify-center gap-4 mb-5">
+              <button
+                onClick={prevPage}
+                disabled={studyPage === 0}
+                className="text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed font-bold text-sm px-3 py-1.5 transition-colors"
+              >
+                ← Önceki
+              </button>
+              <div className="flex gap-1.5">
+                {STEP_PANELS.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setStudyPage(i)}
+                    className={`h-2 rounded-full transition-all ${i === studyPage ? 'bg-blue-400 w-6' : 'bg-slate-700 w-2 hover:bg-slate-600'}`}
+                  />
+                ))}
+              </div>
+              <span className="text-slate-500 text-xs font-medium w-14">{studyPage + 1} / {STEP_PANELS.length}</span>
+              <button
+                onClick={nextPage}
+                disabled={isLastPage}
+                className="text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed font-bold text-sm px-3 py-1.5 transition-colors"
+              >
+                Sonraki →
+              </button>
+            </div>
+
+            <div className="flex justify-center">
+              {isLastPage ? (
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={startGame}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black text-xl py-4 px-14 rounded-full shadow-xl border-b-4 border-purple-800"
+                >
+                  Oyuna Geç 🔍
+                </motion.button>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={nextPage}
+                  className="bg-slate-700 hover:bg-slate-600 text-white font-black text-xl py-4 px-14 rounded-full shadow-xl border-b-4 border-slate-900"
+                >
+                  Sonraki Sayfa →
+                </motion.button>
+              )}
+            </div>
+          </>
         )}
       </div>
     );

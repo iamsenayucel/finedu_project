@@ -223,6 +223,7 @@ function getScoreRank(score: number, max: number) {
 export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiveGameProps) {
   const [stage, setStage] = useState<'intro' | 'reading' | 'analyzing' | 'classifying' | 'feedback' | 'finished'>('intro');
   const [leavingIntro, setLeavingIntro] = useState(false);
+  const [studyPage, setStudyPage] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -285,13 +286,16 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
     }
   };
 
-  // ── INTRO: büyük sözlük + strateji inceleme ekranı ─────────────────────────
+  // ── INTRO: büyük sözlük + strateji inceleme ekranı (sayfalı) ────────────────
   if (stage === 'intro') {
-    const introPanel = STEP_PANELS[0];
+    const introPanel = STEP_PANELS[studyPage];
+    const isLastPage = studyPage === STEP_PANELS.length - 1;
     const startGame = () => {
       setLeavingIntro(true);
       setTimeout(() => setStage('reading'), 380);
     };
+    const nextPage = () => setStudyPage(p => Math.min(p + 1, STEP_PANELS.length - 1));
+    const prevPage = () => setStudyPage(p => Math.max(p - 1, 0));
     return (
       <div className="w-full max-w-5xl mx-auto">
         {/* Kompakt başlık */}
@@ -304,16 +308,16 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-5 mb-6">
+        <div className="grid md:grid-cols-2 gap-5 mb-5">
           {/* Sol: Ekonomi Sözlüğü (büyük) */}
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {!leavingIntro && (
               <motion.div
-                key="dict"
+                key={`dict-${studyPage}`}
                 initial={{ opacity: 0, x: -24 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -80 }}
-                transition={{ duration: 0.35 }}
+                exit={{ opacity: 0, x: -60 }}
+                transition={{ duration: 0.3 }}
                 className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
               >
                 <div className="bg-gradient-to-r from-cyan-950 to-slate-900 border-b border-slate-700 px-5 py-4">
@@ -333,14 +337,14 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
           </AnimatePresence>
 
           {/* Sağ: Strateji Merkezi (büyük) */}
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {!leavingIntro && (
               <motion.div
-                key="strat"
+                key={`strat-${studyPage}`}
                 initial={{ opacity: 0, x: 24 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 80 }}
-                transition={{ duration: 0.35 }}
+                exit={{ opacity: 0, x: 60 }}
+                transition={{ duration: 0.3 }}
                 className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
               >
                 <div className="bg-gradient-to-r from-amber-950 to-slate-900 border-b border-slate-700 px-5 py-4">
@@ -364,17 +368,59 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
         </div>
 
         {!leavingIntro && (
-          <div className="flex justify-center">
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={startGame}
-              className="inline-flex items-center gap-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-black text-lg py-4 px-10 rounded-2xl shadow-lg shadow-amber-500/30 border-b-4 border-amber-700 transition-colors"
-            >
-              <span>Oyuna Geç</span>
-              <span className="text-xl">🚀</span>
-            </motion.button>
-          </div>
+          <>
+            {/* Sayfalama */}
+            <div className="flex items-center justify-center gap-4 mb-5">
+              <button
+                onClick={prevPage}
+                disabled={studyPage === 0}
+                className="text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed font-bold text-sm px-3 py-1.5 transition-colors"
+              >
+                ← Önceki
+              </button>
+              <div className="flex gap-1.5">
+                {STEP_PANELS.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setStudyPage(i)}
+                    className={`h-2 rounded-full transition-all ${i === studyPage ? 'bg-amber-400 w-6' : 'bg-slate-700 w-2 hover:bg-slate-600'}`}
+                  />
+                ))}
+              </div>
+              <span className="text-slate-500 text-xs font-medium w-14">{studyPage + 1} / {STEP_PANELS.length}</span>
+              <button
+                onClick={nextPage}
+                disabled={isLastPage}
+                className="text-slate-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed font-bold text-sm px-3 py-1.5 transition-colors"
+              >
+                Sonraki →
+              </button>
+            </div>
+
+            <div className="flex justify-center">
+              {isLastPage ? (
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={startGame}
+                  className="inline-flex items-center gap-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-black text-lg py-4 px-10 rounded-2xl shadow-lg shadow-amber-500/30 border-b-4 border-amber-700 transition-colors"
+                >
+                  <span>Oyuna Geç</span>
+                  <span className="text-xl">🚀</span>
+                </motion.button>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={nextPage}
+                  className="inline-flex items-center gap-3 bg-slate-700 hover:bg-slate-600 text-white font-black text-lg py-4 px-10 rounded-2xl shadow-lg border-b-4 border-slate-900 transition-colors"
+                >
+                  <span>Sonraki Sayfa</span>
+                  <span className="text-xl">→</span>
+                </motion.button>
+              )}
+            </div>
+          </>
         )}
       </div>
     );
