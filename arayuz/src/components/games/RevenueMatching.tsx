@@ -289,126 +289,66 @@ function RevenueMatchingGame({ onComplete }: RevenueMatchingProps) {
   // ── INTRO ──────────────────────────────────────────────────────────────────
   if (stage === 'intro') {
     return (
-      <div className="w-full max-w-7xl mx-auto">
-        <div className="flex items-start gap-4">
-
-          {/* Left Panel */}
-          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
-            <motion.div
-              initial={{ opacity: 0, x: -24 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
-              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
-            >
-              <div className="px-4 py-3.5 border-b border-cyan-800/40">
-                <div className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-0.5">📖 Ekonomi Sözlüğü</div>
-              </div>
-              <div className="px-4 py-3.5 flex flex-col gap-3.5">
-                {REVENUE_PANEL.dictionary.map((item, i) => (
-                  <div key={i}>
-                    <div className="text-sm font-bold text-cyan-300 mb-1.5">{item.term}</div>
-                    <div className="text-xs text-slate-400 leading-relaxed">{item.def}</div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
+          {/* Hero image */}
+          <div className="relative">
+            <img
+              src="/games/RevenueMatching/ana.jpeg"
+              alt="Aktif & Pasif Gelir Eşleştirme Oyunu"
+              className="w-full object-cover max-h-72"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
           </div>
 
-          {/* Center */}
-          <div className="flex-1 min-w-0">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45, duration: 0.4 }}
-              className="w-full max-w-4xl mx-auto"
+          {/* Info card */}
+          <div className="bg-white px-8 py-8 text-center">
+            <h1 className="text-3xl font-black text-slate-800 mb-2">
+              Aktif & Pasif Gelir Eşleştirme Oyunu
+            </h1>
+            <p className="text-slate-500 text-base mb-6">
+              Gelir kaynaklarını öğren ve doğru kategoriyle eşleştir!
+            </p>
+
+            <div className="grid grid-cols-2 gap-4 mb-6 max-w-lg mx-auto">
+              <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
+                <div className="text-3xl mb-1">💪</div>
+                <p className="font-black text-blue-700 text-sm">AKTİF GELİR</p>
+                <p className="text-slate-500 text-xs mt-1">Emek & zaman harcayarak kazanılan gelir</p>
+              </div>
+              <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
+                <div className="text-3xl mb-1">🌴</div>
+                <p className="font-black text-emerald-700 text-sm">PASİF GELİR</p>
+                <p className="text-slate-500 text-xs mt-1">Yatırım veya varlıktan gelen sürekli gelir</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-8 mb-8 text-slate-500 text-sm">
+              <div className="text-center">
+                <div className="text-2xl font-black text-slate-800">{CARDS.length}</div>
+                <div>Kart</div>
+              </div>
+              <div className="w-px h-8 bg-slate-200" />
+              <div className="text-center">
+                <div className="text-2xl font-black text-slate-800">{MAX_SCORE}</div>
+                <div>Maks. Puan</div>
+              </div>
+              <div className="w-px h-8 bg-slate-200" />
+              <div className="text-center">
+                <div className="text-2xl font-black text-slate-800">+{PTS}</div>
+                <div>Doğru başına</div>
+              </div>
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={startGame}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xl py-4 px-14 rounded-full shadow-lg shadow-indigo-200 border-b-4 border-indigo-800"
             >
-              <div className="rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
-                {/* Hero image */}
-                <div className="relative">
-                  <img
-                    src="/games/RevenueMatching/ana.jpeg"
-                    alt="Aktif & Pasif Gelir Eşleştirme Oyunu"
-                    className="w-full object-cover max-h-72"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
-                </div>
-
-                {/* Info card */}
-                <div className="bg-white px-8 py-8 text-center">
-                  <h1 className="text-3xl font-black text-slate-800 mb-2">
-                    Aktif & Pasif Gelir Eşleştirme Oyunu
-                  </h1>
-                  <p className="text-slate-500 text-base mb-6">
-                    Gelir kaynaklarını öğren ve doğru kategoriyle eşleştir!
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4 mb-6 max-w-lg mx-auto">
-                    <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
-                      <div className="text-3xl mb-1">💪</div>
-                      <p className="font-black text-blue-700 text-sm">AKTİF GELİR</p>
-                      <p className="text-slate-500 text-xs mt-1">Emek & zaman harcayarak kazanılan gelir</p>
-                    </div>
-                    <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
-                      <div className="text-3xl mb-1">🌴</div>
-                      <p className="font-black text-emerald-700 text-sm">PASİF GELİR</p>
-                      <p className="text-slate-500 text-xs mt-1">Yatırım veya varlıktan gelen sürekli gelir</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-center gap-8 mb-8 text-slate-500 text-sm">
-                    <div className="text-center">
-                      <div className="text-2xl font-black text-slate-800">{CARDS.length}</div>
-                      <div>Kart</div>
-                    </div>
-                    <div className="w-px h-8 bg-slate-200" />
-                    <div className="text-center">
-                      <div className="text-2xl font-black text-slate-800">{MAX_SCORE}</div>
-                      <div>Maks. Puan</div>
-                    </div>
-                    <div className="w-px h-8 bg-slate-200" />
-                    <div className="text-center">
-                      <div className="text-2xl font-black text-slate-800">+{PTS}</div>
-                      <div>Doğru başına</div>
-                    </div>
-                  </div>
-
-                  <motion.button
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={startGame}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xl py-4 px-14 rounded-full shadow-lg shadow-indigo-200 border-b-4 border-indigo-800"
-                  >
-                    Oyuna Başla 🚀
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
+              Oyuna Başla 🚀
+            </motion.button>
           </div>
-
-          {/* Right Panel */}
-          <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
-            <motion.div
-              initial={{ opacity: 0, x: 24 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.18, ease: 'easeOut' }}
-              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
-              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
-            >
-              <div className="px-4 py-3.5 border-b border-amber-800/40">
-                <div className="text-amber-400 text-xs font-bold uppercase tracking-widest mb-0.5">🎯 {REVENUE_PANEL.strategyTitle}</div>
-              </div>
-              <div className="px-4 py-3.5 flex flex-col gap-3.5">
-                {REVENUE_PANEL.strategyTips.map((tip, i) => (
-                  <div key={i}>
-                    <div className="text-sm font-bold text-amber-300 mb-1.5">{tip.title}</div>
-                    <div className="text-xs text-slate-400 leading-relaxed">{tip.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-
         </div>
       </div>
     );
