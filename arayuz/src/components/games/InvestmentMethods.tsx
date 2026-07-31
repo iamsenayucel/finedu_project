@@ -115,6 +115,7 @@ const Bar = ({ cls }: { cls: string }) => <div className={`h-1.5 bg-gradient-to-
 
 export default function InvestmentMethods({ onComplete }: Props) {
   const [stage, setStage] = useState<Stage>('intro');
+  const [leavingIntro, setLeavingIntro] = useState(false);
   const [replayKey, setReplayKey] = useState(0);
 
   const [matchScore,    setMatchScore]    = useState(0);
@@ -204,56 +205,95 @@ export default function InvestmentMethods({ onComplete }: Props) {
     setRiskIdx(0); setRiskResult(null); setRiskLocked(false); setClickedRisk(null);
   }, []);
 
-  // ── INTRO ─────────────────────────────────────────────────────────────────
-  if (stage === 'intro') return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden border border-slate-700 shadow-2xl relative">
-        <Bar cls="from-emerald-500 via-teal-500 to-blue-500" />
-        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
-          <div className="absolute -top-24 -left-24 w-80 h-80 bg-emerald-500/8 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-blue-500/8 rounded-full blur-3xl" />
-        </div>
-        <div className="relative px-8 pt-10 pb-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5">
-            💹 Yatırım Dünyası
+  // ── INTRO: büyük sözlük + strateji inceleme ekranı ─────────────────────────
+  if (stage === 'intro') {
+    const introPanel = INVESTMENT_PANELS.tools;
+    const startGame = () => {
+      setLeavingIntro(true);
+      setTimeout(() => setStage('matching'), 380);
+    };
+    return (
+      <div className="w-full max-w-5xl mx-auto">
+        {/* Kompakt başlık */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-3">
+            💹 Yasal Yatırım Yöntemleri
           </div>
-          <h1 className="text-4xl font-black text-white mb-3">
-            Yasal Yatırım Yöntemleri:<br />
-            <span className="text-emerald-400">Kavram Eşleştirme</span>
-          </h1>
-          <p className="text-slate-300 text-base leading-relaxed max-w-xl mx-auto mb-2">
-            Yatırım araçlarını öğreniyor, senaryolar üzerinden kararlar veriyor ve risk düzeylerini belirliyorsun.
+          <p className="text-slate-400 text-sm">
+            Oyuna geçmeden önce sözlüğü ve yatırım araçlarını incele · 3 seviye · 100 puan
           </p>
-          <p className="text-slate-400 text-sm leading-relaxed max-w-xl mx-auto mb-8">
-            3 seviyeli bu oyunda 100 puan üzerinden değerlendirileceksin.
-          </p>
-          <div className="flex justify-center gap-4 mb-10 flex-wrap">
-            {[
-              { icon: '🔤', label: 'Kavram Eşleştirme', pts: '35 puan' },
-              { icon: '📖', label: 'Senaryolar',         pts: '35 puan' },
-              { icon: '⚖️', label: 'Risk Seviyeleri',    pts: '30 puan' },
-            ].map(t => (
-              <div key={t.label} className="flex flex-col items-center bg-slate-700/60 border border-slate-600 rounded-2xl px-6 py-4">
-                <span className="text-2xl mb-1">{t.icon}</span>
-                <span className="text-white text-sm font-bold">{t.label}</span>
-                <span className="text-emerald-400 text-xs font-bold mt-0.5">{t.pts}</span>
-              </div>
-            ))}
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-5 mb-6">
+          {/* Sol: Ekonomi Sözlüğü (büyük) */}
+          <AnimatePresence>
+            {!leavingIntro && (
+              <motion.div
+                key="dict"
+                initial={{ opacity: 0, x: -24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -80 }}
+                transition={{ duration: 0.35 }}
+                className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+                style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+              >
+                <div className="px-5 py-4 border-b border-cyan-800/40">
+                  <div className="text-cyan-400 text-base font-black uppercase tracking-widest">📖 Ekonomi Sözlüğü</div>
+                </div>
+                <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
+                  {introPanel.dictionary.map((item, i) => (
+                    <div key={i}>
+                      <div className="text-base font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                      <div className="text-sm text-slate-400 leading-relaxed">{item.def}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Sağ: Yatırım Araçları (büyük) */}
+          <AnimatePresence>
+            {!leavingIntro && (
+              <motion.div
+                key="strat"
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 80 }}
+                transition={{ duration: 0.35 }}
+                className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+                style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+              >
+                <div className="px-5 py-4 border-b border-amber-800/40">
+                  <div className="text-amber-400 text-base font-black uppercase tracking-widest">🎯 {introPanel.strategyTitle}</div>
+                </div>
+                <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
+                  {introPanel.strategyTips.map((tip, i) => (
+                    <div key={i}>
+                      <div className="text-base font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                      <div className="text-sm text-slate-400 leading-relaxed">{tip.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {!leavingIntro && (
+          <div className="flex justify-center">
+            <motion.button
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              onClick={startGame}
+              className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black py-4 px-10 rounded-2xl shadow-lg border-b-4 border-teal-800"
+            >
+              Oyuna Geç <ArrowRight className="w-5 h-5" />
+            </motion.button>
           </div>
-        </div>
-        <div className="px-8 pb-8 flex justify-center">
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => setStage('matching')}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black py-4 px-10 rounded-2xl shadow-lg border-b-4 border-teal-800"
-          >
-            Oyuna Başla <ArrowRight className="w-5 h-5" />
-          </motion.button>
-        </div>
-        <Bar cls="from-emerald-500 via-teal-500 to-blue-500" />
+        )}
       </div>
-    </div>
-  );
+    );
+  }
 
   // ── MATCHING ──────────────────────────────────────────────────────────────
   if (stage === 'matching') {

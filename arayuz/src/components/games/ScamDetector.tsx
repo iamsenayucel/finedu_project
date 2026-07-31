@@ -281,6 +281,7 @@ const Bar = ({ cls }: { cls: string }) => (
 
 export default function ScamDetector({ onComplete }: Props) {
   const [stage, setStage] = useState<Stage>('intro');
+  const [leavingIntro, setLeavingIntro] = useState(false);
   const [scenarioIdx, setScenarioIdx] = useState(0);
   const [questionIdx, setQuestionIdx] = useState(0);
   const [score, setScore] = useState(0);
@@ -335,52 +336,95 @@ export default function ScamDetector({ onComplete }: Props) {
     setFeedback(null);
   }, []);
 
-  // ── INTRO ─────────────────────────────────────────────────────────────────
-  if (stage === 'intro') return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl overflow-hidden border border-slate-700 shadow-2xl relative">
-        <Bar cls="from-red-600 via-orange-500 to-amber-500" />
-        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
-          <div className="absolute -top-24 -left-24 w-80 h-80 bg-red-500/8 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-orange-500/8 rounded-full blur-3xl" />
+  // ── INTRO: büyük sözlük + strateji inceleme ekranı ─────────────────────────
+  if (stage === 'intro') {
+    const startGame = () => {
+      setLeavingIntro(true);
+      setTimeout(() => setStage('preview'), 380);
+    };
+    return (
+    <div className="w-full max-w-5xl mx-auto">
+      {/* Kompakt başlık */}
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center gap-2 bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-3">
+          <ShieldAlert className="w-3.5 h-3.5" /> Dolandırıcı Avı: Gerçek mi, Tuzak mı?
         </div>
-        <div className="relative px-8 pt-10 pb-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5">
-            <ShieldAlert className="w-3.5 h-3.5" /> Dolandırıcı Tespiti
-          </div>
-          <h1 className="text-4xl font-black text-white mb-3">
-            Dolandırıcı Avı:<br />
-            <span className="text-orange-400">Gerçek mi, Tuzak mı?</span>
-          </h1>
-          <p className="text-slate-300 text-base leading-relaxed max-w-xl mx-auto mb-2">
-            5 farklı gerçek dolandırıcılık senaryosunu inceleyecek ve her birindeki tehlike işaretlerini tespit edeceksin.
-          </p>
-          <p className="text-slate-400 text-sm leading-relaxed max-w-xl mx-auto mb-8">
-            Her senaryo 3 sorudan oluşuyor. Toplam 100 puan üzerinden değerlendirileceksin.
-          </p>
-          <div className="flex justify-center gap-3 mb-10 flex-wrap">
-            {SCENARIOS.map((s, i) => (
-              <div key={s.id} className="flex flex-col items-center bg-slate-700/60 border border-slate-600 rounded-2xl px-4 py-3">
-                <span className="text-xl mb-1">{s.fraudIcon}</span>
-                <span className="text-white text-xs font-bold text-center leading-tight max-w-[80px]">{s.title}</span>
-                <span className="text-red-400 text-xs font-bold mt-0.5">{i + 1}. Senaryo</span>
+        <p className="text-slate-400 text-sm">
+          Oyuna geçmeden önce sözlüğü ve tehlike işaretlerini incele · 5 senaryo · 100 puan
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-5 mb-6">
+        {/* Sol: Ekonomi Sözlüğü (büyük) */}
+        <AnimatePresence>
+          {!leavingIntro && (
+            <motion.div
+              key="dict"
+              initial={{ opacity: 0, x: -24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -80 }}
+              transition={{ duration: 0.35 }}
+              className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+            >
+              <div className="px-5 py-4 border-b border-cyan-800/40">
+                <div className="text-cyan-400 text-base font-black uppercase tracking-widest">📖 Ekonomi Sözlüğü</div>
               </div>
-            ))}
-          </div>
-        </div>
-        <div className="px-8 pb-8 flex justify-center">
+              <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
+                {panel.dictionary.map((item, i) => (
+                  <div key={i}>
+                    <div className="text-base font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                    <div className="text-sm text-slate-400 leading-relaxed">{item.def}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Sağ: Tehlike İşaretleri (büyük) */}
+        <AnimatePresence>
+          {!leavingIntro && (
+            <motion.div
+              key="strat"
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 80 }}
+              transition={{ duration: 0.35 }}
+              className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+              style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+            >
+              <div className="px-5 py-4 border-b border-amber-800/40">
+                <div className="text-amber-400 text-base font-black uppercase tracking-widest">🎯 Tehlike İşaretleri</div>
+                <div className="text-amber-600 text-xs mt-0.5">{panel.strategyTitle}</div>
+              </div>
+              <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
+                {panel.strategyTips.map((tip, i) => (
+                  <div key={i}>
+                    <div className="text-base font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                    <div className="text-sm text-slate-400 leading-relaxed">{tip.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {!leavingIntro && (
+        <div className="flex justify-center">
           <motion.button
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => setStage('preview')}
+            onClick={startGame}
             className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-4 px-10 rounded-2xl shadow-lg border-b-4 border-orange-800"
           >
-            Oyuna Başla <ArrowRight className="w-5 h-5" />
+            Oyuna Geç <ArrowRight className="w-5 h-5" />
           </motion.button>
         </div>
-        <Bar cls="from-red-600 via-orange-500 to-amber-500" />
-      </div>
+      )}
     </div>
-  );
+    );
+  }
 
   // ── PREVIEW ───────────────────────────────────────────────────────────────
   if (stage === 'preview') return (

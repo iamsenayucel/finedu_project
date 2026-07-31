@@ -206,6 +206,7 @@ interface RevenueMatchingProps { onComplete?: (score: number) => void }
 
 function RevenueMatchingGame({ onComplete }: RevenueMatchingProps) {
   const [stage, setStage] = useState<'intro' | 'game' | 'finished'>('intro');
+  const [leavingIntro, setLeavingIntro] = useState(false);
 
   // Shuffle once per game
   const [shuffled, setShuffled] = useState<IncomeCard[]>([]);
@@ -286,70 +287,92 @@ function RevenueMatchingGame({ onComplete }: RevenueMatchingProps) {
     }
   };
 
-  // ── INTRO ──────────────────────────────────────────────────────────────────
+  // ── INTRO: büyük sözlük + strateji inceleme ekranı ─────────────────────────
   if (stage === 'intro') {
+    const handleStartClick = () => {
+      setLeavingIntro(true);
+      setTimeout(() => startGame(), 380);
+    };
     return (
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
-          {/* Hero image */}
-          <div className="relative">
-            <img
-              src="/games/RevenueMatching/ana.jpeg"
-              alt="Aktif & Pasif Gelir Eşleştirme Oyunu"
-              className="w-full object-cover max-h-72"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
-          </div>
+      <div className="w-full max-w-5xl mx-auto">
+        {/* Kompakt başlık */}
+        <div className="text-center mb-6">
+          <h1 className="text-2xl md:text-3xl font-black text-slate-800 mb-1">
+            Aktif & Pasif Gelir Eşleştirme Oyunu
+          </h1>
+          <p className="text-slate-500 text-sm">
+            Oyuna geçmeden önce sözlüğü ve stratejiyi incele · {CARDS.length} kart · Maks. {MAX_SCORE} puan
+          </p>
+        </div>
 
-          {/* Info card */}
-          <div className="bg-white px-8 py-8 text-center">
-            <h1 className="text-3xl font-black text-slate-800 mb-2">
-              Aktif & Pasif Gelir Eşleştirme Oyunu
-            </h1>
-            <p className="text-slate-500 text-base mb-6">
-              Gelir kaynaklarını öğren ve doğru kategoriyle eşleştir!
-            </p>
+        <div className="grid md:grid-cols-2 gap-5 mb-6">
+          {/* Sol: Ekonomi Sözlüğü (büyük) */}
+          <AnimatePresence>
+            {!leavingIntro && (
+              <motion.div
+                key="dict"
+                initial={{ opacity: 0, x: -24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -80 }}
+                transition={{ duration: 0.35 }}
+                className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+                style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+              >
+                <div className="px-5 py-4 border-b border-cyan-800/40">
+                  <div className="text-cyan-400 text-base font-black uppercase tracking-widest">📖 Ekonomi Sözlüğü</div>
+                </div>
+                <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
+                  {REVENUE_PANEL.dictionary.map((item, i) => (
+                    <div key={i}>
+                      <div className="text-base font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                      <div className="text-sm text-slate-400 leading-relaxed">{item.def}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            <div className="grid grid-cols-2 gap-4 mb-6 max-w-lg mx-auto">
-              <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
-                <div className="text-3xl mb-1">💪</div>
-                <p className="font-black text-blue-700 text-sm">AKTİF GELİR</p>
-                <p className="text-slate-500 text-xs mt-1">Emek & zaman harcayarak kazanılan gelir</p>
-              </div>
-              <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
-                <div className="text-3xl mb-1">🌴</div>
-                <p className="font-black text-emerald-700 text-sm">PASİF GELİR</p>
-                <p className="text-slate-500 text-xs mt-1">Yatırım veya varlıktan gelen sürekli gelir</p>
-              </div>
-            </div>
+          {/* Sağ: Strateji Merkezi (büyük) */}
+          <AnimatePresence>
+            {!leavingIntro && (
+              <motion.div
+                key="strat"
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 80 }}
+                transition={{ duration: 0.35 }}
+                className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+                style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+              >
+                <div className="px-5 py-4 border-b border-amber-800/40">
+                  <div className="text-amber-400 text-base font-black uppercase tracking-widest">🎯 {REVENUE_PANEL.strategyTitle}</div>
+                </div>
+                <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
+                  {REVENUE_PANEL.strategyTips.map((tip, i) => (
+                    <div key={i}>
+                      <div className="text-base font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                      <div className="text-sm text-slate-400 leading-relaxed">{tip.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-            <div className="flex items-center justify-center gap-8 mb-8 text-slate-500 text-sm">
-              <div className="text-center">
-                <div className="text-2xl font-black text-slate-800">{CARDS.length}</div>
-                <div>Kart</div>
-              </div>
-              <div className="w-px h-8 bg-slate-200" />
-              <div className="text-center">
-                <div className="text-2xl font-black text-slate-800">{MAX_SCORE}</div>
-                <div>Maks. Puan</div>
-              </div>
-              <div className="w-px h-8 bg-slate-200" />
-              <div className="text-center">
-                <div className="text-2xl font-black text-slate-800">+{PTS}</div>
-                <div>Doğru başına</div>
-              </div>
-            </div>
-
+        {!leavingIntro && (
+          <div className="flex justify-center">
             <motion.button
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
-              onClick={startGame}
+              onClick={handleStartClick}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xl py-4 px-14 rounded-full shadow-lg shadow-indigo-200 border-b-4 border-indigo-800"
             >
-              Oyuna Başla 🚀
+              Oyuna Geç 🚀
             </motion.button>
           </div>
-        </div>
+        )}
       </div>
     );
   }

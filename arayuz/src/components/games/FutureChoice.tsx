@@ -4,7 +4,7 @@ import { TrendingUp, TrendingDown, ArrowRight, CheckCircle } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type RiskProfile = 'guven' | 'dengeli' | 'risk';
-type Stage = 'intro' | 'career_result' | 'investment' | 'investment_result' | 'crisis' | 'final';
+type Stage = 'study' | 'intro' | 'career_result' | 'investment' | 'investment_result' | 'crisis' | 'final';
 interface FutureChoiceProps { onComplete?: (score: number) => void }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -298,7 +298,8 @@ function DoorCard({ door, onSelect, disabled }: {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function FutureChoice({ onComplete }: FutureChoiceProps) {
-  const [stage, setStage]                   = useState<Stage>('intro');
+  const [stage, setStage]                   = useState<Stage>('study');
+  const [leavingIntro, setLeavingIntro]      = useState(false);
   const [score, setScore]                   = useState(0);
 
   const [careerChoice, setCareerChoice]     = useState<RiskProfile | null>(null);
@@ -324,6 +325,96 @@ export default function FutureChoice({ onComplete }: FutureChoiceProps) {
     }, 40);
     return () => clearInterval(t);
   }, [stage, investResult]);
+
+  // ── STUDY: büyük sözlük + strateji inceleme ekranı ─────────────────────────
+  if (stage === 'study') {
+    const startGame = () => {
+      setLeavingIntro(true);
+      setTimeout(() => setStage('intro'), 380);
+    };
+    return (
+      <div className="w-full max-w-5xl mx-auto">
+        {/* Kompakt başlık */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-3">
+            🎯 Geleceğini Seç: Risk mi, Güven mi?
+          </div>
+          <p className="text-slate-400 text-sm">
+            Oyuna geçmeden önce sözlüğü ve kariyer analizini incele
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-5 mb-6">
+          {/* Sol: Ekonomi Sözlüğü (büyük) */}
+          <AnimatePresence>
+            {!leavingIntro && (
+              <motion.div
+                key="dict"
+                initial={{ opacity: 0, x: -24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -80 }}
+                transition={{ duration: 0.35 }}
+                className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+                style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+              >
+                <div className="px-5 py-4 border-b border-cyan-800/40">
+                  <div className="text-cyan-400 text-base font-black uppercase tracking-widest">📖 Ekonomi Sözlüğü</div>
+                </div>
+                <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
+                  {FUTURE_PANEL.dictionary.map((item, i) => (
+                    <div key={i}>
+                      <div className="text-base font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                      <div className="text-sm text-slate-400 leading-relaxed">{item.def}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Sağ: Kariyer Yolları Analizi (büyük) */}
+          <AnimatePresence>
+            {!leavingIntro && (
+              <motion.div
+                key="strat"
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 80 }}
+                transition={{ duration: 0.35 }}
+                className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+                style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+              >
+                <div className="px-5 py-4 border-b border-amber-800/40">
+                  <div className="text-amber-400 text-base font-black uppercase tracking-widest">🎯 {FUTURE_PANEL.strategyTitle}</div>
+                </div>
+                <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
+                  {FUTURE_PANEL.strategyTips.map((tip, i) => (
+                    <div key={i}>
+                      <div className="text-base font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                      <div className="text-sm text-slate-400 leading-relaxed">{tip.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {!leavingIntro && (
+          <div className="flex justify-center">
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={startGame}
+              className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-black text-xl py-4 px-14 rounded-full shadow-xl"
+            >
+              Oyuna Geç 🚀
+            </motion.button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // ── INTRO ─────────────────────────────────────────────────────────────────
   if (stage === 'intro') {

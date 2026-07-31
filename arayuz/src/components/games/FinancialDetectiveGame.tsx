@@ -222,6 +222,7 @@ function getScoreRank(score: number, max: number) {
 
 export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiveGameProps) {
   const [stage, setStage] = useState<'intro' | 'reading' | 'analyzing' | 'classifying' | 'feedback' | 'finished'>('intro');
+  const [leavingIntro, setLeavingIntro] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -284,93 +285,98 @@ export default function FinancialDetectiveGame({ onComplete }: FinancialDetectiv
     }
   };
 
-  // ── INTRO ─────────────────────────────────────────────────────────────────
+  // ── INTRO: büyük sözlük + strateji inceleme ekranı ─────────────────────────
   if (stage === 'intro') {
+    const introPanel = STEP_PANELS[0];
+    const startGame = () => {
+      setLeavingIntro(true);
+      setTimeout(() => setStage('reading'), 380);
+    };
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="w-full max-w-4xl mx-auto"
-      >
-        {/* Hero banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 shadow-2xl">
-          {/* Decorative grid */}
-          <div className="absolute inset-0 opacity-5"
-            style={{ backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 40px,#fff 40px,#fff 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,#fff 40px,#fff 41px)' }} />
-
-          {/* Glow circles */}
-          <div className="absolute -top-20 -left-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-20 -right-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl" />
-
-          <div className="relative z-10 px-8 pt-12 pb-10 flex flex-col md:flex-row items-center gap-8">
-            {/* Left: text */}
-            <div className="flex-1 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5">
-                🕵️ Finansal Dedektif
-              </div>
-              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-4">
-                Haber<br />
-                <span className="text-amber-400">Dedektifi</span>
-              </h1>
-              <p className="text-slate-300 text-base leading-relaxed mb-2">
-                Finansal haberleri analiz et, gerçeği yalanlardan ayır.
-              </p>
-              <p className="text-slate-500 text-sm mb-8">
-                {NEWS_DATA.length} haber dosyası · {NEWS_DATA.length * 4} analiz sorusu · Maksimum {MAX_SCORE} puan
-              </p>
-
-              {/* How to play */}
-              <div className="grid grid-cols-3 gap-3 mb-8">
-                {[
-                  { icon: '📰', label: 'Haberi Oku' },
-                  { icon: '🔎', label: 'Soruları Yanıtla' },
-                  { icon: '🏷️', label: 'Kaynağı Sınıflandır' },
-                ].map((step, i) => (
-                  <div key={i} className="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-center">
-                    <div className="text-2xl mb-1">{step.icon}</div>
-                    <div className="text-slate-300 text-xs font-semibold">{step.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setStage('reading')}
-                className="inline-flex items-center gap-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-black text-lg py-4 px-10 rounded-2xl shadow-lg shadow-amber-500/30 border-b-4 border-amber-700 transition-colors"
-              >
-                <span>Göreve Başla</span>
-                <span className="text-xl">🚀</span>
-              </motion.button>
-            </div>
-
-            {/* Right: big icon */}
-            <div className="flex-shrink-0 hidden md:flex items-center justify-center w-56 h-56 rounded-3xl bg-slate-800/60 border border-slate-700">
-              <span className="text-9xl select-none">🕵️‍♂️</span>
-            </div>
+      <div className="w-full max-w-5xl mx-auto">
+        {/* Kompakt başlık */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-3">
+            🕵️ Finansal Dedektif · Haber Dedektifi
           </div>
-
-          {/* Classification legend */}
-          <div className="relative z-10 border-t border-slate-700/60 px-8 py-5">
-            <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-3">Haber Sınıflandırma Kriterleri</p>
-            <div className="flex flex-wrap gap-3">
-              {[
-                { icon: '✅', label: 'Güvenilir', desc: 'Veri & kaynak mevcut, tarafsız', color: 'text-emerald-400 border-emerald-800 bg-emerald-950/40' },
-                { icon: '⚠️', label: 'Şüpheli', desc: 'Kaynak belirsiz veya eksik veri', color: 'text-amber-400 border-amber-800 bg-amber-950/40' },
-                { icon: '🚨', label: 'Manipülatif', desc: 'Yatırım vaadi & abartılı ifade', color: 'text-red-400 border-red-800 bg-red-950/40' },
-              ].map((item) => (
-                <div key={item.label} className={`flex items-center gap-2 border rounded-lg px-3 py-2 text-sm ${item.color}`}>
-                  <span>{item.icon}</span>
-                  <div>
-                    <span className="font-bold">{item.label}</span>
-                    <span className="text-slate-500 ml-2 text-xs hidden sm:inline">{item.desc}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <p className="text-slate-400 text-sm">
+            Oyuna geçmeden önce sözlüğü ve stratejiyi incele · {NEWS_DATA.length} haber dosyası · Maksimum {MAX_SCORE} puan
+          </p>
         </div>
-      </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-5 mb-6">
+          {/* Sol: Ekonomi Sözlüğü (büyük) */}
+          <AnimatePresence>
+            {!leavingIntro && (
+              <motion.div
+                key="dict"
+                initial={{ opacity: 0, x: -24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -80 }}
+                transition={{ duration: 0.35 }}
+                className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
+              >
+                <div className="bg-gradient-to-r from-cyan-950 to-slate-900 border-b border-slate-700 px-5 py-4">
+                  <p className="text-cyan-400 text-base font-black uppercase tracking-widest">📖 Ekonomi Sözlüğü</p>
+                  <p className="text-slate-500 text-xs font-medium mt-0.5">{introPanel.stepLabel}</p>
+                </div>
+                <div className="divide-y divide-slate-800 max-h-[420px] overflow-y-auto">
+                  {introPanel.dictionary.map((entry, i) => (
+                    <div key={i} className="px-5 py-4">
+                      <p className="text-cyan-300 font-black text-base mb-1.5">{entry.term}</p>
+                      <p className="text-slate-400 text-sm leading-relaxed">{entry.def}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Sağ: Strateji Merkezi (büyük) */}
+          <AnimatePresence>
+            {!leavingIntro && (
+              <motion.div
+                key="strat"
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 80 }}
+                transition={{ duration: 0.35 }}
+                className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
+              >
+                <div className="bg-gradient-to-r from-amber-950 to-slate-900 border-b border-slate-700 px-5 py-4">
+                  <p className="text-amber-400 text-base font-black uppercase tracking-widest">🎯 Strateji Merkezi</p>
+                  <p className="text-slate-500 text-xs font-medium mt-0.5">{introPanel.strategyTitle}</p>
+                </div>
+                <div className="divide-y divide-slate-800 max-h-[420px] overflow-y-auto">
+                  {introPanel.strategyTips.map((tip, i) => (
+                    <div key={i} className="px-5 py-4">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <span className="text-amber-500 text-sm">⚡</span>
+                        <p className="text-amber-300 font-black text-base">{tip.title}</p>
+                      </div>
+                      <p className="text-slate-400 text-sm leading-relaxed">{tip.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {!leavingIntro && (
+          <div className="flex justify-center">
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={startGame}
+              className="inline-flex items-center gap-3 bg-amber-500 hover:bg-amber-400 text-slate-900 font-black text-lg py-4 px-10 rounded-2xl shadow-lg shadow-amber-500/30 border-b-4 border-amber-700 transition-colors"
+            >
+              <span>Oyuna Geç</span>
+              <span className="text-xl">🚀</span>
+            </motion.button>
+          </div>
+        )}
+      </div>
     );
   }
 

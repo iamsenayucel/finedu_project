@@ -283,6 +283,7 @@ const RISK_PANELS = [
 
 export default function RiskHunter({ onComplete }: RiskHunterProps) {
   const [stage, setStage] = useState<Stage>('intro');
+  const [leavingIntro, setLeavingIntro] = useState(false);
   const [scenarioIndex, setScenarioIndex] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [selectedDirection, setSelectedDirection] = useState<string | null>(null);
@@ -346,32 +347,91 @@ export default function RiskHunter({ onComplete }: RiskHunterProps) {
     }
   };
 
-  // ── INTRO ─────────────────────────────────────────────────────────────────
+  // ── INTRO: büyük sözlük + strateji inceleme ekranı ─────────────────────────
   if (stage === 'intro') {
+    const introPanel = RISK_PANELS[0].direction;
+    const startGame = () => {
+      setLeavingIntro(true);
+      setTimeout(() => setStage('direction'), 380);
+    };
     return (
-      <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl">
-        <img
-          src="/games/RiskHunter/giris.png"
-          alt="FinEdu Yatırım Okulu Giriş"
-          className="w-full object-cover"
-        />
-        <div className="bg-slate-900 p-8 text-center">
-          <h1 className="text-3xl font-black text-white mb-2">FinEdu Yatırım Okulu 🎯</h1>
-          <p className="text-slate-300 mb-1">
-            Haberleri analiz et, piyasa yönünü tahmin et, portföyünü dağıt.
+      <div className="w-full max-w-5xl mx-auto">
+        {/* Kompakt başlık */}
+        <div className="text-center mb-6">
+          <h1 className="text-2xl md:text-3xl font-black text-white mb-1">FinEdu Yatırım Okulu 🎯</h1>
+          <p className="text-slate-400 text-sm">
+            Oyuna geçmeden önce sözlüğü ve stratejiyi incele · 100.000 TL bütçenle 4 senaryo seni bekliyor.
           </p>
-          <p className="text-slate-400 text-sm mb-6">
-            100.000 TL bütçenle 4 senaryo seni bekliyor.
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setStage('direction')}
-            className="bg-emerald-500 hover:bg-emerald-400 text-white text-xl font-black py-4 px-12 rounded-full shadow-lg border-b-4 border-emerald-700"
-          >
-            OYUNA BAŞLA 🚀
-          </motion.button>
         </div>
+
+        <div className="grid md:grid-cols-2 gap-5 mb-6">
+          {/* Sol: Ekonomi Sözlüğü (büyük) */}
+          <AnimatePresence>
+            {!leavingIntro && (
+              <motion.div
+                key="dict"
+                initial={{ opacity: 0, x: -24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -80 }}
+                transition={{ duration: 0.35 }}
+                className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
+                style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
+              >
+                <div className="px-5 py-4 border-b border-cyan-800/40">
+                  <div className="text-cyan-400 text-base font-black uppercase tracking-widest">📖 Ekonomi Sözlüğü</div>
+                </div>
+                <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
+                  {introPanel.dictionary.map((item, i) => (
+                    <div key={i}>
+                      <div className="text-base font-bold text-cyan-300 mb-1.5">{item.term}</div>
+                      <div className="text-sm text-slate-400 leading-relaxed">{item.def}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Sağ: Dedektif Köşesi (büyük) */}
+          <AnimatePresence>
+            {!leavingIntro && (
+              <motion.div
+                key="strat"
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 80 }}
+                transition={{ duration: 0.35 }}
+                className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
+                style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
+              >
+                <div className="px-5 py-4 border-b border-amber-800/40">
+                  <div className="text-amber-400 text-base font-black uppercase tracking-widest">🎯 {introPanel.strategyTitle}</div>
+                </div>
+                <div className="px-5 py-4 flex flex-col gap-4 max-h-[420px] overflow-y-auto">
+                  {introPanel.strategyTips.map((tip, i) => (
+                    <div key={i}>
+                      <div className="text-base font-bold text-amber-300 mb-1.5">{tip.title}</div>
+                      <div className="text-sm text-slate-400 leading-relaxed">{tip.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {!leavingIntro && (
+          <div className="flex justify-center">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={startGame}
+              className="bg-emerald-500 hover:bg-emerald-400 text-white text-xl font-black py-4 px-12 rounded-full shadow-lg border-b-4 border-emerald-700"
+            >
+              OYUNA GEÇ 🚀
+            </motion.button>
+          </div>
+        )}
       </div>
     );
   }
