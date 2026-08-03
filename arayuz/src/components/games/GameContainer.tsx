@@ -11,6 +11,7 @@ import RevenueMatching from './RevenueMatching';
 import FutureChoice from './FutureChoice';
 import InvestmentMethods from './InvestmentMethods';
 import ScamDetector from './ScamDetector';
+import FinancialConceptHunt from './FinancialConceptHunt';
 
 interface GameContainerProps {
   gameCode: string;
@@ -58,6 +59,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'scam_detector':
         return <ScamDetector onComplete={onComplete} />;
+
+      case 'financial_concept_hunt':
+        return <FinancialConceptHunt onComplete={onComplete} onBack={onBack} />;
 
       default:
         return (

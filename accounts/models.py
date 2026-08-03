@@ -77,6 +77,7 @@ class Content(models.Model):
         ('financial_detective', '🕵️‍♂️ Finansal Haber Dedektifi (10. Sınıf)'),
         ('drag_drop_needs', '🛒 İstek mi İhtiyaç mı? (İlkokul)'),
         ('stock_market', '📈 Borsa Simülatörü (Çok Yakında)'),
+        ('financial_concept_hunt', '🧠 Finansal Sistem: Kavram Avı - Ölçme Değerlendirme'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
