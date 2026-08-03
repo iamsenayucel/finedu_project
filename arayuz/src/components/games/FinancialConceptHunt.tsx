@@ -200,6 +200,10 @@ export default function FinancialConceptHunt({ onComplete, onBack }: FinancialCo
     } else {
       setPracticeAnswers(prev => ({ ...prev, [qid]: draft }));
     }
+    // Onaylandıktan sonra otomatik olarak sonraki soruya geç (son soruda otomatik bitirme yapılmaz)
+    if (currentIndex < QUESTIONS.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
   };
 
   const goToQuestion = (index: number) => {
