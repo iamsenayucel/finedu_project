@@ -206,16 +206,42 @@ export default function FinancialConceptHunt({ onComplete, onBack }: FinancialCo
     }
   };
 
+  const isLastQuestion = currentIndex === QUESTIONS.length - 1;
+
   const goToQuestion = (index: number) => {
     if (index < 0 || index >= QUESTIONS.length) return;
     setCurrentIndex(index);
   };
 
-  const handleFinish = () => {
-    const finishTime = Date.now();
-    if (onComplete) onComplete(currentScore);
-    setFinishedAt(finishTime);
+  // Son sorudaki onayı ve bitişi tek tıkta birleştirir; React state güncellemeleri
+  // asenkron olduğundan puan, henüz state'e yansımamış olabilecek son cevabı da
+  // içerecek şekilde yerel bir kopya üzerinden hesaplanır (stale state'e karşı).
+  const finishExam = () => {
+    const qid = currentQuestion.id;
+    let finalScoredAnswers = scoredAnswers;
+    if (draft.length === 2) {
+      if (!examExpired) {
+        finalScoredAnswers = { ...scoredAnswers, [qid]: draft };
+        setScoredAnswers(finalScoredAnswers);
+      } else {
+        setPracticeAnswers(prev => ({ ...prev, [qid]: draft }));
+      }
+    }
+    const finalScore = QUESTIONS.reduce((sum, q) => {
+      const scored = finalScoredAnswers[q.id];
+      return scored && isAnswerCorrect(scored, q.correctAnswers) ? sum + POINTS_PER_QUESTION : sum;
+    }, 0);
+    if (onComplete) onComplete(finalScore);
+    setFinishedAt(Date.now());
     setStage('finished');
+  };
+
+  const handlePrimaryAction = () => {
+    if (isLastQuestion) {
+      finishExam();
+    } else {
+      handleConfirm();
+    }
   };
 
   const handleRestart = () => {
@@ -601,13 +627,19 @@ export default function FinancialConceptHunt({ onComplete, onBack }: FinancialCo
                 </AnimatePresence>
 
                 <motion.button
-                  whileHover={draft.length === 2 ? { scale: 1.02 } : {}}
-                  whileTap={draft.length === 2 ? { scale: 0.98 } : {}}
-                  onClick={handleConfirm}
-                  disabled={draft.length !== 2}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-slate-700 disabled:to-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl text-base sm:text-lg shadow-lg border-b-4 border-purple-800 disabled:border-slate-800 transition-all focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400/50"
+                  whileHover={draft.length === 2 || isLastQuestion ? { scale: 1.02 } : {}}
+                  whileTap={draft.length === 2 || isLastQuestion ? { scale: 0.98 } : {}}
+                  onClick={handlePrimaryAction}
+                  disabled={!isLastQuestion && draft.length !== 2}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-slate-700 disabled:to-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black py-4 rounded-2xl text-base sm:text-lg shadow-lg border-b-4 border-purple-800 disabled:border-slate-800 transition-all flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400/50"
                 >
-                  Cevabı Onayla ✅
+                  {isLastQuestion ? (
+                    <>
+                      <Trophy className="w-5 h-5" /> Sonuçları Gör
+                    </>
+                  ) : (
+                    'Cevabı Onayla ✅'
+                  )}
                 </motion.button>
 
                 <div className="flex items-center justify-between gap-3 mt-4">
@@ -619,22 +651,13 @@ export default function FinancialConceptHunt({ onComplete, onBack }: FinancialCo
                     <ChevronLeft className="w-4 h-4" /> Önceki Soru
                   </button>
 
-                  {currentIndex < QUESTIONS.length - 1 ? (
+                  {!isLastQuestion && (
                     <button
                       onClick={() => goToQuestion(currentIndex + 1)}
                       className="flex items-center gap-1.5 text-slate-300 hover:text-white font-bold text-sm px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50"
                     >
                       Sonraki Soru <ChevronRight className="w-4 h-4" />
                     </button>
-                  ) : (
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={handleFinish}
-                      className="flex items-center gap-1.5 text-white font-black text-sm px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
-                    >
-                      <Trophy className="w-4 h-4" /> Sonuçları Gör
-                    </motion.button>
                   )}
                 </div>
               </motion.div>
