@@ -14,6 +14,7 @@ import ScamDetector from './ScamDetector';
 import FinancialConceptHunt from './FinancialConceptHunt';
 import FinancialSystemQuest2 from './FinancialSystemQuest2';
 import IncomeTypeAssessment from './IncomeTypeAssessment';
+import MediaLiteracyAssessment from './MediaLiteracyAssessment';
 
 interface GameContainerProps {
   gameCode: string;
@@ -70,6 +71,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'income_type_assessment':
         return <IncomeTypeAssessment onComplete={onComplete} onBack={onBack} />;
+
+      case 'media_literacy_assessment':
+        return <MediaLiteracyAssessment onComplete={onComplete} onBack={onBack} />;
 
       default:
         return (
