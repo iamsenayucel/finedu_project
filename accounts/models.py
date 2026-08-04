@@ -78,6 +78,7 @@ class Content(models.Model):
         ('drag_drop_needs', '🛒 İstek mi İhtiyaç mı? (İlkokul)'),
         ('stock_market', '📈 Borsa Simülatörü (Çok Yakında)'),
         ('financial_concept_hunt', '🧠 Finansal Sistem: Kavram Avı - Ölçme Değerlendirme'),
+        ('financial_system_concepts_2', '🧭 Finansal Sistem Kavramlarını Keşfet-2 - Ölçme Değerlendirme'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')

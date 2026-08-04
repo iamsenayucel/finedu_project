@@ -12,6 +12,7 @@ import FutureChoice from './FutureChoice';
 import InvestmentMethods from './InvestmentMethods';
 import ScamDetector from './ScamDetector';
 import FinancialConceptHunt from './FinancialConceptHunt';
+import FinancialSystemQuest2 from './FinancialSystemQuest2';
 
 interface GameContainerProps {
   gameCode: string;
@@ -62,6 +63,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'financial_concept_hunt':
         return <FinancialConceptHunt onComplete={onComplete} onBack={onBack} />;
+
+      case 'financial_system_concepts_2':
+        return <FinancialSystemQuest2 onComplete={onComplete} onBack={onBack} />;
 
       default:
         return (

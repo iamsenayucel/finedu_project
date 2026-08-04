@@ -25,7 +25,8 @@ const GAME_OPTIONS = [
   { value: "future_choice",       label: "🎯 Geleceğini Seç - Risk mi Güven mi?" },
   { value: "investment_methods",  label: "💹 Yasal Yatırım Yöntemleri - Kavram Eşleştirme" },
   { value: "scam_detector",       label: "🕵️ Dolandırıcı Avı - Gerçek mi Tuzak mı?" },
-  { value: "financial_concept_hunt", label: "🧠 Finansal Sistem: Kavram Avı - Ölçme Değerlendirme" }
+  { value: "financial_concept_hunt", label: "🧠 Finansal Sistem: Kavram Avı - Ölçme Değerlendirme" },
+  { value: "financial_system_concepts_2", label: "🧭 Finansal Sistem Kavramlarını Keşfet-2 - Ölçme Değerlendirme" }
 ];
 
 export default function AdminPanel() {
