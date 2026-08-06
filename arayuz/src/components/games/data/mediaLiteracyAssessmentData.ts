@@ -1,73 +1,78 @@
-// "Finansal Medya Okuryazarlığı" oyunu için merkezi veri.
-// Görev 1: 5 bilgi kaynağı kartını "Güvenilir" / "Güvenilmez" sepetlerine sürükle-bırak ile sınıflandırma (kart başı 8 puan, toplam 40 puan).
-// Görev 2-5: TYT formatında 4 çoktan seçmeli soru (soru başı 15 puan, toplam 60 puan). Toplam 100 puan, süre 16 dakika.
+// "Finansal Medya Okuryazarlığı" ölçme-değerlendirme oyunu için merkezi veri.
+// Bölüm 1: Dedektif Panosu — 5 vaka, her biri 3 sınıflandırma seçeneğinden biriyle etiketlenir (vaka başı 8 puan, toplam 40 puan).
+// Bölüm 2: Finansal Okuryazarlık Testi — 4 çoktan seçmeli soru (soru başı 15 puan, toplam 60 puan).
+// Toplam 100 puan, tek kesintisiz süre 20 dakika.
 
-export const EXAM_DURATION_MS = 16 * 60 * 1000;
+export const EXAM_DURATION_MS = 20 * 60 * 1000;
 export const LOW_TIME_THRESHOLD_MS = 3 * 60 * 1000;
 
-export const POINTS_PER_CARD = 8;
-export const TOTAL_CARD_POINTS = 40;
+export const POINTS_PER_CASE = 8;
+export const TOTAL_CASE_POINTS = 40;
 export const POINTS_PER_QUESTION = 15;
 export const TOTAL_QUESTION_POINTS = 60;
 export const TOTAL_POINTS = 100;
 
-export type BasketId = 'unreliable' | 'reliable';
+export type ClassificationId = 'reliable' | 'suspicious' | 'manipulative';
 
-export interface SourceCard {
-  id: string;
+export interface ClassificationOption {
+  id: ClassificationId;
   label: string;
-  correctBasket: BasketId;
-  note: string;
+  icon: string;
 }
 
-export const SORT_TITLE = 'Bilgi Filtresi: Güvenilir mi, Güvenilmez mi?';
-export const SORT_INSTRUCTION =
-  'İnternette karşılaştığın finansal verileri ve haberleri filtrelemen gerekiyor! Aşağıdaki 5 bilgi kaynağını analiz et ve onları "Güvenilir Kaynaklar" ve "Güvenilmez Kaynaklar" sepetlerine doğru şekilde sürükleyerek bilgi kirliliğini temizle.';
-
-export const CARDS: SourceCard[] = [
-  {
-    id: 'card1',
-    label: 'WhatsApp gruplarında dolaşan "İçeriden sızdırıldı, kriz kapıda!" etiketli isimsiz ses kaydı',
-    correctBasket: 'unreliable',
-    note: 'Tamamen anonimdir, korku pompalar ve kaynağı belli değildir.',
-  },
-  {
-    id: 'card2',
-    label: 'T.C. Merkez Bankası resmi web sitesinden (.gov.tr) indirilen orijinal veri tablosu',
-    correctBasket: 'reliable',
-    note: "Mükemmel! Verinin üretildiği ilk eldir, yasal ve tarafsız 'Birincil Kaynak'tır.",
-  },
-  {
-    id: 'card3',
-    label: 'Kendine "Ekonomi Gurusu" diyen anonim bir sosyal medya fenomeninin kaynak göstermeden attığı tweet',
-    correctBasket: 'unreliable',
-    note: 'Kişisel çıkarlar veya spekülasyon barındırabilir, manipülasyona tamamen açıktır.',
-  },
-  {
-    id: 'card4',
-    label: 'Ulusal bir haber ajansının, resmi enflasyon raporuna dayandırarak sunduğu akşam bülteni',
-    correctBasket: 'reliable',
-    note: "Kurumsal bir 'İkincil Kaynak'tır. Resmi rapora dayandığı için güvenilirdir.",
-  },
-  {
-    id: 'card5',
-    label: 'Dünya Bankası veya TÜİK gibi yasal yetkiye sahip kurumların periyodik araştırma raporları',
-    correctBasket: 'reliable',
-    note: 'Bilimsel metodoloji ile toplanmış, manipülasyona kapalı ve yasal verilerdir.',
-  },
+export const CLASSIFICATIONS: ClassificationOption[] = [
+  { id: 'reliable', label: 'Güvenilir Kaynak', icon: '🟢' },
+  { id: 'suspicious', label: 'Şüpheli Kaynak', icon: '🟡' },
+  { id: 'manipulative', label: 'Manipülatif / Reklam', icon: '🔴' },
 ];
 
-export interface Basket {
-  id: BasketId;
-  title: string;
-  icon: string;
-  slotIds: string[];
+export interface DetectiveCase {
+  id: number;
+  text: string;
+  correctClassification: ClassificationId;
+  explanation: string;
 }
 
-// Toplam 5 boşluk: Güvenilmez sepetinde 2, Güvenilir sepetinde 3 (doğru dağılımla birebir eşleşir).
-export const BASKETS: Basket[] = [
-  { id: 'unreliable', title: 'Güvenilmez Kaynak Sepeti', icon: '🔴', slotIds: ['0', '1'] },
-  { id: 'reliable', title: 'Güvenilir Kaynak Sepeti', icon: '🟢', slotIds: ['2', '3', '4'] },
+export const SECTION1_TITLE = 'Dedektif Panosu';
+export const SECTION1_INSTRUCTION =
+  'Aşağıdaki beş finansal haber ya da sosyal medya içeriğini incele ve her biri için tek bir sınıflandırma seç: Güvenilir Kaynak, Şüpheli Kaynak ya da Manipülatif / Reklam.';
+
+export const SECTION1_CASES: DetectiveCase[] = [
+  {
+    id: 1,
+    text: '"TÜİK verilerine göre, tüketici fiyat endeksi geçen yılın aynı ayına oranla %45 seviyesinde gerçekleşti."',
+    correctClassification: 'reliable',
+    explanation:
+      'Somut matematiksel veri bulunmaktadır. Kaynak, resmî bir devlet kurumudur. Duygu sömürüsü yapılmamakta ve okuyucuya herhangi bir yatırım işlemi yaptırılmaya çalışılmamaktadır.',
+  },
+  {
+    id: 2,
+    text: 'Sosyal medyada "KriptoKurdu_99": "X Coin yarın 100 katına çıkacak! Evinizi satın, bütün paranızı bu projeye basın! Treni kaçırmayın!" dedi.',
+    correctClassification: 'manipulative',
+    explanation:
+      'Kaynak anonimdir. Aşırı duygu ve heyecan ifadeleri kullanılmaktadır. FOMO, yani fırsatı kaçırma korkusu yaratılmakta ve okuyucuya doğrudan riskli bir finansal eylem yaptırılmaya çalışılmaktadır.',
+  },
+  {
+    id: 3,
+    text: 'Kulislerde konuşulan iddialara ve sızdırılan belgelere göre, Merkez Bankası yarın faizleri 500 baz puan indirecekmiş.',
+    correctClassification: 'suspicious',
+    explanation:
+      'İçerikte sayısal bir iddia bulunmasına rağmen şeffaf ve doğrulanabilir bir kaynak verilmemektedir. "Kulislerde konuşulanlar" ve "sızdırılan belgeler" gibi ifadeler kaynağın belirsiz olduğunu göstermektedir.',
+  },
+  {
+    id: 4,
+    text: 'Dünya Bankası\'nın yayımladığı resmî "Küresel Beklentiler" raporuna göre, bu yıl küresel büyüme hızının %2,4\'e gerilemesi öngörülüyor.',
+    correctClassification: 'reliable',
+    explanation:
+      'Bilgi, uluslararası ve resmî bir kurum tarafından yayımlanan, metodolojisi incelenebilen ve denetlenebilir bir rapora dayanmaktadır.',
+  },
+  {
+    id: 5,
+    text: 'Yeni nesil Bulut Madenciliği sistemimize 1.000 TL yatırarak ayda 5.000 TL garanti gelir elde edin! Sıfır risk, kaybetmek yok! Hemen üye olun.',
+    correctClassification: 'manipulative',
+    explanation:
+      '"Sıfır risk", "garanti gelir" ve olağan dışı yüksek kazanç gibi ifadeler kullanılmaktadır. Kullanıcı acele etmeye zorlanmakta ve gerçekçi olmayan finansal vaatler sunulmaktadır.',
+  },
 ];
 
 export interface AssessmentOption {
@@ -78,82 +83,78 @@ export interface AssessmentOption {
 export interface AssessmentQuestion {
   id: number;
   prompt: string;
-  question: string;
   options: AssessmentOption[];
   correctOptionId: string;
   explanation: string;
   points: number;
 }
 
-export const QUESTIONS: AssessmentQuestion[] = [
+export const SECTION2_TITLE = 'Finansal Okuryazarlık Testi';
+export const SECTION2_INSTRUCTION = 'Aşağıdaki dört soruyu oku ve tek bir doğru seçeneği işaretle.';
+
+export const SECTION2_QUESTIONS: AssessmentQuestion[] = [
   {
     id: 1,
     prompt:
-      'Sosyal medyada yayılan bir haberde, "X şirketinin kârı bu çeyrekte %500 arttı, şirket uçuşa geçti!" ifadeleri kullanılmıştır. Ancak şirketin resmi bilançosu incelendiğinde, şirketin asıl işinden zarar ettiği, bu %500\'lük artışın sadece şirketin merkez binasının satılmasından elde edilen tek seferlik bir gelir olduğu ortaya çıkmıştır. Haberi yapan sayfa, bina satışından hiç bahsetmemiştir.',
-    question: 'Bu durum, veri okuryazarlığındaki tehlike işaretlerinden hangisine kesin bir örnektir?',
+      'Lise öğrencisi Can, dijital varlıklara ilgi duymaktadır. Sosyal medyada gezinirken bir dijital proje hakkında "Yüzyılın Fırsatı! Çok Kazandıracak!" yazılı gösterişli grafikler görmüştür. Strateji Merkezi kurallarını hatırlayan Can, bu projenin ne işe yaradığını, teknolojik altyapısını ve arkasındaki ekibi gerçekten öğrenmek istemektedir.\n\nBuna göre Can, sadece "süper kazanç" vadeden grafiklere aldanmamak için projenin hangi resmî veya teknik belgesini incelemelidir?',
     options: [
-      { id: 'A', label: 'Kaynak Eksikliği' },
-      { id: 'B', label: 'Aşırı Duygu Kullanımı' },
-      { id: 'C', label: 'Yanıltıcı ve Eksik Bilgi (Cherry-picking)' },
-      { id: 'D', label: 'Birincil Kaynak Doğrulaması' },
-      { id: 'E', label: 'Resmi Veri İhlali' },
+      { id: 'A', label: 'Sosyal medya fenomenlerinin yorumlarını' },
+      { id: 'B', label: 'Şirketin reklam amaçlı hazırlattığı Advertorial haberleri' },
+      { id: 'C', label: 'Projenin bağımsız analizi olan teknik raporunu, yani Whitepaper\'ı' },
+      { id: 'D', label: 'İsimsiz kaynakların WhatsApp gruplarındaki duyumlarını' },
+      { id: 'E', label: 'Sadece yukarı doğru çizilmiş fiyat grafiklerini' },
     ],
     correctOptionId: 'C',
     explanation:
-      'Bilginin sadece işe gelen, abartılı kısmı alınmış; genel bağlam kasten gizlenerek kitleler yanıltılmıştır. Bu taktiğe cımbızlama/cherry-picking denir.',
+      'Gerçek projelerin arkasında yalnızca kazanç vaatleri değil, projenin amacı, çalışma şekli, teknolojik altyapısı ve ekibi hakkında bilgi veren teknik bir rapor bulunmalıdır.',
     points: 15,
   },
   {
     id: 2,
     prompt:
-      'Finansal piyasalarda manipülasyon yapan anonim hesaplar, gönderilerinde genellikle "FLAŞ, ŞOK, İNANILMAZ" gibi kelimeleri ve büyük harfleri sıkça kullanırlar. Araya bolca "roket, ateş, para" emojisi ekleyerek okuyucunun dikkatini rakamlardan çok görsellere çekerler.',
-    question:
-      'Finansal medya okuryazarlığı ilkelerine göre, bu tarz bir aşırı duygu kullanımının asıl psikolojik amacı aşağıdakilerden hangisidir?',
+      'Bir yatırımcı, piyasalarda dolaşan "Acil durum! Sistem yarın çöküyor, şirket batıyor, elindeki her şeyi zararına da olsa sat!" şeklindeki anonim bir haberi okuyup paniklemiş ve yatırımlarını büyük bir zararla satmıştır. İki gün sonra ise haberin tamamen yalan olduğu ve piyasayı düşürüp ucuza mal toplamak isteyen spekülatörler tarafından çıkarıldığı anlaşılmıştır.\n\nYatırımcının tuzağına düştüğü, yatırımcıyı "panikle satışa" zorlayan manipülasyon taktiği hangisidir?',
     options: [
-      { id: 'A', label: 'Haberin resmi makamlarca onaylandığını kanıtlamak.' },
-      { id: 'B', label: 'Okuyucunun analitik düşünme süresini kısaltıp, haberi sorgulamadan hızla kabul etmesini sağlamak.' },
-      { id: 'C', label: 'Devletin istatistik kurumları ile işbirliği içinde olduklarını göstermek.' },
-      { id: 'D', label: 'Karmaşık finansal verileri herkesin anlayacağı bir dilde basitleştirmek.' },
-      { id: 'E', label: 'Verilerin uluslararası birincil kaynaklardan alındığını vurgulamak.' },
+      { id: 'A', label: 'FUD — Korku, Belirsizlik ve Şüphe' },
+      { id: 'B', label: 'FOMO — Fırsatı Kaçırma Korkusu' },
+      { id: 'C', label: 'Gizli Reklam — Advertorial' },
+      { id: 'D', label: 'Sıfır Risk Yalanı' },
+      { id: 'E', label: 'Bağımsız Denetim — Audit' },
     ],
-    correctOptionId: 'B',
+    correctOptionId: 'A',
     explanation:
-      'Duygu sömürüsü, panik ve FOMO (kaçırma korkusu), mantığın devreye girmesini engellemek ve teyitçiliği ortadan kaldırmak için kullanılan en yaygın manipülasyon taktiğidir.',
+      'İnsanları paniğe sürüklemek, bir yatırım aracını kötülemek veya insanların ellerindeki yatırımları aceleyle sattırmak amacıyla yayılan kanıtsız söylentiler FUD olarak adlandırılır.',
     points: 15,
   },
   {
     id: 3,
     prompt:
-      'Ekonomik verileri araştıran bir lise öğrencisi, aynı konu hakkında üç farklı kaynaktan üç farklı rakam görmüştür.\n\nI. Kendini "ekonomi gurusu" ilan eden bir YouTube yayıncısının videosu\nII. Bir haber sitesinin "Enflasyon rakamları açıklandı" başlıklı makalesi\nIII. Resmi makamların "www.tuik.gov.tr" adresindeki aylık bülteni',
-    question: 'Öğrencinin "altın kuralı" uygulayarak gerçeğe ulaşması için hangi numaralı kaynağı referans alması zorunludur?',
+      'Bir ekonomi haberi okunurken "Dedektif Kontrol Listesi"nin dördüncü adımı olan "Bana Ne Yaptırmak İstiyor?" kuralı uygulanmaktadır. Haberde "Hemen bu hisseyi alın, kesin kazandıracak" gibi yönlendirmeler tespit edilmiştir.\n\nBu durumla karşılaşan bilinçli bir finansal okuryazarın çıkarması gereken temel sonuç hangisidir?',
     options: [
-      { id: 'A', label: 'Yalnız I' },
-      { id: 'B', label: 'Yalnız II' },
-      { id: 'C', label: 'Yalnız III' },
-      { id: 'D', label: 'I ve II' },
-      { id: 'E', label: 'II ve III' },
+      { id: 'A', label: 'Haberin resmî ve tarafsız bir devlet kurumu tarafından hazırlandığı' },
+      { id: 'B', label: 'Yazının objektif analizden ziyade okuyucuya doğrudan bir finansal eylem yaptırmayı hedefleyen yatırım tavsiyesi veya manipülasyon olduğu' },
+      { id: 'C', label: 'Haberdeki verilerin bağımsız denetim şirketleri tarafından kesin olarak onaylandığı' },
+      { id: 'D', label: 'Haberin volatilite kuralına uygun olduğu' },
+      { id: 'E', label: 'Yazının yalnızca somut veri ve istatistiklere dayanarak bilgi verdiği' },
     ],
-    correctOptionId: 'C',
+    correctOptionId: 'B',
     explanation:
-      'Her finansal iddia, aracı kurumlardan veya yorumculardan değil, mutlaka resmi ve birincil kaynaklardan (.gov.tr uzantılı sitelerden) doğrulanmalıdır.',
+      'Güvenilir bir analiz piyasa hakkında bilgi verir ve kararı okuyucuya bırakır. İçerik doğrudan "al", "sat" veya "hemen yatırım yap" gibi emirler veriyorsa bunun yönlendirme veya yatırım tavsiyesi olabileceği düşünülmelidir.',
     points: 15,
   },
   {
     id: 4,
     prompt:
-      'Finansal okuryazarlığı zayıf olan bireyler, sosyal medyada veya mesajlaşma uygulamalarında karşılaştıkları "Kesin bilgi, yarın döviz fırlayacak, hemen alın!" veya "Ülke batıyor, acil paranızı çekin!" gibi hiçbir dayanağı olmayan duyumları gerçek bir veri gibi kabul edip paniğe kapılabilirler. Ekonomik terminolojide kesin bir veriye dayanmayan, genellikle piyasada korku yaratmak veya kitleleri yönlendirerek haksız kazanç sağlamak için kurgulanan bu tarz içeriklere "Spekülatif Gönderi" adı verilir.',
-    question:
-      'Buna göre, spekülatif gönderilerin toplumda hızla yayılmasının ve etkili olmasının en temel nedeni aşağıdakilerden hangisidir?',
+      'Sosyal medyada yüzü ve gerçek adı olmayan "Kullanıcı_8472" isimli bir profil, "Bu sisteme girdim, evimde oturarak bir haftada %100 kazanç elde ettim. Kaybetme ihtimali yok, kontenjan dolmadan hemen tıklayın!" şeklinde bir mesaj paylaşmıştır.\n\nBu kısa mesajda, finansal dedektiflik stratejilerine göre aşağıdaki tehlike veya yalan işaretlerinden hangisi yoktur?',
     options: [
-      { id: 'A', label: 'Resmi istatistik kurumlarının bu tür duyumları kendi raporlarında desteklemesi' },
-      { id: 'B', label: 'İnsanların mantıklı verilerden ziyade korku, panik ve açgözlülük gibi temel duygularına hitap etmesi' },
-      { id: 'C', label: 'İddiaların, üniversitelerin akademik araştırmalarıyla doğrulanabilmesi' },
-      { id: 'D', label: 'Blog sitelerinde detaylı ve uzun istatistiksel analizlere dayanması' },
-      { id: 'E', label: 'İnsanların bütçe yönetimi ve finansal planlama bilincini artırmaya yönelik olması' },
+      { id: 'A', label: 'Anonim Kaynak' },
+      { id: 'B', label: 'Zaman Tuzağı' },
+      { id: 'C', label: 'Sıfır Risk Yalanı' },
+      { id: 'D', label: 'Sahte Sosyal İspat' },
+      { id: 'E', label: 'Somut Veri ve İstatistik' },
     ],
-    correctOptionId: 'B',
+    correctOptionId: 'E',
     explanation:
-      'Spekülasyon gücünü rasyonel veriden değil; insanın panikleme, fırsatı kaçırma korkusu veya çabuk zengin olma arzusundan (açgözlülük) alır.',
+      'Mesajda anonim kaynak, zaman baskısı, sıfır risk vaadi ve sahte bir başarı hikâyesi bulunmaktadır. Ancak iddiayı destekleyen resmî, doğrulanabilir ve denetlenebilir bir veri veya rapor bulunmamaktadır.',
     points: 15,
   },
 ];
@@ -164,13 +165,4 @@ export function getPerformance(score: number): { label: string; icon: string; co
   if (score >= 50) return { label: 'Kısmi Anlayış', icon: '👍', color: 'text-yellow-400', bg: 'from-yellow-900/60 to-slate-900' };
   if (score >= 25) return { label: 'Gelişim Aşamasında', icon: '📘', color: 'text-orange-400', bg: 'from-orange-900/60 to-slate-900' };
   return { label: 'Gelişime İhtiyaç Var', icon: '📚', color: 'text-red-400', bg: 'from-red-900/60 to-slate-900' };
-}
-
-export function shuffle<T>(arr: T[]): T[] {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
 }
