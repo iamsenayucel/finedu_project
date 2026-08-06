@@ -81,6 +81,7 @@ class Content(models.Model):
         ('financial_system_concepts_2', '🧭 Finansal Sistem Kavramlarını Keşfet-2 - Ölçme Değerlendirme'),
         ('income_type_assessment', '💵 Gelir Türü - Ölçme Değerlendirme'),
         ('media_literacy_assessment', '📰 Finansal Medya Okuryazarlığı - Ölçme Değerlendirme'),
+        ('credit_card_awareness', '💳 Bilinçli Kredi Kartı Kullanımı - Ölçme Değerlendirme'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
