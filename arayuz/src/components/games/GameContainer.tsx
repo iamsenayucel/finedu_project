@@ -16,6 +16,7 @@ import FinancialSystemQuest2 from './FinancialSystemQuest2';
 import IncomeTypeAssessment from './IncomeTypeAssessment';
 import MediaLiteracyAssessment from './MediaLiteracyAssessment';
 import CreditCardAwareness from './CreditCardAwareness';
+import CreditCostAnalysis from './CreditCostAnalysis';
 
 interface GameContainerProps {
   gameCode: string;
@@ -78,6 +79,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'credit_card_awareness':
         return <CreditCardAwareness onComplete={onComplete} onBack={onBack} />;
+
+      case 'credit_cost_analysis':
+        return <CreditCostAnalysis onComplete={onComplete} />;
 
       default:
         return (

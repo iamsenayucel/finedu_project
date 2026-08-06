@@ -82,6 +82,7 @@ class Content(models.Model):
         ('income_type_assessment', '💵 Gelir Türü - Ölçme Değerlendirme'),
         ('media_literacy_assessment', '📰 Finansal Medya Okuryazarlığı - Ölçme Değerlendirme'),
         ('credit_card_awareness', '💳 Bilinçli Kredi Kartı Kullanımı - Ölçme Değerlendirme'),
+        ('credit_cost_analysis', '🧮 Kredi Maliyeti Analizi - Ölçme Değerlendirme'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
