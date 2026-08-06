@@ -17,6 +17,7 @@ import IncomeTypeAssessment from './IncomeTypeAssessment';
 import MediaLiteracyAssessment from './MediaLiteracyAssessment';
 import CreditCardAwareness from './CreditCardAwareness';
 import CreditCostAnalysis from './CreditCostAnalysis';
+import InvestmentOrConsumption from './InvestmentOrConsumption';
 
 interface GameContainerProps {
   gameCode: string;
@@ -82,6 +83,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'credit_cost_analysis':
         return <CreditCostAnalysis onComplete={onComplete} />;
+
+      case 'investment_or_consumption':
+        return <InvestmentOrConsumption onComplete={onComplete} onBack={onBack} />;
 
       default:
         return (

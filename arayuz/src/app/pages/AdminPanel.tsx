@@ -29,8 +29,9 @@ const GAME_OPTIONS = [
   { value: "financial_system_concepts_2", label: "🧭 Finansal Sistem Kavramlarını Keşfet-2 - Ölçme Değerlendirme" },
   { value: "income_type_assessment", label: "💵 Gelir Türü - Ölçme Değerlendirme" },
   { value: "media_literacy_assessment", label: "📰 Finansal Medya Okuryazarlığı - Ölçme Değerlendirme" },
-  { value: "credit_card_awareness", label: "💳 Bilinçli Kredi Kartı Kullanımı - Ölçme Değerlendirme" },
-  { value: "credit_cost_analysis", label: "🧮 Kredi Maliyeti Analizi - Ölçme Değerlendirme" }
+  { value: "credit_card_awareness", label: "💳 Bilinçli Kredi Kartı Kullanımı" },
+  { value: "credit_cost_analysis", label: "🧮 Kredi Maliyeti Analizi" },
+  { value: "investment_or_consumption", label: "⚖️ Yatırım mı, Tüketim mi?" }
 ];
 
 export default function AdminPanel() {
