@@ -24,6 +24,8 @@ import PortfolioMaster from './PortfolioMaster';
 import LegalInvestmentAssessment from './LegalInvestmentAssessment';
 import EconomicGlossary from './EconomicGlossary';
 import MediaGlossaryPuzzle from './MediaGlossaryPuzzle';
+import IncomeGlossaryPuzzle from './IncomeGlossaryPuzzle';
+import RiskGlossaryPuzzle from './RiskGlossaryPuzzle';
 
 interface GameContainerProps {
   gameCode: string;
@@ -110,6 +112,12 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'media_glossary_puzzle':
         return <MediaGlossaryPuzzle onComplete={onComplete} onBack={onBack} />;
+
+      case 'income_glossary_puzzle':
+        return <IncomeGlossaryPuzzle onComplete={onComplete} onBack={onBack} />;
+
+      case 'risk_glossary_puzzle':
+        return <RiskGlossaryPuzzle onComplete={onComplete} onBack={onBack} />;
 
       default:
         return (

@@ -36,8 +36,10 @@ const GAME_OPTIONS = [
   { value: "market_detective", label: "🐂 Piyasa Dedektifi & Davranışsal Finans Testi" },
   { value: "portfolio_master", label: "💼 Portföy Ustası - Portföy Matrisi & Bitirme Testi" },
   { value: "legal_investment_assessment", label: "📊 Yasal Yatırım Yöntemleri - Ölçme ve Değerlendirme" },
-  { value: "economic_glossary_match", label: "📖 Ekonomi Sözlüğü - Çapraz Bulmaca" },
-  { value: "media_glossary_puzzle", label: "🧩 Finansal Medya Okuryazarlığı - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" }
+  { value: "economic_glossary_match", label: "📖 Ekonomi Sözlüğü - Sürükle-Bırak Bulmaca" },
+  { value: "media_glossary_puzzle", label: "🧩 Finansal Medya Okuryazarlığı - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
+  { value: "income_glossary_puzzle", label: "💰 Gelir Türleri ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
+  { value: "risk_glossary_puzzle", label: "🧩 Risk Yönetimi ve Piyasa Kavramları - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" }
 ];
 
 export default function AdminPanel() {

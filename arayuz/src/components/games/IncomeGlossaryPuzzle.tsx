@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
-interface EconomicGlossaryProps {
+interface IncomeGlossaryPuzzleProps {
   onComplete?: (score: number) => void;
   onBack?: () => void;
 }
@@ -21,115 +21,115 @@ interface WordDef {
   clue: string;
 }
 
-// ─── BULMACA VERİSİ (PDF'teki "Ekonomi Sözlüğü" bulmacasıyla birebir aynı) ─────
+// ─── BULMACA VERİSİ (sabit yerleşim — değiştirilmemeli) ────────────────────────
 
 const WORDS: WordDef[] = [
   {
-    id: 'kredi',
+    id: 'firsat_maliyeti',
     number: 1,
     direction: 'down',
     row: 1,
-    col: 5,
-    answer: 'KREDİ',
-    label: 'KREDİ',
-    clue: 'Bir hayalini gerçekleştirmek veya ihtiyacını karşılamak için bankadan aldığın, ancak daha sonra üzerine biraz ekleme yaparak (faiz) geri ödemek zorunda olduğun borç paradır.',
+    col: 3,
+    answer: 'FIRSATMALİYETİ',
+    label: 'FIRSAT MALİYETİ',
+    clue: 'Bir şeyi seçtiğinde, seçmediğin diğer şeyden kaçırdığın fırsattır. Mesela paranla dondurma alırsan, çikolata alma şansından vazgeçmiş olursun.',
   },
   {
-    id: 'banka',
+    id: 'risk_toleransi',
     number: 2,
-    direction: 'down',
-    row: 2,
-    col: 1,
-    answer: 'BANKA',
-    label: 'BANKA',
-    clue: 'Paranın güvenle yüzdüğü büyük bir havuz gibidir. İhtiyacın olmadığında paranı senin için güvende tutar, ihtiyacı olanlara ise borç olarak verir.',
-  },
-  {
-    id: 'butce',
-    number: 3,
-    direction: 'down',
+    direction: 'across',
     row: 3,
-    col: 8,
-    answer: 'BÜTÇE',
-    label: 'BÜTÇE',
-    clue: "Paranın patronu olmaktır! Elindeki paranın nereye harcanacağını önceden planlayarak, ay sonunda 'param nereye gitti?' diye şaşırmanı engelleyen plandır.",
+    col: 3,
+    answer: 'RİSKTOLERANSI',
+    label: 'RİSK TOLERANSI',
+    clue: 'Bir oyunda veya yatırımda para kaybetme ihtimaline karşı ne kadar cesur ve dayanıklı olduğundur.',
   },
   {
-    id: 'kredi_notu',
-    number: 4,
+    id: 'sabit_gelir',
+    number: 3,
     direction: 'across',
     row: 5,
-    col: 1,
-    answer: 'KREDİNOTU',
-    label: 'KREDİ NOTU',
-    clue: 'Finansal dünyanın karne notudur! Geçmişte borçlarını zamanında ödeyip ödemediğine göre hesaplanır; bankalar sana güvenirken bu nota bakar.',
+    col: 2,
+    answer: 'SABİTGELİR',
+    label: 'SABİT GELİR',
+    clue: 'Her ay veya her hafta düzenli olarak eline geçen, miktarı hiç değişmeyen garanti paradır. (Örneğin: Düzenli harçlık veya maaş gibi)',
   },
   {
-    id: 'hazine',
+    id: 'esneklik',
+    number: 4,
+    direction: 'down',
+    row: 5,
+    col: 8,
+    answer: 'ESNEKLİK',
+    label: 'ESNEKLİK',
+    clue: 'Beklenmedik bir sürpriz veya masraf çıktığında paniğe kapılmadan planlarını hemen değiştirebilme ve uyum sağlama gücüdür.',
+  },
+  {
+    id: 'temettu',
     number: 5,
     direction: 'across',
     row: 7,
-    col: 3,
-    answer: 'HAZİNE',
-    label: 'HAZİNE',
-    clue: 'Ülkenin büyük kumbarasıdır. Yol, hastane ve okul gibi hepimizin kullandığı yerleri yapmak için gereken paranın toplandığı ve saklandığı yerdir.',
+    col: 1,
+    answer: 'TEMETTÜ',
+    label: 'TEMETTÜ',
+    clue: 'Ortak olduğun bir şirketin para kazandığında, bu kazancın bir kısmını ödül olarak sana dağıtmasıdır. Buna "kâr payı" da denir.',
   },
   {
-    id: 'araci_kurum',
+    id: 'telif_hakki',
     number: 6,
-    direction: 'down',
-    row: 7,
-    col: 4,
-    answer: 'ARACIKURUM',
-    label: 'ARACI KURUM',
-    clue: 'Borsada tek başına işlem yapamayacağın için, senin adına hisse senedi alıp satmana yardımcı olan, devletten onaylı güvenilir köprü şirketlerdir (Diğer adı Broker).',
-  },
-  {
-    id: 'yatirim',
-    number: 7,
     direction: 'across',
     row: 9,
-    col: 3,
-    answer: 'YATIRIM',
-    label: 'YATIRIM',
-    clue: 'Elindeki parayı bir tohum gibi toprağa ekip, zamanla büyüterek daha fazla para kazanmasını sağlamak ve değerini korumak için yapılan işlemlerdir.',
+    col: 1,
+    answer: 'TELİFHAKKI',
+    label: 'TELİF HAKKI',
+    clue: 'Kendi ürettiğin bir oyunun, videonun veya resmin başkaları tarafından her kullanıldığında sana kazandırdığı sürekli gelir ve eser sahipliği hakkıdır.',
   },
   {
-    id: 'maas',
+    id: 'freelance',
+    number: 7,
+    direction: 'down',
+    row: 12,
+    col: 6,
+    answer: 'FREELANCE',
+    label: 'FREELANCE',
+    clue: 'Belirli bir patrona bağlı kalmadan, kendi patronun olarak özgürce ve proje bazlı çalışma şeklidir.',
+  },
+  {
+    id: 'portfoy',
     number: 8,
     direction: 'down',
-    row: 9,
+    row: 12,
     col: 9,
-    answer: 'MAAŞ',
-    label: 'MAAŞ',
-    clue: 'İnsanların bir işte çalışmaları ve emek vermeleri karşılığında, işverenlerinden her ay düzenli olarak kazandıkları paradır.',
+    answer: 'PORTFÖY',
+    label: 'PORTFÖY',
+    clue: '"Tüm yumurtaları aynı sepete koyma!" kuralıdır. Paranın tamamını tek bir yere değil, farklı yerlere dağıtarak yatırım yaptığın sepetin adıdır. (İpucu: Sadece ilk kelime)',
   },
   {
-    id: 'vergi',
+    id: 'hisse_senedi',
     number: 9,
-    direction: 'across',
-    row: 14,
-    col: 2,
-    answer: 'VERGİ',
-    label: 'VERGİ',
-    clue: 'Devletin park, yol, okul ve hastane gibi hepimizin işine yarayan hizmetleri yapabilmesi için vatandaşların kazançlarından devlete verdikleri zorunlu destek payıdır.',
+    direction: 'down',
+    row: 13,
+    col: 12,
+    answer: 'HİSSESENEDİ',
+    label: 'HİSSE SENEDİ',
+    clue: 'Çok büyük bir şirketin küçücük bir parçasına sahip olmanı ve o şirkete ortak olmanı sağlayan dijital belgedir.',
   },
   {
-    id: 'net_maas',
+    id: 'faiz_getirisi',
     number: 10,
     direction: 'across',
-    row: 16,
+    row: 14,
     col: 1,
-    answer: 'NETMAAŞ',
-    label: 'NET MAAŞ',
-    clue: 'Çalışan birinin kazandığı paradan devletin kestiği vergiler ve sigorta çıktıktan sonra, kişinin cebine giren ve gerçekten harcayabileceği temiz paradır.',
+    answer: 'FAİZGETİRİSİ',
+    label: 'FAİZ GETİRİSİ',
+    clue: 'Paranı harcamayıp bankada beklettiğin için bankanın sana teşekkür olarak verdiği fazladan paradır. Paranın senin için çalışıp çoğalmasıdır.',
   },
 ];
 
 const TOTAL_WORDS = WORDS.length;
 const PTS = 10;
 const MAX_SCORE = TOTAL_WORDS * PTS;
-const CHIP_TYPE = 'GLOSSARY_ANSWER';
+const CHIP_TYPE = 'INCOME_GLOSSARY_ANSWER';
 
 function cellKey(row: number, col: number): string {
   return `${row}-${col}`;
@@ -186,7 +186,7 @@ function AnswerChip({ word }: { word: WordDef }) {
   return (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <div ref={drag as any} style={{ opacity: isDragging ? 0.3 : 1 }} className="cursor-grab active:cursor-grabbing select-none">
-      <div className="bg-white border-2 border-indigo-300 hover:border-indigo-500 hover:shadow-md text-indigo-700 font-black text-xs sm:text-sm px-3 py-2 rounded-xl shadow-sm transition-all whitespace-nowrap">
+      <div className="bg-white border-2 border-emerald-300 hover:border-emerald-500 hover:shadow-md text-emerald-700 font-black text-xs sm:text-sm px-3 py-2 rounded-xl shadow-sm transition-all whitespace-nowrap">
         {word.label}
       </div>
     </div>
@@ -225,7 +225,7 @@ function DefinitionSlot({
           : wrongFlash
           ? 'bg-red-50 border-red-400'
           : isOver && canDrop
-          ? 'bg-indigo-100 border-indigo-400'
+          ? 'bg-amber-100 border-amber-400'
           : 'bg-slate-50 border-slate-200'
       }`}
     >
@@ -250,7 +250,7 @@ function DefinitionSlot({
 
 // ─── Ana oyun bileşeni ──────────────────────────────────────────────────────────
 
-function EconomicGlossaryGame({ onComplete, onBack }: EconomicGlossaryProps) {
+function IncomeGlossaryPuzzleGame({ onComplete, onBack }: IncomeGlossaryPuzzleProps) {
   const [stage, setStage] = useState<'intro' | 'playing' | 'finished'>('intro');
   const [poolOrder, setPoolOrder] = useState<string[]>(() => shuffle(WORDS.map((w) => w.id)));
   const [solved, setSolved] = useState<Set<string>>(new Set());
@@ -316,10 +316,12 @@ function EconomicGlossaryGame({ onComplete, onBack }: EconomicGlossaryProps) {
     return (
       <div className="w-full max-w-3xl mx-auto">
         <div className="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
-          <div className="h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+          <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-400" />
           <div className="p-6 sm:p-8 text-center">
-            <div className="text-6xl mb-4">📖</div>
-            <h1 className="text-2xl md:text-3xl font-black text-white mb-2">Ekonomi Sözlüğü</h1>
+            <div className="text-6xl mb-4">💰</div>
+            <h1 className="text-2xl md:text-3xl font-black text-white mb-2">
+              Gelir Türleri ve Finansal Kavramlar — Ekonomi Sözlüğü
+            </h1>
             <p className="text-slate-400 text-sm leading-relaxed max-w-xl mx-auto mb-4">
               Cevap havuzundaki kavram kutucuklarını sürükleyip doğru tanımın üzerine bırak. Doğru
               eşleştirirsen kavram bulmacadaki ilgili kutucuklara otomatik olarak yazılır ve eşleşme
@@ -332,7 +334,7 @@ function EconomicGlossaryGame({ onComplete, onBack }: EconomicGlossaryProps) {
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               onClick={startGame}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-lg py-4 px-10 rounded-full shadow-xl border-b-4 border-purple-800 transition-all"
+              className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-lg py-4 px-10 rounded-full shadow-xl border-b-4 border-teal-800 transition-all"
             >
               Bulmacaya Başla 🚀
             </motion.button>
@@ -350,7 +352,7 @@ function EconomicGlossaryGame({ onComplete, onBack }: EconomicGlossaryProps) {
       wrongCount === 0
         ? { icon: '🏆', title: 'Bulmaca Ustası!', sub: 'Tek bir yanlış bile yapmadan tamamladın!', grad: 'from-yellow-500 to-amber-400' }
         : wrongCount <= 3
-        ? { icon: '🌟', title: 'Harika İş!', sub: 'Ekonomi kavramlarına çok hakimsin.', grad: 'from-indigo-600 to-violet-500' }
+        ? { icon: '🌟', title: 'Harika İş!', sub: 'Gelir türleri ve finansal kavramlara çok hakimsin.', grad: 'from-emerald-600 to-teal-500' }
         : wrongCount <= 6
         ? { icon: '👍', title: 'İyi İş!', sub: 'Biraz daha pratikle ustalaşırsın.', grad: 'from-blue-600 to-cyan-500' }
         : { icon: '📚', title: 'Tamamlandı!', sub: 'Sözlüğü tekrar gözden geçirmek iyi olabilir.', grad: 'from-slate-600 to-slate-500' };
@@ -419,13 +421,13 @@ function EconomicGlossaryGame({ onComplete, onBack }: EconomicGlossaryProps) {
   return (
     <div className="w-full max-w-7xl mx-auto">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl px-5 py-3 mb-4 flex items-center justify-between shadow-lg flex-wrap gap-2">
+      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl px-5 py-3 mb-4 flex items-center justify-between shadow-lg flex-wrap gap-2">
         <div className="flex items-center gap-3">
-          <span className="text-xl">📖</span>
-          <span className="text-white font-black text-base">Ekonomi Sözlüğü — Sürükle Bırak Bulmaca</span>
+          <span className="text-xl">💰</span>
+          <span className="text-white font-black text-base">Gelir Türleri — Sürükle Bırak Bulmaca</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="bg-emerald-400/20 border border-emerald-400/40 text-emerald-200 font-black text-xs px-3 py-1.5 rounded-full">
+          <span className="bg-emerald-400/20 border border-emerald-400/40 text-emerald-100 font-black text-xs px-3 py-1.5 rounded-full">
             Doğru Eşleştirme: {correctCount} / {TOTAL_WORDS}
           </span>
           <span className="bg-red-400/20 border border-red-400/40 text-red-200 font-black text-xs px-3 py-1.5 rounded-full">
@@ -483,7 +485,7 @@ function EconomicGlossaryGame({ onComplete, onBack }: EconomicGlossaryProps) {
         <div className="lg:col-span-3 flex flex-col gap-4">
           {/* Cevap havuzu */}
           <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5">
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5">
               <h3 className="text-white font-black text-sm">🗂️ Cevap Havuzu</h3>
             </div>
             <div className="p-3 flex flex-wrap gap-2 min-h-[52px]">
@@ -512,7 +514,7 @@ function EconomicGlossaryGame({ onComplete, onBack }: EconomicGlossaryProps) {
           {/* Tanımlar */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5">
+              <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5">
                 <h3 className="text-white font-black text-sm">➡️ Soldan Sağa</h3>
               </div>
               <div className="p-3 flex flex-col gap-2">
@@ -529,7 +531,7 @@ function EconomicGlossaryGame({ onComplete, onBack }: EconomicGlossaryProps) {
             </div>
 
             <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5">
+              <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5">
                 <h3 className="text-white font-black text-sm">⬇️ Yukarıdan Aşağıya</h3>
               </div>
               <div className="p-3 flex flex-col gap-2">
@@ -553,10 +555,10 @@ function EconomicGlossaryGame({ onComplete, onBack }: EconomicGlossaryProps) {
 
 // ─── DndProvider ile dışa aktarım ───────────────────────────────────────────────
 
-export default function EconomicGlossary(props: EconomicGlossaryProps) {
+export default function IncomeGlossaryPuzzle(props: IncomeGlossaryPuzzleProps) {
   return (
     <DndProvider backend={HTML5Backend}>
-      <EconomicGlossaryGame {...props} />
+      <IncomeGlossaryPuzzleGame {...props} />
     </DndProvider>
   );
 }

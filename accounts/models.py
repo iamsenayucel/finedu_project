@@ -88,8 +88,10 @@ class Content(models.Model):
         ('market_detective', '🐂 Piyasa Dedektifi & Davranışsal Finans Testi'),
         ('portfolio_master', '💼 Portföy Ustası - Portföy Matrisi & Bitirme Testi'),
         ('legal_investment_assessment', '📊 Yasal Yatırım Yöntemleri - Ölçme ve Değerlendirme'),
-        ('economic_glossary_match', '📖 Ekonomi Sözlüğü - Çapraz Bulmaca'),
+        ('economic_glossary_match', '📖 Ekonomi Sözlüğü - Sürükle-Bırak Bulmaca'),
         ('media_glossary_puzzle', '🧩 Finansal Medya Okuryazarlığı - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
+        ('income_glossary_puzzle', '💰 Gelir Türleri ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
+        ('risk_glossary_puzzle', '🧩 Risk Yönetimi ve Piyasa Kavramları - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
