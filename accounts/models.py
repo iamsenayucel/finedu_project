@@ -89,6 +89,7 @@ class Content(models.Model):
         ('portfolio_master', '💼 Portföy Ustası - Portföy Matrisi & Bitirme Testi'),
         ('legal_investment_assessment', '📊 Yasal Yatırım Yöntemleri - Ölçme ve Değerlendirme'),
         ('economic_glossary_match', '📖 Ekonomi Sözlüğü - Çapraz Bulmaca'),
+        ('media_glossary_puzzle', '🧩 Finansal Medya Okuryazarlığı - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')

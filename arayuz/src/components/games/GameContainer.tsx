@@ -23,6 +23,7 @@ import MarketDetective from './MarketDetective';
 import PortfolioMaster from './PortfolioMaster';
 import LegalInvestmentAssessment from './LegalInvestmentAssessment';
 import EconomicGlossary from './EconomicGlossary';
+import MediaGlossaryPuzzle from './MediaGlossaryPuzzle';
 
 interface GameContainerProps {
   gameCode: string;
@@ -106,6 +107,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'economic_glossary_match':
         return <EconomicGlossary onComplete={onComplete} onBack={onBack} />;
+
+      case 'media_glossary_puzzle':
+        return <MediaGlossaryPuzzle onComplete={onComplete} onBack={onBack} />;
 
       default:
         return (
