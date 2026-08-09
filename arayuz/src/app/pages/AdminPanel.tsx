@@ -36,7 +36,7 @@ const GAME_OPTIONS = [
   { value: "market_detective", label: "🐂 Piyasa Dedektifi & Davranışsal Finans Testi" },
   { value: "portfolio_master", label: "💼 Portföy Ustası - Portföy Matrisi & Bitirme Testi" },
   { value: "legal_investment_assessment", label: "📊 Yasal Yatırım Yöntemleri - Ölçme ve Değerlendirme" },
-  { value: "economic_glossary_match", label: "📖 Ekonomi Sözlüğü - Kavram Eşleştirme" }
+  { value: "economic_glossary_match", label: "📖 Ekonomi Sözlüğü - Çapraz Bulmaca" }
 ];
 
 export default function AdminPanel() {

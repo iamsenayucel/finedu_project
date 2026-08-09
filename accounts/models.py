@@ -88,7 +88,7 @@ class Content(models.Model):
         ('market_detective', '🐂 Piyasa Dedektifi & Davranışsal Finans Testi'),
         ('portfolio_master', '💼 Portföy Ustası - Portföy Matrisi & Bitirme Testi'),
         ('legal_investment_assessment', '📊 Yasal Yatırım Yöntemleri - Ölçme ve Değerlendirme'),
-        ('economic_glossary_match', '📖 Ekonomi Sözlüğü - Kavram Eşleştirme'),
+        ('economic_glossary_match', '📖 Ekonomi Sözlüğü - Çapraz Bulmaca'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
