@@ -31,7 +31,12 @@ const GAME_OPTIONS = [
   { value: "media_literacy_assessment", label: "📰 Finansal Medya Okuryazarlığı - Ölçme Değerlendirme" },
   { value: "credit_card_awareness", label: "💳 Bilinçli Kredi Kartı Kullanımı" },
   { value: "credit_cost_analysis", label: "🧮 Kredi Maliyeti Analizi" },
-  { value: "investment_or_consumption", label: "⚖️ Yatırım mı, Tüketim mi?" }
+  { value: "investment_or_consumption", label: "⚖️ Yatırım mı, Tüketim mi?" },
+  { value: "information_filter", label: "🛡️ Bilgi Filtresi - Finansal Medya Okuryazarlığı" },
+  { value: "market_detective", label: "🐂 Piyasa Dedektifi & Davranışsal Finans Testi" },
+  { value: "portfolio_master", label: "💼 Portföy Ustası - Portföy Matrisi & Bitirme Testi" },
+  { value: "legal_investment_assessment", label: "📊 Yasal Yatırım Yöntemleri - Ölçme ve Değerlendirme" },
+  { value: "economic_glossary_match", label: "📖 Ekonomi Sözlüğü - Kavram Eşleştirme" }
 ];
 
 export default function AdminPanel() {

@@ -18,6 +18,11 @@ import MediaLiteracyAssessment from './MediaLiteracyAssessment';
 import CreditCardAwareness from './CreditCardAwareness';
 import CreditCostAnalysis from './CreditCostAnalysis';
 import InvestmentOrConsumption from './InvestmentOrConsumption';
+import InformationFilter from './InformationFilter';
+import MarketDetective from './MarketDetective';
+import PortfolioMaster from './PortfolioMaster';
+import LegalInvestmentAssessment from './LegalInvestmentAssessment';
+import EconomicGlossary from './EconomicGlossary';
 
 interface GameContainerProps {
   gameCode: string;
@@ -86,6 +91,21 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'investment_or_consumption':
         return <InvestmentOrConsumption onComplete={onComplete} onBack={onBack} />;
+
+      case 'information_filter':
+        return <InformationFilter onComplete={onComplete} onBack={onBack} />;
+
+      case 'market_detective':
+        return <MarketDetective onComplete={onComplete} onBack={onBack} />;
+
+      case 'portfolio_master':
+        return <PortfolioMaster onComplete={onComplete} onBack={onBack} />;
+
+      case 'legal_investment_assessment':
+        return <LegalInvestmentAssessment onComplete={onComplete} onBack={onBack} />;
+
+      case 'economic_glossary_match':
+        return <EconomicGlossary onComplete={onComplete} onBack={onBack} />;
 
       default:
         return (

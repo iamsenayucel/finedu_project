@@ -84,6 +84,11 @@ class Content(models.Model):
         ('credit_card_awareness', '💳 Bilinçli Kredi Kartı Kullanımı'),
         ('credit_cost_analysis', '🧮 Kredi Maliyeti Analizi'),
         ('investment_or_consumption', '⚖️ Yatırım mı, Tüketim mi?'),
+        ('information_filter', '🛡️ Bilgi Filtresi - Finansal Medya Okuryazarlığı'),
+        ('market_detective', '🐂 Piyasa Dedektifi & Davranışsal Finans Testi'),
+        ('portfolio_master', '💼 Portföy Ustası - Portföy Matrisi & Bitirme Testi'),
+        ('legal_investment_assessment', '📊 Yasal Yatırım Yöntemleri - Ölçme ve Değerlendirme'),
+        ('economic_glossary_match', '📖 Ekonomi Sözlüğü - Kavram Eşleştirme'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
