@@ -24,6 +24,7 @@ class CustomUser(AbstractUser):
     student_code = models.CharField(max_length=55, unique=True, null=True, blank=True)
     streak_days = models.IntegerField(default=0)
     last_activity_date = models.DateField(null=True, blank=True)
+    program_completed_at = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.role == 'STUDENT' and not self.student_code:
@@ -92,6 +93,10 @@ class Content(models.Model):
         ('media_glossary_puzzle', '🧩 Finansal Medya Okuryazarlığı - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
         ('income_glossary_puzzle', '💰 Gelir Türleri ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
         ('risk_glossary_puzzle', '🧩 Risk Yönetimi ve Piyasa Kavramları - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
+        ('credit_financing_glossary_puzzle', '🧩 Akademik Kredi ve Finansman - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
+        ('fraud_hunt_glossary_puzzle', '🎣 Dolandırıcılık Avı - Akademik Finansal Güvenlik (Sürükle-Bırak Bulmaca)'),
+        ('legal_investment_glossary_puzzle', '⚖️ Yasal Yatırım ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
+        ('debt_credit_assessment', '🏦 Borçlanma ve Kredi - Ölçme Değerlendirme'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
@@ -120,6 +125,39 @@ class UserBadge(models.Model):
     def __str__(self):
         return f"{self.student.username} - {self.unit.badge_name}"
     
+# ÖN ANKET / SON ANKET MODELLERİ
+class SurveyResponse(models.Model):
+    SURVEY_TYPE_CHOICES = (
+        ('pre_survey', 'Ön Anket'),
+        ('post_survey', 'Son Anket'),
+    )
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='survey_responses')
+    survey_type = models.CharField(max_length=20, choices=SURVEY_TYPE_CHOICES)
+    question_id = models.CharField(max_length=10)
+    selected_option = models.CharField(max_length=5)
+    answered_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('student', 'survey_type', 'question_id')
+
+    def __str__(self):
+        return f"{self.student.username} - {self.survey_type} - {self.question_id}"
+
+
+class SurveyStatus(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='survey_statuses')
+    survey_type = models.CharField(max_length=20, choices=SurveyResponse.SURVEY_TYPE_CHOICES)
+    is_completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('student', 'survey_type')
+
+    def __str__(self):
+        durum = 'Tamamlandı' if self.is_completed else 'Devam Ediyor'
+        return f"{self.student.username} - {self.survey_type} - {durum}"
+
+
 # SINIF MODELİ
 class Classroom(models.Model):
     name = models.CharField(max_length=100)

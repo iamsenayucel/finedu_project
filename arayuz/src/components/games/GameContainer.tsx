@@ -26,6 +26,10 @@ import EconomicGlossary from './EconomicGlossary';
 import MediaGlossaryPuzzle from './MediaGlossaryPuzzle';
 import IncomeGlossaryPuzzle from './IncomeGlossaryPuzzle';
 import RiskGlossaryPuzzle from './RiskGlossaryPuzzle';
+import CreditFinancingGlossaryPuzzle from './CreditFinancingGlossaryPuzzle';
+import FraudHuntGlossaryPuzzle from './FraudHuntGlossaryPuzzle';
+import LegalInvestmentGlossaryPuzzle from './LegalInvestmentGlossaryPuzzle';
+import DebtCreditAssessmentGame from './DebtCreditAssessmentGame';
 
 interface GameContainerProps {
   gameCode: string;
@@ -118,6 +122,18 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'risk_glossary_puzzle':
         return <RiskGlossaryPuzzle onComplete={onComplete} onBack={onBack} />;
+
+      case 'credit_financing_glossary_puzzle':
+        return <CreditFinancingGlossaryPuzzle onComplete={onComplete} onBack={onBack} />;
+
+      case 'fraud_hunt_glossary_puzzle':
+        return <FraudHuntGlossaryPuzzle onComplete={onComplete} onBack={onBack} />;
+
+      case 'legal_investment_glossary_puzzle':
+        return <LegalInvestmentGlossaryPuzzle onComplete={onComplete} onBack={onBack} />;
+
+      case 'debt_credit_assessment':
+        return <DebtCreditAssessmentGame onComplete={onComplete} onBack={onBack} />;
 
       default:
         return (

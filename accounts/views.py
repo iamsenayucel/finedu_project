@@ -8,7 +8,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import CustomUser, Unit, Subtopic, Content, UserProgress, Classroom, UserBadge
+from .models import CustomUser, Unit, Subtopic, Content, UserProgress, Classroom, UserBadge, SurveyResponse, SurveyStatus
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -141,6 +141,7 @@ def current_user_dashboard_api(request):
     user_data['earned_badges'] = user.earned_badges
     user_data['streak_days'] = user.streak_days
     user_data['date_joined'] = user.date_joined.strftime('%d.%m.%Y')
+    user_data['program_completed_at'] = user.program_completed_at.isoformat() if user.program_completed_at else None
 
     if user.role == 'STUDENT':
         completed_count = UserProgress.objects.filter(student=user, is_completed=True).count()
@@ -741,3 +742,106 @@ def api_chatbot_view(request):
 @permission_classes([AllowAny])
 def api_health_view(request):
     return Response({'status': 'ok'})
+
+
+# --- ÖN ANKET / SON ANKET API'LERİ ---
+
+VALID_SURVEY_TYPES = {choice[0] for choice in SurveyResponse.SURVEY_TYPE_CHOICES}
+PRE_SURVEY_QUESTION_COUNT = 12
+POST_SURVEY_QUESTION_COUNT = 12
+SURVEY_QUESTION_COUNTS = {
+    'pre_survey': PRE_SURVEY_QUESTION_COUNT,
+    'post_survey': POST_SURVEY_QUESTION_COUNT,
+}
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_survey_status_view(request, survey_type):
+    if survey_type not in VALID_SURVEY_TYPES:
+        return Response({'error': 'Geçersiz anket tipi.'}, status=400)
+
+    status_obj = SurveyStatus.objects.filter(student=request.user, survey_type=survey_type).first()
+    answers = SurveyResponse.objects.filter(student=request.user, survey_type=survey_type).values('question_id', 'selected_option')
+    answers_map = {a['question_id']: a['selected_option'] for a in answers}
+
+    return Response({
+        'survey_type': survey_type,
+        'is_completed': status_obj.is_completed if status_obj else False,
+        'completed_at': status_obj.completed_at.isoformat() if status_obj and status_obj.completed_at else None,
+        'answers': answers_map,
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def api_survey_answer_view(request, survey_type):
+    if survey_type not in VALID_SURVEY_TYPES:
+        return Response({'error': 'Geçersiz anket tipi.'}, status=400)
+
+    status_obj = SurveyStatus.objects.filter(student=request.user, survey_type=survey_type).first()
+    if status_obj and status_obj.is_completed:
+        return Response({'error': 'Bu anket zaten tamamlandı, cevaplar değiştirilemez.'}, status=400)
+
+    question_id = request.data.get('question_id')
+    selected_option = request.data.get('selected_option')
+    if not question_id or not selected_option:
+        return Response({'error': 'question_id ve selected_option zorunludur.'}, status=400)
+
+    SurveyResponse.objects.update_or_create(
+        student=request.user,
+        survey_type=survey_type,
+        question_id=question_id,
+        defaults={'selected_option': selected_option},
+    )
+    return Response({'status': 'saved', 'question_id': question_id, 'selected_option': selected_option})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def api_survey_complete_view(request, survey_type):
+    if survey_type not in VALID_SURVEY_TYPES:
+        return Response({'error': 'Geçersiz anket tipi.'}, status=400)
+
+    status_obj, _ = SurveyStatus.objects.get_or_create(student=request.user, survey_type=survey_type)
+    if status_obj.is_completed:
+        return Response({'status': 'already_completed'})
+
+    answered_count = SurveyResponse.objects.filter(student=request.user, survey_type=survey_type).count()
+    required_count = SURVEY_QUESTION_COUNTS.get(survey_type)
+    if required_count is not None and answered_count < required_count:
+        return Response({'error': 'Tüm sorular cevaplanmadan anket tamamlanamaz.'}, status=400)
+
+    status_obj.is_completed = True
+    status_obj.completed_at = timezone.now()
+    status_obj.save()
+
+    # Son Anket (post_survey) tamamlandığında, öğrencinin FinEdu programını
+    # bitirdiğini sistemde kalıcı olarak kaydet (gelecekteki ön/son anket
+    # karşılaştırma ve gelişim analizleri için).
+    if survey_type == 'post_survey' and not request.user.program_completed_at:
+        request.user.program_completed_at = timezone.now()
+        request.user.save(update_fields=['program_completed_at'])
+
+    return Response({'status': 'completed'})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def api_survey_reset_view(request, survey_type):
+    # Yalnızca sistem yöneticileri, test/gerekli durumlarda bir öğrencinin anket
+    # sonuçlarını sıfırlayabilir (öğrenci kendi sonucunu asla değiştiremez).
+    if request.user.role != 'ADMIN':
+        return Response({'error': 'Yetkiniz yok'}, status=403)
+    if survey_type not in VALID_SURVEY_TYPES:
+        return Response({'error': 'Geçersiz anket tipi.'}, status=400)
+
+    student = get_object_or_404(CustomUser, id=request.data.get('student_id'))
+    SurveyResponse.objects.filter(student=student, survey_type=survey_type).delete()
+    SurveyStatus.objects.filter(student=student, survey_type=survey_type).delete()
+
+    if survey_type == 'post_survey' and student.program_completed_at:
+        student.program_completed_at = None
+        student.save(update_fields=['program_completed_at'])
+
+    return Response({'status': 'reset'})

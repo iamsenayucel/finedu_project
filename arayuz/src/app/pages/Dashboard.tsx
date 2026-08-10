@@ -63,6 +63,32 @@ export default function Dashboard() {
         meData = await meRes.json();
         setCached("me", meData);
       }
+      if (meData.user.role === "STUDENT") {
+        const surveyRes = await fetch("https://finedu-project.onrender.com/api/survey/pre_survey/status/", { headers });
+        if (surveyRes.ok) {
+          const surveyData = await surveyRes.json();
+          if (!surveyData.is_completed) {
+            navigate("/pre-survey");
+            return;
+          }
+        }
+
+        // Öğrenci tüm zorunlu eğitim içeriklerini bitirdiyse ve Son Anket'i
+        // henüz doldurmadıysa, panele girmeden önce Son Anket'e yönlendir.
+        const completedCount = meData.user.completed_count ?? 0;
+        const totalContentCount = meData.user.total_content_count ?? 0;
+        if (totalContentCount > 0 && completedCount >= totalContentCount) {
+          const postSurveyRes = await fetch("https://finedu-project.onrender.com/api/survey/post_survey/status/", { headers });
+          if (postSurveyRes.ok) {
+            const postSurveyData = await postSurveyRes.json();
+            if (!postSurveyData.is_completed) {
+              navigate("/post-survey");
+              return;
+            }
+          }
+        }
+      }
+
       setUser(meData.user);
       setUnits(meData.units);
 

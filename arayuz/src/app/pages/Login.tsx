@@ -42,6 +42,37 @@ export default function Login() {
     }
   };
 
+  const redirectAfterLogin = async (token: string) => {
+    try {
+      const headers = { "Authorization": `Token ${token}` };
+      const meRes = await fetch(`${API_BASE}/api/me/`, { headers });
+      const meData = await meRes.json();
+
+      if (meRes.ok && meData.user?.role === "STUDENT") {
+        const surveyRes = await fetch(`${API_BASE}/api/survey/pre_survey/status/`, { headers });
+        const surveyData = await surveyRes.json();
+        if (surveyRes.ok && !surveyData.is_completed) {
+          navigate("/pre-survey");
+          return;
+        }
+
+        const completedCount = meData.user.completed_count ?? 0;
+        const totalContentCount = meData.user.total_content_count ?? 0;
+        if (totalContentCount > 0 && completedCount >= totalContentCount) {
+          const postSurveyRes = await fetch(`${API_BASE}/api/survey/post_survey/status/`, { headers });
+          const postSurveyData = await postSurveyRes.json();
+          if (postSurveyRes.ok && !postSurveyData.is_completed) {
+            navigate("/post-survey");
+            return;
+          }
+        }
+      }
+    } catch {
+      // Sunucudan rol/anket bilgisi alınamazsa panele yönlendirmeye devam et
+    }
+    navigate("/dashboard");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -85,7 +116,7 @@ export default function Login() {
       if (response.ok) {
         invalidateCache();
         localStorage.setItem("token", data.token);
-        navigate("/dashboard");
+        await redirectAfterLogin(data.token);
       } else {
         const errorMsg = data.non_field_errors ? data.non_field_errors[0] :
                          data.error ? data.error : "Kullanıcı adı veya şifre hatalı!";

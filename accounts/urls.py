@@ -20,6 +20,10 @@ from .views import (
     api_admin_report_view,
     api_chatbot_view,
     api_health_view,
+    api_survey_status_view,
+    api_survey_answer_view,
+    api_survey_complete_view,
+    api_survey_reset_view,
 )
 
 # Router ve ViewSet'leri tamamen sildik, çünkü kendi özel API'lerimizi kullanıyoruz.
@@ -52,4 +56,10 @@ urlpatterns = [
     path('admin-report/', api_admin_report_view, name='api_admin_report'),
     path('chatbot/', api_chatbot_view, name='api_chatbot'),
     path('health/', api_health_view, name='api_health'),
+
+    # --- ÖN ANKET / SON ANKET ---
+    path('survey/<str:survey_type>/status/', api_survey_status_view, name='api_survey_status'),
+    path('survey/<str:survey_type>/answer/', api_survey_answer_view, name='api_survey_answer'),
+    path('survey/<str:survey_type>/complete/', api_survey_complete_view, name='api_survey_complete'),
+    path('survey/<str:survey_type>/reset/', api_survey_reset_view, name='api_survey_reset'),
 ]

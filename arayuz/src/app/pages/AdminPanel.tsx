@@ -39,7 +39,11 @@ const GAME_OPTIONS = [
   { value: "economic_glossary_match", label: "📖 Ekonomi Sözlüğü - Sürükle-Bırak Bulmaca" },
   { value: "media_glossary_puzzle", label: "🧩 Finansal Medya Okuryazarlığı - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
   { value: "income_glossary_puzzle", label: "💰 Gelir Türleri ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
-  { value: "risk_glossary_puzzle", label: "🧩 Risk Yönetimi ve Piyasa Kavramları - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" }
+  { value: "risk_glossary_puzzle", label: "🧩 Risk Yönetimi ve Piyasa Kavramları - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
+  { value: "credit_financing_glossary_puzzle", label: "🧩 Akademik Kredi ve Finansman - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
+  { value: "fraud_hunt_glossary_puzzle", label: "🎣 Dolandırıcılık Avı - Akademik Finansal Güvenlik (Sürükle-Bırak Bulmaca)" },
+  { value: "legal_investment_glossary_puzzle", label: "⚖️ Yasal Yatırım ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
+  { value: "debt_credit_assessment", label: "🏦 Borçlanma ve Kredi - Ölçme Değerlendirme" }
 ];
 
 export default function AdminPanel() {
