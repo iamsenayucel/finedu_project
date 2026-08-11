@@ -482,7 +482,7 @@ function EconomicGlossaryGame({ onComplete, onBack }: EconomicGlossaryProps) {
         {/* SAĞ: Cevap havuzu + Tanımlar */}
         <div className="lg:col-span-3 flex flex-col gap-4">
           {/* Cevap havuzu */}
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+          <div className="sticky top-4 z-10 bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2.5">
               <h3 className="text-white font-black text-sm">🗂️ Cevap Havuzu</h3>
             </div>
