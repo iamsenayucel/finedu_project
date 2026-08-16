@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Unit, Subtopic, Content, UserProgress
+from .models import CustomUser, Unit, Subtopic, Content, UserProgress, SupportOrganization, StudentSupportPreference
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,3 +31,17 @@ class UserProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProgress
         fields = ['id', 'student', 'content', 'is_completed', 'score', 'date_completed']
+
+
+class SupportOrganizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportOrganization
+        fields = ['id', 'name', 'description', 'impact_text', 'logo_url', 'display_order']
+
+
+class StudentSupportPreferenceSerializer(serializers.ModelSerializer):
+    organization = SupportOrganizationSerializer(read_only=True)
+
+    class Meta:
+        model = StudentSupportPreference
+        fields = ['id', 'organization', 'selected_at']

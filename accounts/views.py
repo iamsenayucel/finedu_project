@@ -8,14 +8,18 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import CustomUser, Unit, Subtopic, Content, UserProgress, Classroom, UserBadge, SurveyResponse, SurveyStatus
+from .models import (
+    CustomUser, Unit, Subtopic, Content, UserProgress, Classroom, UserBadge,
+    SurveyResponse, SurveyStatus, SupportOrganization, StudentSupportPreference,
+)
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .serializers import UserSerializer, UnitSerializer
+from .serializers import UserSerializer, UnitSerializer, SupportOrganizationSerializer, StudentSupportPreferenceSerializer
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import AllowAny
-from django.db.models import Count, Sum, Avg
+from django.db.models import Count, Sum, Avg, Q
+from django.db import transaction, IntegrityError
 from django.utils import timezone
 from datetime import timedelta
 
@@ -845,3 +849,152 @@ def api_survey_reset_view(request, survey_type):
         student.save(update_fields=['program_completed_at'])
 
     return Response({'status': 'reset'})
+
+
+# --- DEĞERLER KÖPRÜSÜ / SOSYAL SORUMLULUK TERCİHİ API'LERİ ---
+# ÖNEMLİ: Bu modül gerçek bağış veya ödeme içermez. Öğrenci yalnızca
+# "hangi kurumu desteklemek isterdim" sorusuna cevap veren bir tercih kaydeder.
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_support_organizations_view(request):
+    organizations = SupportOrganization.objects.filter(is_active=True)
+    serializer = SupportOrganizationSerializer(organizations, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET', 'PUT'])
+@permission_classes([IsAuthenticated])
+def api_student_support_preference_view(request):
+    if request.user.role != 'STUDENT':
+        return Response({'error': 'Yetkiniz yok'}, status=403)
+
+    if request.method == 'GET':
+        current = StudentSupportPreference.objects.filter(student=request.user, is_active=True).select_related('organization').first()
+        if not current:
+            return Response({'preference': None})
+        return Response({'preference': StudentSupportPreferenceSerializer(current).data})
+
+    # PUT: tercih oluştur / değiştir
+    organization_id = request.data.get('organization_id')
+    if not organization_id:
+        return Response({'error': 'organization_id zorunludur.'}, status=400)
+
+    try:
+        organization = SupportOrganization.objects.get(id=organization_id, is_active=True)
+    except SupportOrganization.DoesNotExist:
+        return Response({'error': 'Geçersiz veya pasif kurum.'}, status=400)
+
+    try:
+        with transaction.atomic():
+            current = StudentSupportPreference.objects.select_for_update().filter(
+                student=request.user, is_active=True
+            ).first()
+
+            if current and current.organization_id == organization.id:
+                return Response({'preference': StudentSupportPreferenceSerializer(current).data})
+
+            if current:
+                current.is_active = False
+                current.save(update_fields=['is_active'])
+
+            new_preference = StudentSupportPreference.objects.create(
+                student=request.user, organization=organization, is_active=True
+            )
+    except IntegrityError:
+        return Response({'error': 'Tercih az önce güncellendi, lütfen tekrar deneyin.'}, status=409)
+
+    return Response({'preference': StudentSupportPreferenceSerializer(new_preference).data})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_admin_support_preferences_view(request):
+    if request.user.role != 'ADMIN':
+        return Response({'error': 'Yetkiniz yok'}, status=403)
+
+    preferences = StudentSupportPreference.objects.filter(is_active=True).select_related('student', 'organization')
+
+    organization_id = request.query_params.get('organization')
+    if organization_id:
+        preferences = preferences.filter(organization_id=organization_id)
+
+    student_query = request.query_params.get('student')
+    if student_query:
+        preferences = preferences.filter(
+            Q(student__first_name__icontains=student_query) |
+            Q(student__last_name__icontains=student_query) |
+            Q(student__email__icontains=student_query) |
+            Q(student__student_code__icontains=student_query)
+        )
+
+    date_from = request.query_params.get('date_from')
+    if date_from:
+        preferences = preferences.filter(selected_at__date__gte=date_from)
+
+    date_to = request.query_params.get('date_to')
+    if date_to:
+        preferences = preferences.filter(selected_at__date__lte=date_to)
+
+    try:
+        page = max(1, int(request.query_params.get('page', 1)))
+    except (TypeError, ValueError):
+        page = 1
+    try:
+        page_size = min(100, max(1, int(request.query_params.get('page_size', 20))))
+    except (TypeError, ValueError):
+        page_size = 20
+
+    total_count = preferences.count()
+    start = (page - 1) * page_size
+    page_items = preferences[start:start + page_size]
+
+    results = [{
+        'id': p.id,
+        'student_id': p.student_id,
+        'student_name': f"{p.student.first_name} {p.student.last_name}".strip() or p.student.username,
+        'student_email': p.student.email,
+        'grade_level': p.student.grade_level,
+        'organization_id': p.organization_id,
+        'organization_name': p.organization.name,
+        'selected_at': p.selected_at.isoformat(),
+    } for p in page_items]
+
+    return Response({
+        'results': results,
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'total_pages': (total_count + page_size - 1) // page_size if total_count else 0,
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_admin_support_stats_view(request):
+    if request.user.role != 'ADMIN':
+        return Response({'error': 'Yetkiniz yok'}, status=403)
+
+    active_preferences = StudentSupportPreference.objects.filter(is_active=True)
+    total_students = active_preferences.count()
+
+    org_counts = dict(
+        active_preferences.values_list('organization_id').annotate(count=Count('id')).values_list('organization_id', 'count')
+    )
+
+    organizations = SupportOrganization.objects.filter(is_active=True)
+    by_organization = []
+    for org in organizations:
+        count = org_counts.get(org.id, 0)
+        percentage = round((count / total_students) * 100, 1) if total_students else 0
+        by_organization.append({
+            'organization_id': org.id,
+            'organization_name': org.name,
+            'count': count,
+            'percentage': percentage,
+        })
+
+    return Response({
+        'total_students_with_preference': total_students,
+        'by_organization': by_organization,
+    })

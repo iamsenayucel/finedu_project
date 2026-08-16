@@ -89,6 +89,7 @@ class Content(models.Model):
         ('market_detective', '🐂 Piyasa Dedektifi & Davranışsal Finans Testi'),
         ('portfolio_master', '💼 Portföy Ustası - Portföy Matrisi & Bitirme Testi'),
         ('legal_investment_assessment', '📊 Yasal Yatırım Yöntemleri - Ölçme ve Değerlendirme'),
+        ('legal_investment_assessment_2', '🔐 Siber Güvenlik ve Dolandırıcılık Tespiti - Ölçme Değerlendirme'),
         ('economic_glossary_match', '📖 Ekonomi Sözlüğü - Sürükle-Bırak Bulmaca'),
         ('media_glossary_puzzle', '🧩 Finansal Medya Okuryazarlığı - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
         ('income_glossary_puzzle', '💰 Gelir Türleri ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
@@ -97,6 +98,8 @@ class Content(models.Model):
         ('fraud_hunt_glossary_puzzle', '🎣 Dolandırıcılık Avı - Akademik Finansal Güvenlik (Sürükle-Bırak Bulmaca)'),
         ('legal_investment_glossary_puzzle', '⚖️ Yasal Yatırım ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
         ('debt_credit_assessment', '🏦 Borçlanma ve Kredi - Ölçme Değerlendirme'),
+        ('debt_credit_assessment_2', '🧮 Borçlanma ve Kredi: Akıllı Tüketici Testi - Ölçme Değerlendirme'),
+        ('asset_liability_glossary_puzzle', '🧩 Aktif & Pasif Yönetimi - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
@@ -156,6 +159,46 @@ class SurveyStatus(models.Model):
     def __str__(self):
         durum = 'Tamamlandı' if self.is_completed else 'Devam Ediyor'
         return f"{self.student.username} - {self.survey_type} - {durum}"
+
+
+# SOSYAL SORUMLULUK TERCİHİ (Değerler Köprüsü) — gerçek bağış/ödeme İÇERMEZ,
+# yalnızca öğrencinin "hangi kurumu desteklemek isterdim" tercihini kaydeder.
+class SupportOrganization(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    impact_text = models.TextField(verbose_name="Farkındalık/Etki Mesajı")
+    logo_url = models.URLField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    display_order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['display_order', 'id']
+
+    def __str__(self):
+        return self.name
+
+
+class StudentSupportPreference(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='support_preferences')
+    organization = models.ForeignKey(SupportOrganization, on_delete=models.PROTECT, related_name='student_preferences')
+    is_active = models.BooleanField(default=True)
+    selected_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-selected_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student'],
+                condition=models.Q(is_active=True),
+                name='unique_active_support_preference_per_student',
+            )
+        ]
+
+    def __str__(self):
+        durum = 'aktif' if self.is_active else 'geçmiş'
+        return f"{self.student.username} -> {self.organization.name} ({durum})"
 
 
 # SINIF MODELİ

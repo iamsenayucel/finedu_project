@@ -7,6 +7,7 @@ import AdminPanel from "./pages/AdminPanel";
 import Profile from "./pages/Profile";
 import PreSurvey from "./pages/PreSurvey";
 import PostSurvey from "./pages/PostSurvey";
+import ValuesBridge from "./pages/ValuesBridge";
 
 export const router = createBrowserRouter([
   { path: "/", Component: Login },
@@ -18,4 +19,5 @@ export const router = createBrowserRouter([
   { path: "/unit/:unitId", Component: UnitDetail },
   { path: "/admin", Component: AdminPanel },
   { path: "/profile", Component: Profile },
+  { path: "/values-bridge", Component: ValuesBridge },
 ]);

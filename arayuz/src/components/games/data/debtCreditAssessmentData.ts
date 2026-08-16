@@ -1,172 +1,195 @@
-// "Borçlanma ve Kredi" oyunu için merkezi veri.
-// Bölüm 1: Matematiksel Karar Alma — 3 finansal senaryo, çoktan seçmeli (A/B/C), sırayla oynanır ve
-//           cevaplandıktan sonra değiştirilemez (soru başı 20 puan, toplam 60 puan).
-// Bölüm 2: Danışman Masası — 3 vaka, iki danışman yorumundan (A/B) finansal açıdan doğru olanı
-//           seçme (vaka başı 20 puan, toplam 60 puan).
-// Toplam 120 puan, tek kesintisiz süre 15 dakika.
+// "Borçlanma ve Kredi" ölçme değerlendirmesi için merkezi veri.
+// Bölüm 1: Finansal Dedektif — 5 senaryoda kasıtlı olarak yapılmış finansal hatayı bulma, çoktan
+//           seçmeli (A/B/C), sırayla oynanır ve cevaplandıktan sonra değiştirilemez (soru başı 12 puan, toplam 60 puan).
+// Bölüm 2: Strateji Eşleştirmesi — 8 finansal durum kartını sürükle-bırak ile "Planlı Borçlanmanın
+//           Artıları" veya "Plansız Borçlanmanın Dezavantajları" kutusuna ayırma (kart başı 5 puan, toplam 40 puan).
+// Toplam 100 puan, tek kesintisiz süre 25 dakika.
 
-export const GAME_DURATION_MS = 15 * 60 * 1000;
-export const LOW_TIME_THRESHOLD_MS = 3 * 60 * 1000;
+export const GAME_DURATION_MS = 25 * 60 * 1000;
+export const LOW_TIME_THRESHOLD_MS = 5 * 60 * 1000;
 
-export const POINTS_PER_QUESTION1 = 20;
+export const POINTS_PER_QUESTION1 = 12;
 export const TOTAL_SECTION1_POINTS = 60;
-export const POINTS_PER_QUESTION2 = 20;
-export const TOTAL_SECTION2_POINTS = 60;
-export const TOTAL_POINTS = 120;
+export const POINTS_PER_CARD2 = 5;
+export const TOTAL_SECTION2_POINTS = 40;
+export const TOTAL_POINTS = 100;
 
-export interface MathOption {
+export interface DetectiveOption {
   id: 'A' | 'B' | 'C';
   label: string;
 }
 
-export interface MathQuestion {
+export interface DetectiveQuestion {
   id: number;
   title: string;
   scenario: string;
   task: string;
-  options: MathOption[];
+  options: DetectiveOption[];
   correctOptionId: 'A' | 'B' | 'C';
   explanation: string;
 }
 
-export const SECTION1_TITLE = 'Matematiksel Karar Alma';
+export const SECTION1_TITLE = 'Finansal Dedektif';
 export const SECTION1_INSTRUCTION =
-  'Vaka metnini oku, verilen finansal bilgiler üzerinden hesabı yap ve görevdeki soruya en doğru cevabı seç. Bir soruyu cevapladıktan sonra cevabını değiştiremezsin.';
+  'Her vakada bir finansal senaryo anlatılır. Metni dikkatle oku ve senaryonun içinde kasıtlı olarak yapılmış finansal hatayı üç seçenek arasından bul. Bir soruyu cevapladıktan sonra cevabını değiştiremezsin.';
 
-export const SECTION1_QUESTIONS: MathQuestion[] = [
+export const SECTION1_QUESTIONS: DetectiveQuestion[] = [
   {
     id: 1,
-    title: 'Soru 1 — Vade Etkisinin Gerçek Bedeli',
+    title: 'Vaka 1 — "Zengin Hissi"',
     scenario:
-      'Can, peşin fiyatı 20.000 TL olan bir oyun bilgisayarı almak istiyor. Mağaza iki farklı ödeme planı sunuyor:\n\nPlan A: 10 ay × aylık 2.400 TL\nPlan B: 24 ay × aylık 1.400 TL\n\nCan, "Aylık 1.400 TL ödemek daha kolay." diyerek Plan B\'yi seçiyor.',
-    task: 'Can, Plan B\'yi seçerek Plan A\'ya göre bankaya kaç TL daha fazla kredi maliyeti ödemiş olur?',
+      'Kaan, maaş hesabında 2.000 TL olmasına rağmen, kredi kartında 30.000 TL limiti olduğunu görünce kendini çok rahat hisseder. "Nasıl olsa 30 bin liram var" diyerek aylardır ertelediği 15.000 TL\'lik oyun konsolunu tek çekim satın alır.',
+    task: 'Buradaki Finansal Hata Nedir?',
     options: [
-      { id: 'A', label: '1.000 TL' },
-      { id: 'B', label: '9.600 TL' },
-      { id: 'C', label: '33.600 TL' },
+      { id: 'A', label: "Kaan'ın oyun konsolunu tek çekim alması." },
+      { id: 'B', label: 'Kaan\'ın kredi kartı limitini "kendi parası" veya "ek gelir" zannetmesi.' },
+      { id: 'C', label: "Kaan'ın maaş hesabında sadece 2.000 TL tutması." },
     ],
     correctOptionId: 'B',
     explanation:
-      'Plan A toplam ödeme: 10 × 2.400 = 24.000 TL. Plan B toplam ödeme: 24 × 1.400 = 33.600 TL. Aradaki fark: 33.600 - 24.000 = 9.600 TL.',
+      'Kredi kartı limiti, bankanın sana tanıdığı bir borçlanma imkânıdır; senin kazandığın ya da sahip olduğun bir gelir değildir. Limiti "ek gelir" gibi görmek, harcama gücünü olduğundan yüksek algılamana ve kontrolsüzce borca girmene neden olur.',
   },
   {
     id: 2,
-    title: 'Soru 2 — Fayda-Maliyet / Yatırım Getirisi',
+    title: 'Vaka 2 — "Gereksiz Faiz Yükü"',
     scenario:
-      'Ece, grafik tasarım işleri yapmak için peşin fiyatı 50.000 TL olan profesyonel bir çizim tableti alıyor. 24 ay kredi kullanıyor ve aylık 3.000 TL geri ödeme yapıyor. Ece bu tabletle yaptığı çizimlerden ayda ortalama 5.000 TL ek gelir elde ediyor.',
-    task:
-      '24 ayın sonunda Ece\'nin kredi borcu tamamen bittiğinde bu süreçten elde ettiği net kâr kaç TL olur? (Net Kâr = Toplam Gelir - Toplam Gider)',
+      'Selin, ay sonunda gelen 4.000 TL\'lik kredi kartı ekstresini inceler. Vadesiz hesabında 6.000 TL nakit parası bulunmaktadır. Ancak "Nakit param cebimde kalsın" düşüncesiyle bankanın belirlediği 800 TL\'lik asgari ödemeyi yapar.',
+    task: 'Buradaki Finansal Hata Nedir?',
     options: [
-      { id: 'A', label: '48.000 TL' },
-      { id: 'B', label: '72.000 TL' },
-      { id: 'C', label: '120.000 TL' },
+      { id: 'A', label: "Selin'in vadesiz hesabında çok para tutması." },
+      { id: 'B', label: "Selin'in 4.000 TL harcama yapmış olması." },
+      { id: 'C', label: 'Nakit gücü varken borcun tamamını kapatmayıp, kalan tutara gereksiz faiz işlemesine izin vermesi.' },
     ],
-    correctOptionId: 'A',
+    correctOptionId: 'C',
     explanation:
-      'Toplam gelir: 24 × 5.000 = 120.000 TL. Toplam kredi ödemesi: 24 × 3.000 = 72.000 TL. Net kâr: 120.000 - 72.000 = 48.000 TL.',
+      'Elinde borcu tamamen kapatacak nakit varken sadece asgari ödemeyi yapmak, kalan bakiyeye yüksek kredi kartı faizi işlemesine neden olur. Bu, gereksiz yere cepten para çıkmasına yol açan plansız bir tercihtir.',
   },
   {
     id: 3,
-    title: 'Soru 3 — Tersine Mühendislik / Peşin Fiyatı Bulma',
+    title: 'Vaka 3 — "Yanlış Kaynaktan Acil Nakit"',
     scenario:
-      'Mert, çok beğendiği bir elektrikli bisikleti "Hiç peşinatsız, ayda sadece 1.500 TL" kampanyasıyla 36 ay taksitle satın alıyor. Sözleşmeyi imzaladıktan sonra bu işlem için toplam 14.000 TL finansman gideri ödeyeceğini fark ediyor.',
-    task: 'Elektrikli bisikletin kredisiz peşin fiyatı gerçekte kaç TL\'dir?',
+      'Ozan, arkadaşlarıyla çıkacağı hafta sonu tatili için acil nakde sıkışır. Vadesiz hesabında parası yoktur ve tatil masrafı 3.000 TL tutacaktır. Çözüm olarak kredi kartını ATM\'ye takar ve 3.000 TL Nakit Avans çeker.',
+    task: 'Buradaki Finansal Hata Nedir?',
     options: [
-      { id: 'A', label: '40.000 TL' },
-      { id: 'B', label: '54.000 TL' },
-      { id: 'C', label: '68.000 TL' },
+      { id: 'A', label: "Ozan'ın arkadaşlarıyla tatile çıkması." },
+      { id: 'B', label: "Tatil gibi acil olmayan ve lüks sayılacak bir tüketim için, faizi en yüksek borçlanma aracı olan Nakit Avans'ı kullanması." },
+      { id: 'C', label: 'ATM yerine banka şubesinden parayı çekmemesi.' },
+    ],
+    correctOptionId: 'B',
+    explanation:
+      'Nakit avans, kredi kartı borçlanma araçları içinde en yüksek faizli ve en maliyetli seçenektir. Ertelenebilir, lüks sayılacak bir harcama için bu kaynağın kullanılması ciddi bir finansal hatadır.',
+  },
+  {
+    id: 4,
+    title: 'Vaka 4 — "Bütçe Körlüğü"',
+    scenario:
+      'Merve, serbest çalışarak aylık ortalama 5.000 TL kazanmaktadır. Mağazada gördüğü 12.000 TL\'lik bir çantayı çok beğenir. Satıcı "Hiç peşinat yok, ayda sadece 2.000 TL taksitle" deyince Merve hemen kabul eder. Ancak mevcut zorunlu ev ve ulaşım giderleri zaten aylık 4.000 TL\'dir.',
+    task: 'Buradaki Finansal Hata Nedir?',
+    options: [
+      { id: 'A', label: 'Aylık sabit giderlerini (4.000 TL) hesaba katmadan, gelirinin (5.000 TL) kalan kısmını aşacak bir taksit (2.000 TL) yükünün altına girmesi.' },
+      { id: 'B', label: 'Çantayı peşin almak yerine taksitlendirmesi.' },
+      { id: 'C', label: 'Satıcının sunduğu kampanyaya güvenmesi.' },
     ],
     correctOptionId: 'A',
-    explanation: 'Toplam ödeme: 36 × 1.500 = 54.000 TL. Peşin fiyat: 54.000 - 14.000 = 40.000 TL.',
+    explanation:
+      'Merve\'nin kullanılabilir geliri 5.000 - 4.000 = 1.000 TL\'dir; 2.000 TL\'lik taksit bu tutarı aşmaktadır. Yeni bir taksit yüküne girmeden önce sabit giderler düşüldükten sonra kalan gelire bakılmalıdır.',
+  },
+  {
+    id: 5,
+    title: 'Vaka 5 — "Zamanlama Hatası"',
+    scenario:
+      'Aykut, ödemeleri konusunda çok titizdir ve borçlarının her zaman tamamını öder. Ancak ödeme tarihlerini aklında tutmak yerine "aylık maaşı yattığında" toplu ödeme yapar. Bu ay kredi kartının son ödeme tarihi ayın 5\'i iken, Aykut maaş günü olan ayın 10\'unda borcun tamamını kapatır.',
+    task: 'Buradaki Finansal Hata Nedir?',
+    options: [
+      { id: 'A', label: 'Borcun sadece asgari tutarını değil, tamamını ödemesi.' },
+      { id: 'B', label: 'Maaşını alır almaz ödeme yapması.' },
+      { id: 'C', label: 'Son ödeme tarihini kaçırdığı için borcun tamamını ödese bile kredi siciline "gecikmeli ödeme" kaydı işletmesi.' },
+    ],
+    correctOptionId: 'C',
+    explanation:
+      'Borcun tamamını ödemek tek başına yeterli değildir; ödemenin son ödeme tarihinden önce yapılması gerekir. Aksi halde borç kapansa bile kredi sicilinde gecikme kaydı oluşur ve bu durum gelecekteki kredi başvurularını olumsuz etkiler.',
   },
 ];
 
-export interface AdvisorOption {
-  id: 'A' | 'B';
+export type BasketId = 'planned' | 'unplanned';
+
+export interface BasketOption {
+  id: BasketId;
   label: string;
+  icon: string;
 }
 
-export interface AdvisorCase {
+export const BASKETS: BasketOption[] = [
+  { id: 'planned', label: 'Planlı Borçlanmanın Artıları', icon: '🟢' },
+  { id: 'unplanned', label: 'Plansız Borçlanmanın Dezavantajları', icon: '🔴' },
+];
+
+export interface StrategyCard {
   id: number;
-  title: string;
-  personLabel: string;
-  quote: string;
-  options: AdvisorOption[];
-  correctOptionId: 'A' | 'B';
-  concept: string;
+  text: string;
+  correctBasket: BasketId;
+  explanation: string;
 }
 
-export const SECTION2_TITLE = 'Danışman Masası';
+export const SECTION2_TITLE = 'Strateji Eşleştirmesi';
 export const SECTION2_INSTRUCTION =
-  'Sen bir finansal danışmansın. Önce sana iletilen görüş veya öneriyi oku, ardından sunulan iki danışman yorumundan borçlanma prensiplerine göre finansal açıdan doğru olanı seç.';
+  'Ekranda karışık sırada 8 farklı finansal durum kartı göreceksin. Her kartı sürükleyerek "Planlı Borçlanmanın Artıları" veya "Plansız Borçlanmanın Dezavantajları" kutusuna bırak. Kartı bıraktıktan sonra istersen başka bir kutuya taşıyarak fikrini değiştirebilirsin.';
 
-export const SECTION2_CASES: AdvisorCase[] = [
+export const SOURCE_CARDS: StrategyCard[] = [
   {
     id: 1,
-    title: 'Vaka 1 — Kurnaz Satıcının İkna Çabası',
-    personLabel: 'Satıcının cümlesi:',
-    quote:
-      'Öğrenci kardeşim, fiyatı hiç dert etme. Kredi kartına 12 ay yerine 36 ay taksit yapalım, bak aylık ödemen 3.000 TL\'den 1.200 TL\'ye düşüyor. Cebinden hissetmeden çıkacak, sudan ucuz!',
-    options: [
-      {
-        id: 'A',
-        label: 'Haklısın, enflasyon olduğu için ileride 1.200 TL\'nin değeri düşecek, bu teklif çok mantıklı.',
-      },
-      {
-        id: 'B',
-        label:
-          'Aylık ödemenin düşük görünmesi yanıltıcı olabilir. Vade 3 katına çıktığı için toplam finansman gideri önemli ölçüde artabilir. Sadece aylık taksite değil, toplam borca odaklanmalıyım.',
-      },
-    ],
-    correctOptionId: 'B',
-    concept: 'Taksit Yanılgısı ve Toplam Bakış',
+    text: 'Bütçe hesabı yapılmadığı için gelecekteki kazancımıza (henüz kazanmadığımız paraya) kontrolsüzce ipotek koyar.',
+    correctBasket: 'unplanned',
+    explanation: 'Bütçe planı olmadan girilen borç, henüz elde edilmemiş geleceğe dair geliri riske atar; bu plansız borçlanmanın temel dezavantajlarından biridir.',
   },
   {
     id: 2,
-    title: 'Vaka 2 — Heyecanlı Arkadaşın Tavsiyesi',
-    personLabel: 'Arkadaşın cümlesi:',
-    quote:
-      'Kanka, yurt dışı dil kampına gitmek için eğitim kredisi çekeceksin anlıyorum ama 50.000 TL için bankaya toplam 85.000 TL geri ödemek tam bir delilik. O parayla 3 tane son model telefon alırdık. Gitme boş ver!',
-    options: [
-      {
-        id: 'A',
-        label: 'Doğru söylüyorsun, bir hizmet için 35.000 TL kredi maliyeti ödenmez, parayı telefona yatırmak daha kârlı.',
-      },
-      {
-        id: 'B',
-        label:
-          'Bu bir tüketim değil, yatırım harcamasıdır. Dil kampı sayesinde elde edeceğim dil sertifikası ve yurt dışı vizyonu gelecekteki kariyerimde bana bu maliyetten daha yüksek gelir ve fırsatlar sağlayabilir.',
-      },
-    ],
-    correctOptionId: 'B',
-    concept: 'Fayda-Maliyet değerlendirmesi',
+    text: 'Gelire uygun taksitlendirildiği için zamanında geri ödenir ve bankalar nezdindeki "Kredi Notumuzu" (finansal sicili) yükseltir.',
+    correctBasket: 'planned',
+    explanation: 'Gelire uygun planlanan bir taksit zamanında ödenebildiği için finansal sicili güçlendirir; bu planlı borçlanmanın bir artısıdır.',
   },
   {
     id: 3,
-    title: 'Vaka 3 — Sosyal Medya Fenomeninin Paylaşımı',
-    personLabel: 'Fenomenin cümlesi:',
-    quote:
-      'Arkadaşlar bu ayakkabılar sınırlı üretim, stoklar bitiyor! Limitiniz yoksa bile hemen uygulamadan taksitli nakit avans çekin, bu fırsat kaçmaz! Nasıl olsa bir şekilde ödersiniz!',
-    options: [
-      {
-        id: 'A',
-        label: 'Sınırlı üretim olduğu için ileride değerlenebilir, nakit avans çekerek bir nevi yatırım yapmış olurum.',
-      },
-      {
-        id: 'B',
-        label:
-          'Bütçede karşılığı olmayan lüks bir tüketim için yüksek maliyetli nakit avans kullanmak duygusal ve plansız bir borçlanmaya neden olur. Fayda sağlamayan bir ürün için bu maliyete katlanmak doğru değildir.',
-      },
-    ],
-    correctOptionId: 'B',
-    concept: 'Nakit Avans Maliyeti ve Plansız Borçlanma',
+    text: 'Acil durum fonu ayrılmadan borca girildiği için, öngörülemeyen bir kriz anında ödenemez hale gelir ve büyük bir stres yaratır.',
+    correctBasket: 'unplanned',
+    explanation: 'Acil durum fonu düşünülmeden alınan borç, beklenmedik bir krizde ödenemez hale gelebilir; bu plansız borçlanmanın riskidir.',
+  },
+  {
+    id: 4,
+    text: 'İhtiyaç duyulan bir ürünün fiyatını, enflasyonist dönemlerde bugünden sabitleyip akıllıca bir alım yapmamızı sağlar.',
+    correctBasket: 'planned',
+    explanation: 'Fiyatı bugünden sabitlemek, enflasyona karşı akılcı bir strateji olduğu için planlı borçlanmanın bir avantajıdır.',
+  },
+  {
+    id: 5,
+    text: 'Anlık heveslerle yapıldığında; yüksek nakit avans, gecikme faizi ve vade farkı gibi gereksiz maliyetlerin altında ezilmeye neden olur.',
+    correctBasket: 'unplanned',
+    explanation: 'Anlık hevesle girilen borçlanma, yüksek maliyetli araçların (nakit avans, gecikme faizi) kullanılmasına yol açar; bu plansız borçlanmanın dezavantajıdır.',
+  },
+  {
+    id: 6,
+    text: 'Büyük harcamaları gelire göre aylara bölerek günlük nakit akışımızı (paramızın yönetimini) dengede tutmamıza yardımcı olur.',
+    correctBasket: 'planned',
+    explanation: 'Büyük bir harcamayı gelire göre aylara bölmek nakit akışını dengede tutar; bu planlı borçlanmanın bir artısıdır.',
+  },
+  {
+    id: 7,
+    text: 'Nasıl ödeneceği baştan düşünülmediği için psikolojik olarak bitmek bilmeyen bir "borçlu hissetme" baskısı ve yorgunluğu yaratır.',
+    correctBasket: 'unplanned',
+    explanation: 'Geri ödeme planı baştan düşünülmeden girilen borç, sürekli bir "borçlu hissetme" baskısı yaratır; bu plansız borçlanmanın dezavantajıdır.',
+  },
+  {
+    id: 8,
+    text: 'Bütçe planı yapılarak bilgisayar, eğitim gibi peşin alınamayacak ancak ileride kazanç getirecek "üretim araçlarına" güvenle ulaşmamızı sağlar.',
+    correctBasket: 'planned',
+    explanation: 'Bütçe planıyla desteklenen borçlanma, ileride kazanç getirecek üretim araçlarına güvenle ulaşmayı sağlar; bu planlı borçlanmanın bir artısıdır.',
   },
 ];
 
 export function getPerformance(score: number): { label: string; icon: string; color: string; bg: string } {
-  if (score >= 120) return { label: 'Kredi ve Borçlanma Uzmanı', icon: '🏆', color: 'text-emerald-400', bg: 'from-emerald-900/60 to-slate-900' };
-  if (score >= 90) return { label: 'Çok İyi İş!', icon: '🎯', color: 'text-blue-400', bg: 'from-blue-900/60 to-slate-900' };
-  if (score >= 60) return { label: 'Kısmi Anlayış', icon: '👍', color: 'text-yellow-400', bg: 'from-yellow-900/60 to-slate-900' };
-  if (score >= 30) return { label: 'Gelişim Aşamasında', icon: '📘', color: 'text-orange-400', bg: 'from-orange-900/60 to-slate-900' };
+  if (score >= 100) return { label: 'Kredi ve Borçlanma Uzmanı', icon: '🏆', color: 'text-emerald-400', bg: 'from-emerald-900/60 to-slate-900' };
+  if (score >= 75) return { label: 'Çok İyi İş!', icon: '🎯', color: 'text-blue-400', bg: 'from-blue-900/60 to-slate-900' };
+  if (score >= 50) return { label: 'Kısmi Anlayış', icon: '👍', color: 'text-yellow-400', bg: 'from-yellow-900/60 to-slate-900' };
+  if (score >= 25) return { label: 'Gelişim Aşamasında', icon: '📘', color: 'text-orange-400', bg: 'from-orange-900/60 to-slate-900' };
   return { label: 'Gelişime İhtiyaç Var', icon: '📚', color: 'text-red-400', bg: 'from-red-900/60 to-slate-900' };
 }

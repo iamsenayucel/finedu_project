@@ -8,7 +8,7 @@ import { Input, Select } from "../components/Input";
 import {
   BookOpen, Award, Users, TrendingUp,
   Target, Play, Lock, Plus, UserPlus, X, GraduationCap, CheckCircle2, Gamepad2,
-  Flame, Trophy, BarChart2, AlertCircle, Settings
+  Flame, Trophy, BarChart2, AlertCircle, Settings, Heart
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -322,6 +322,24 @@ export default function Dashboard() {
               </Card>
             </motion.div>
           </div>
+
+          {/* Değerler Köprüsü CTA */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.5 }} className="mb-8">
+            <Card className="border-rose-200 bg-gradient-to-br from-rose-50 to-pink-50">
+              <CardBody className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="bg-rose-100 p-4 rounded-full flex-shrink-0">
+                  <Heart className="size-8 text-rose-600" />
+                </div>
+                <div className="flex-1 text-center sm:text-left">
+                  <h3 className="font-bold text-foreground mb-1">Değerler Köprüsü</h3>
+                  <p className="text-sm text-muted-foreground">Hangi kurumu desteklemek isterdin? Sosyal sorumluluk tercihini keşfet.</p>
+                </div>
+                <Button variant="outline" className="border-rose-300 text-rose-700 hover:bg-rose-100 flex-shrink-0" onClick={() => navigate("/values-bridge")}>
+                  <Heart className="size-4 mr-2" /> Değerler Köprüsüne Git
+                </Button>
+              </CardBody>
+            </Card>
+          </motion.div>
 
           {/* Dinamik Üniteler Listesi */}
           <div className="mb-8">

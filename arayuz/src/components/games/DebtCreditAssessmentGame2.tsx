@@ -1,8 +1,6 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CreditCard, Clock, CheckCircle2, XCircle, AlertTriangle, GripVertical } from 'lucide-react';
+import { Calculator, Clock, CheckCircle2, XCircle, AlertTriangle, MessageCircleWarning } from 'lucide-react';
 import {
   GAME_DURATION_MS,
   LOW_TIME_THRESHOLD_MS,
@@ -11,18 +9,16 @@ import {
   SECTION1_TITLE,
   SECTION1_INSTRUCTION,
   SECTION1_QUESTIONS,
-  POINTS_PER_CARD2,
+  POINTS_PER_QUESTION2,
   TOTAL_SECTION2_POINTS,
   SECTION2_TITLE,
   SECTION2_INSTRUCTION,
-  BASKETS,
-  SOURCE_CARDS,
+  SECTION2_CASES,
   TOTAL_POINTS,
   getPerformance,
-  type BasketId,
-} from './data/debtCreditAssessmentData';
+} from './data/debtCreditAssessmentData2';
 
-interface DebtCreditAssessmentGameProps {
+interface DebtCreditAssessmentGame2Props {
   onComplete?: (score: number) => void;
   onBack?: () => void;
 }
@@ -31,13 +27,6 @@ type Stage = 'intro' | 'exam' | 'finished';
 type Section = 1 | 2;
 type FinishReason = 'timeout' | 'user';
 
-const CARD_TYPE = 'STRATEGY_CARD';
-
-const BASKET_ACTIVE_STYLES: Record<BasketId, string> = {
-  planned: 'border-emerald-400 bg-emerald-900/20',
-  unplanned: 'border-red-400 bg-red-900/20',
-};
-
 interface Section1Result {
   questionId: number;
   selected: 'A' | 'B' | 'C' | null;
@@ -45,9 +34,9 @@ interface Section1Result {
   points: number;
 }
 
-interface CardResult {
-  cardId: number;
-  placed: BasketId | null;
+interface Section2Result {
+  caseId: number;
+  selected: 'A' | 'B' | null;
   correct: boolean;
   points: number;
 }
@@ -56,10 +45,8 @@ interface ExamResults {
   section1: Section1Result[];
   section1Correct: number;
   section1Score: number;
-  cardResults: CardResult[];
-  cardsCorrect: number;
-  cardsWrong: number;
-  cardsBlank: number;
+  section2: Section2Result[];
+  section2Correct: number;
   section2Score: number;
   totalCorrect: number;
   totalWrong: number;
@@ -92,106 +79,7 @@ function StatTile({ label, value, color }: { label: string; value: string | numb
   );
 }
 
-// ── Sürüklenebilir strateji kartı ────────────────────────────────────────────
-function StrategyCardBox({
-  card,
-  locked,
-  result,
-}: {
-  card: (typeof SOURCE_CARDS)[number];
-  locked: boolean;
-  result?: CardResult;
-}) {
-  const [{ isDragging }, drag] = useDrag(
-    () => ({
-      type: CARD_TYPE,
-      item: { id: card.id },
-      canDrag: !locked,
-      collect: (m) => ({ isDragging: m.isDragging() }),
-    }),
-    [locked, card.id]
-  );
-
-  let borderClass = 'border-slate-600 bg-slate-800';
-  if (result) {
-    borderClass = result.correct ? 'border-emerald-500 bg-emerald-900/30' : 'border-red-500 bg-red-900/30';
-  }
-
-  return (
-    <div
-      ref={drag as any}
-      style={{ opacity: isDragging ? 0.3 : 1 }}
-      className={`select-none ${locked ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`}
-    >
-      <div className={`rounded-xl border-2 px-4 py-3 transition-colors ${borderClass}`}>
-        <div className="flex items-start gap-2">
-          {!locked && <GripVertical className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" />}
-          {result &&
-            (result.correct ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-            ) : (
-              <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-            ))}
-          <p className="text-slate-100 text-xs sm:text-sm leading-relaxed">{card.text}</p>
-        </div>
-        {result && (
-          <p className={`mt-2 text-xs leading-relaxed pl-6 ${result.correct ? 'text-emerald-300' : 'text-red-300'}`}>
-            {card.explanation}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Kutu bırakma alanı ───────────────────────────────────────────────────────
-function BasketDropZone({
-  basket,
-  cardsInBasket,
-  locked,
-  onDropCard,
-  results,
-}: {
-  basket: (typeof BASKETS)[number];
-  cardsInBasket: (typeof SOURCE_CARDS)[number][];
-  locked: boolean;
-  onDropCard: (cardId: number, basketId: BasketId) => void;
-  results: CardResult[] | null;
-}) {
-  const [{ isOver, canDrop }, drop] = useDrop(
-    () => ({
-      accept: CARD_TYPE,
-      canDrop: () => !locked,
-      drop: (dragged: { id: number }) => onDropCard(dragged.id, basket.id),
-      collect: (m) => ({ isOver: m.isOver(), canDrop: m.canDrop() }),
-    }),
-    [locked, onDropCard, basket.id]
-  );
-
-  const activeHighlight = isOver && canDrop ? BASKET_ACTIVE_STYLES[basket.id] : 'border-slate-700 bg-slate-800/60';
-
-  return (
-    <div ref={drop as any} className={`rounded-2xl border-2 p-4 min-h-[200px] flex flex-col gap-3 transition-colors ${activeHighlight}`}>
-      <div className="flex items-center gap-2">
-        <span className="text-lg">{basket.icon}</span>
-        <span className="text-white font-black text-sm">{basket.label}</span>
-        <span className="ml-auto text-slate-400 text-xs font-bold">{cardsInBasket.length} kart</span>
-      </div>
-      {cardsInBasket.length === 0 && (
-        <div className="flex-1 flex items-center justify-center text-slate-500 text-xs italic py-6 border-2 border-dashed border-slate-700 rounded-xl">
-          Kartı buraya sürükle
-        </div>
-      )}
-      <div className="flex flex-col gap-2">
-        {cardsInBasket.map((card) => (
-          <StrategyCardBox key={card.id} card={card} locked={locked} result={results?.find((r) => r.cardId === card.id)} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCreditAssessmentGameProps) {
+export default function DebtCreditAssessmentGame2({ onComplete, onBack }: DebtCreditAssessmentGame2Props) {
   const [stage, setStage] = useState<Stage>('intro');
   const [section, setSection] = useState<Section>(1);
   const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -202,10 +90,10 @@ export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCre
     Object.fromEntries(SECTION1_QUESTIONS.map((q) => [q.id, null]))
   );
 
-  const [placements, setPlacements] = useState<Record<number, BasketId | null>>(() =>
-    Object.fromEntries(SOURCE_CARDS.map((c) => [c.id, null]))
+  const [q2Index, setQ2Index] = useState(0);
+  const [answers2, setAnswers2] = useState<Record<number, 'A' | 'B' | null>>(() =>
+    Object.fromEntries(SECTION2_CASES.map((c) => [c.id, null]))
   );
-  const [checked2, setChecked2] = useState(false);
 
   const [results, setResults] = useState<ExamResults | null>(null);
   const finalizedRef = useRef(false);
@@ -229,28 +117,24 @@ export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCre
     const section1Correct = section1.filter((r) => r.correct).length;
     const section1Score = section1Correct * POINTS_PER_QUESTION1;
 
-    const cardResults: CardResult[] = SOURCE_CARDS.map((c) => {
-      const placed = placements[c.id];
-      const correct = placed !== null && placed === c.correctBasket;
-      return { cardId: c.id, placed, correct, points: correct ? POINTS_PER_CARD2 : 0 };
+    const section2: Section2Result[] = SECTION2_CASES.map((c) => {
+      const selected = answers2[c.id];
+      const correct = selected !== null && selected === c.correctOptionId;
+      return { caseId: c.id, selected, correct, points: correct ? POINTS_PER_QUESTION2 : 0 };
     });
-    const cardsCorrect = cardResults.filter((r) => r.correct).length;
-    const cardsBlank = cardResults.filter((r) => r.placed === null).length;
-    const cardsWrong = cardResults.length - cardsCorrect - cardsBlank;
-    const section2Score = cardsCorrect * POINTS_PER_CARD2;
+    const section2Correct = section2.filter((r) => r.correct).length;
+    const section2Score = section2Correct * POINTS_PER_QUESTION2;
 
     const totalScore = Math.max(0, Math.min(TOTAL_POINTS, section1Score + section2Score));
-    const totalCorrect = section1Correct + cardsCorrect;
-    const totalWrong = SECTION1_QUESTIONS.length - section1Correct + cardsWrong;
+    const totalCorrect = section1Correct + section2Correct;
+    const totalWrong = SECTION1_QUESTIONS.length - section1Correct + (SECTION2_CASES.length - section2Correct);
 
     return {
       section1,
       section1Correct,
       section1Score,
-      cardResults,
-      cardsCorrect,
-      cardsWrong,
-      cardsBlank,
+      section2,
+      section2Correct,
       section2Score,
       totalCorrect,
       totalWrong,
@@ -282,9 +166,9 @@ export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCre
   const resetAnswers = () => {
     setSection(1);
     setQ1Index(0);
+    setQ2Index(0);
     setAnswers1(Object.fromEntries(SECTION1_QUESTIONS.map((q) => [q.id, null])));
-    setPlacements(Object.fromEntries(SOURCE_CARDS.map((c) => [c.id, null])));
-    setChecked2(false);
+    setAnswers2(Object.fromEntries(SECTION2_CASES.map((c) => [c.id, null])));
     setResults(null);
     finalizedRef.current = false;
   };
@@ -317,31 +201,18 @@ export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCre
     }
   };
 
-  const handleDropCard = useCallback(
-    (cardId: number, basketId: BasketId) => {
-      if (checked2) return;
-      setPlacements((prev) => ({ ...prev, [cardId]: basketId }));
-    },
-    [checked2]
-  );
+  const handleAnswer2 = (optionId: 'A' | 'B') => {
+    const c = SECTION2_CASES[q2Index];
+    if (answers2[c.id] !== null) return;
+    setAnswers2((prev) => ({ ...prev, [c.id]: optionId }));
+  };
 
-  const placedCount = useMemo(() => Object.values(placements).filter((v) => v !== null).length, [placements]);
-  const allPlaced = placedCount === SOURCE_CARDS.length;
-
-  const liveCardResults: CardResult[] = useMemo(
-    () =>
-      SOURCE_CARDS.map((c) => {
-        const placed = placements[c.id];
-        const correct = placed !== null && placed === c.correctBasket;
-        return { cardId: c.id, placed, correct, points: correct ? POINTS_PER_CARD2 : 0 };
-      }),
-    [placements]
-  );
-  const section2ScoreSoFar = liveCardResults.filter((r) => r.correct).length * POINTS_PER_CARD2;
-
-  const handleCheckSection2 = () => {
-    if (!allPlaced) return;
-    setChecked2(true);
+  const handleNext2 = () => {
+    if (q2Index < SECTION2_CASES.length - 1) {
+      setQ2Index((i) => i + 1);
+    } else {
+      finalizeExam('user');
+    }
   };
 
   // ── INTRO ────────────────────────────────────────────────────────────────
@@ -353,12 +224,12 @@ export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCre
           <div className="p-6 sm:p-8">
             <div className="text-center mb-6">
               <div className="inline-flex items-center gap-2 bg-gradient-to-br from-blue-600 to-purple-600 p-3 rounded-2xl mb-4 shadow-lg">
-                <CreditCard className="w-8 h-8 text-white" />
+                <Calculator className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-2xl md:text-3xl font-black text-white mb-2">Borçlanma ve Kredi</h1>
+              <h1 className="text-2xl md:text-3xl font-black text-white mb-2">Borçlanma ve Kredi: Akıllı Tüketici Testi</h1>
               <p className="text-slate-400 text-sm leading-relaxed max-w-xl mx-auto">
-                Gerçek hayattan finansal senaryolarda kasıtlı olarak yapılmış hatayı bul; ardından planlı ve plansız
-                borçlanma kavramlarını doğru kutulara sürükleyerek eşleştir.
+                Gerçek hayattan kredi/taksit senaryolarında doğru hesaplamayı yap; ardından seni yanlış bir borçlanma
+                kararına yönlendirmeye çalışan cümleler karşısında doğru danışman yorumunu seç.
               </p>
             </div>
 
@@ -369,11 +240,11 @@ export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCre
               <ul className="space-y-2 text-sm text-slate-300">
                 {[
                   `Oyun 2 bölümden oluşur: Bölüm 1 - ${SECTION1_TITLE} (${TOTAL_SECTION1_POINTS} puan), Bölüm 2 - ${SECTION2_TITLE} (${TOTAL_SECTION2_POINTS} puan).`,
-                  `Bölüm 1'de sırayla 5 finansal senaryo (vaka) gösterilir. Vaka metnini okuyup senaryonun içindeki kasıtlı finansal hatayı A, B, C seçeneklerinden birini işaretleyerek bulursun. Bir soruyu cevapladıktan sonra cevabını değiştiremezsin. Her doğru cevap ${POINTS_PER_QUESTION1} puandır.`,
-                  `Bölüm 1'in 5 sorusu tamamlanmadan Bölüm 2'ye geçilmez; sorular otomatik olarak sırayla ilerler.`,
-                  `Bölüm 2'de karışık sırada 8 finansal durum kartı gösterilir. Her kartı sürükleyerek "Planlı Borçlanmanın Artıları" veya "Plansız Borçlanmanın Dezavantajları" kutusuna bırakırsın. 8 kartın tamamını yerleştirdikten sonra "Cevapları Kontrol Et" ile sonuçlar kesinleşir. Doğru eşleştirme ${POINTS_PER_CARD2} puan, toplam ${TOTAL_SECTION2_POINTS} puandır.`,
+                  `Bölüm 1'de sırayla 3 finansal senaryo (vaka) gösterilir. Vaka metnini okuyup gerekli hesaplamayı yaparak doğru sonucu A, B, C seçeneklerinden birini işaretleyerek bulursun. Bir soruyu cevapladıktan sonra cevabını değiştiremezsin. Her doğru cevap ${POINTS_PER_QUESTION1} puandır.`,
+                  `Bölüm 1'in 3 sorusu tamamlanmadan Bölüm 2'ye geçilmez; sorular otomatik olarak sırayla ilerler.`,
+                  `Bölüm 2'de sırayla 3 vaka gösterilir. Her vakada bir satıcı, arkadaş ya da sosyal medya fenomeninin seni bir borçlanma kararına yönlendiren cümlesini okur, ardından bir finansal danışman olsan hangi yorumu savunacağını A veya B seçeneğinden birini işaretleyerek belirtirsin. Bir vakayı cevapladıktan sonra cevabını değiştiremezsin. Her doğru cevap ${POINTS_PER_QUESTION2} puandır.`,
                   `Toplam süre ${GAME_DURATION_MS / 60000} dakikadır ve oyun başladığında kesintisiz işlemeye başlar. Bölümler arasında geçiş süreyi durdurmaz.`,
-                  'Süre dolduğunda oyun o ana kadarki cevaplarınla otomatik olarak tamamlanır; cevaplanmamış sorular ve yerleştirilmemiş kartlar 0 puan alır.',
+                  'Süre dolduğunda oyun o ana kadarki cevaplarınla otomatik olarak tamamlanır; cevaplanmamış sorular 0 puan alır.',
                   `Toplam puan ${TOTAL_POINTS}'dir.`,
                 ].map((rule, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -490,20 +361,20 @@ export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCre
             {/* Bölüm 2 sonuçları */}
             <div className="space-y-2 mb-2">
               <h3 className="text-white font-bold text-sm uppercase tracking-wider mb-3">
-                Bölüm 2 · {SECTION2_TITLE} ({results.cardsCorrect}/{SOURCE_CARDS.length} doğru)
+                Bölüm 2 · {SECTION2_TITLE} ({results.section2Correct}/{SECTION2_CASES.length} doğru)
               </h3>
-              {SOURCE_CARDS.map((c) => {
-                const r = results.cardResults.find((x) => x.cardId === c.id)!;
-                const placedLabel = r.placed ? BASKETS.find((b) => b.id === r.placed)?.label : null;
-                const correctLabel = BASKETS.find((b) => b.id === c.correctBasket)?.label;
+              {SECTION2_CASES.map((c) => {
+                const r = results.section2.find((x) => x.caseId === c.id)!;
+                const selectedLabel = r.selected ? c.options.find((o) => o.id === r.selected)?.label : null;
+                const correctLabel = c.options.find((o) => o.id === c.correctOptionId)?.label;
                 return (
                   <div
                     key={c.id}
                     className={`p-3 rounded-xl border flex items-start gap-3 ${
-                      r.placed === null ? 'bg-slate-800/40 border-slate-700' : r.correct ? 'bg-emerald-900/30 border-emerald-700/40' : 'bg-red-900/30 border-red-700/40'
+                      r.selected === null ? 'bg-slate-800/40 border-slate-700' : r.correct ? 'bg-emerald-900/30 border-emerald-700/40' : 'bg-red-900/30 border-red-700/40'
                     }`}
                   >
-                    {r.placed === null ? (
+                    {r.selected === null ? (
                       <AlertTriangle className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
                     ) : r.correct ? (
                       <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
@@ -511,16 +382,16 @@ export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCre
                       <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-xs sm:text-sm font-medium mb-1">{c.text}</p>
-                      {r.placed === null ? (
-                        <p className="text-slate-500 text-xs mb-1">Bu kart yerleştirilmedi.</p>
+                      <p className="text-slate-300 text-xs mb-1">{c.title}</p>
+                      {r.selected === null ? (
+                        <p className="text-slate-500 text-xs mb-1">Bu vaka cevaplanmadı.</p>
                       ) : (
                         <p className="text-slate-300 text-xs mb-1">
-                          Seçtiğin: <span className="font-semibold">{placedLabel}</span>
+                          Seçtiğin: <span className="font-semibold">{r.selected}) {selectedLabel}</span>
                           {!r.correct && (
                             <>
                               {' '}
-                              · Doğrusu: <span className="text-emerald-300 font-semibold">{correctLabel}</span>
+                              · Doğrusu: <span className="text-emerald-300 font-semibold">{c.correctOptionId}) {correctLabel}</span>
                             </>
                           )}
                         </p>
@@ -567,13 +438,13 @@ export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCre
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-1.5 rounded-lg flex-shrink-0">
-                <CreditCard className="w-4 h-4 text-white" />
+                <Calculator className="w-4 h-4 text-white" />
               </div>
               <span className="text-white font-black text-sm sm:text-base bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent flex-shrink-0">
                 FinEdu
               </span>
               <span className="text-slate-600 hidden sm:inline">|</span>
-              <span className="text-slate-300 font-bold text-sm truncate hidden sm:inline">Borçlanma ve Kredi Değerlendirmesi</span>
+              <span className="text-slate-300 font-bold text-sm truncate hidden sm:inline">Akıllı Tüketici Testi</span>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -605,7 +476,7 @@ export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCre
                 section === 2 ? 'border-blue-400 bg-blue-900/50 text-blue-100' : 'border-slate-800 bg-slate-800/50 text-slate-600'
               }`}
             >
-              Bölüm 2 · {SECTION2_TITLE} ({placedCount}/{SOURCE_CARDS.length})
+              Bölüm 2 · {SECTION2_TITLE} ({Object.values(answers2).filter((v) => v !== null).length}/{SECTION2_CASES.length})
             </div>
           </div>
         </div>
@@ -704,71 +575,95 @@ export default function DebtCreditAssessmentGame({ onComplete, onBack }: DebtCre
                 })()}
               </motion.div>
             ) : (
-              <motion.div key="section2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.25 }}>
+              <motion.div
+                key={`q2-${q2Index}`}
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                transition={{ duration: 0.25 }}
+              >
                 <div className="flex items-center gap-2 mb-4 flex-wrap">
-                  <span className="bg-slate-700 text-slate-200 text-xs font-black px-3 py-1 rounded-full">
-                    {placedCount} / {SOURCE_CARDS.length} kart yerleştirildi
-                  </span>
+                  <span className="bg-slate-700 text-slate-200 text-xs font-black px-3 py-1 rounded-full">{SECTION2_CASES[q2Index].title}</span>
                   <span className="ml-auto bg-blue-900/60 text-blue-300 px-3 py-1 rounded-full text-xs font-black border border-blue-700/60">
-                    {POINTS_PER_CARD2} puan / kart
+                    {POINTS_PER_QUESTION2} puan
                   </span>
                 </div>
 
                 <p className="text-slate-400 text-xs leading-relaxed mb-4">{SECTION2_INSTRUCTION}</p>
 
-                <DndProvider backend={HTML5Backend}>
-                  <div className="grid sm:grid-cols-2 gap-4 mb-5">
-                    {BASKETS.map((basket) => (
-                      <BasketDropZone
-                        key={basket.id}
-                        basket={basket}
-                        cardsInBasket={SOURCE_CARDS.filter((c) => placements[c.id] === basket.id)}
-                        locked={checked2}
-                        onDropCard={handleDropCard}
-                        results={checked2 ? liveCardResults : null}
-                      />
-                    ))}
-                  </div>
-
-                  {!allPlaced && (
-                    <div className="mb-5">
-                      <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">Strateji Kartları</p>
-                      <div className="flex flex-col gap-2">
-                        {SOURCE_CARDS.filter((c) => placements[c.id] === null).map((card) => (
-                          <StrategyCardBox key={card.id} card={card} locked={false} />
-                        ))}
+                {(() => {
+                  const c = SECTION2_CASES[q2Index];
+                  const answer = answers2[c.id];
+                  const revealed = answer !== null;
+                  return (
+                    <>
+                      <div className="bg-slate-800 rounded-2xl p-5 border border-slate-700 mb-5">
+                        <div className="flex items-start gap-2 mb-2">
+                          <MessageCircleWarning className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                          <p className="text-amber-300 text-xs font-bold uppercase tracking-wide">{c.speakerLabel}</p>
+                        </div>
+                        <p className="text-slate-200 text-sm sm:text-base leading-relaxed italic mb-3">"{c.quote}"</p>
+                        <p className="text-blue-300 text-sm font-bold">{c.task}</p>
                       </div>
-                    </div>
-                  )}
-                </DndProvider>
 
-                {checked2 ? (
-                  <div className="rounded-xl px-5 py-3 mb-4 bg-emerald-900/40 border border-emerald-600/40 flex items-center justify-between gap-3 flex-wrap">
-                    <span className="text-emerald-300 text-sm font-bold">Bölüm 2 Puanı: {section2ScoreSoFar} / {TOTAL_SECTION2_POINTS}</span>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => finalizeExam('user')}
-                      className="px-6 py-2.5 rounded-xl text-sm font-black bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 text-white shadow-lg border-b-4 border-blue-800 transition-all"
-                    >
-                      Değerlendirmeyi Bitir 🏁
-                    </motion.button>
-                  </div>
-                ) : (
-                  <motion.button
-                    whileHover={allPlaced ? { scale: 1.02 } : {}}
-                    whileTap={allPlaced ? { scale: 0.98 } : {}}
-                    disabled={!allPlaced}
-                    onClick={handleCheckSection2}
-                    className={`w-full py-4 rounded-2xl text-lg font-black shadow-lg transition-all ${
-                      allPlaced
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white border-b-4 border-purple-800'
-                        : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
-                    }`}
-                  >
-                    {allPlaced ? 'Cevapları Kontrol Et ✅' : `Tüm kartları yerleştir (${placedCount}/${SOURCE_CARDS.length})`}
-                  </motion.button>
-                )}
+                      <div className="flex flex-col gap-3">
+                        {c.options.map((option) => {
+                          const isSelected = answer === option.id;
+                          const isCorrectOption = option.id === c.correctOptionId;
+                          let stateClasses = 'bg-slate-800 hover:bg-slate-700 border-slate-600 text-white';
+                          if (revealed) {
+                            if (isSelected && isCorrectOption) stateClasses = 'bg-emerald-900/40 border-emerald-500 text-emerald-100';
+                            else if (isSelected && !isCorrectOption) stateClasses = 'bg-red-900/40 border-red-500 text-red-100';
+                            else if (isCorrectOption) stateClasses = 'bg-emerald-900/20 border-emerald-700 text-emerald-200';
+                            else stateClasses = 'bg-slate-800/60 border-slate-700 text-slate-500';
+                          }
+                          return (
+                            <motion.button
+                              key={option.id}
+                              whileHover={!revealed ? { scale: 1.005 } : {}}
+                              disabled={revealed}
+                              onClick={() => handleAnswer2(option.id)}
+                              className={`w-full text-left px-5 py-4 rounded-xl border-2 font-medium transition-all flex items-start gap-3 ${stateClasses} ${
+                                revealed ? 'cursor-default' : ''
+                              }`}
+                            >
+                              <span className="font-black flex-shrink-0">{option.id})</span>
+                              <span className="flex-1 text-sm">{option.label}</span>
+                              {revealed && isSelected && isCorrectOption && <CheckCircle2 className="w-5 h-5 text-emerald-300 flex-shrink-0" />}
+                              {revealed && isSelected && !isCorrectOption && <XCircle className="w-5 h-5 text-red-300 flex-shrink-0" />}
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+
+                      <AnimatePresence>
+                        {revealed && (
+                          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-4">
+                            <div
+                              className={`rounded-xl px-5 py-4 border ${
+                                answer === c.correctOptionId ? 'bg-emerald-900/30 border-emerald-700/40' : 'bg-red-900/30 border-red-700/40'
+                              }`}
+                            >
+                              <p className={`font-black text-sm mb-1 ${answer === c.correctOptionId ? 'text-emerald-300' : 'text-red-300'}`}>
+                                {answer === c.correctOptionId ? `Doğru! +${POINTS_PER_QUESTION2} puan kazandın 🎉` : 'Yanlış cevap.'}
+                              </p>
+                              <p className="text-slate-300 text-xs leading-relaxed">{c.explanation}</p>
+                            </div>
+
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={handleNext2}
+                              className="w-full mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black py-4 rounded-2xl text-lg shadow-lg border-b-4 border-purple-800"
+                            >
+                              {q2Index < SECTION2_CASES.length - 1 ? 'Sonraki Vaka ➔' : 'Değerlendirmeyi Bitir 🏁'}
+                            </motion.button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </>
+                  );
+                })()}
               </motion.div>
             )}
           </AnimatePresence>

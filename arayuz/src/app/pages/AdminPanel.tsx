@@ -8,7 +8,8 @@ import { Input, Select } from "../components/Input";
 import {
   Plus, BookOpen, Video, Gamepad2, Users,
   Trash2, Edit, ChevronDown, ChevronRight, Layers, X, UserPlus,
-  ArrowUp, ArrowDown, BarChart2, TrendingUp, AlertTriangle, Award, Activity
+  ArrowUp, ArrowDown, BarChart2, TrendingUp, AlertTriangle, Award, Activity,
+  Heart, ChevronLeft, Search
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -36,6 +37,7 @@ const GAME_OPTIONS = [
   { value: "market_detective", label: "🐂 Piyasa Dedektifi & Davranışsal Finans Testi" },
   { value: "portfolio_master", label: "💼 Portföy Ustası - Portföy Matrisi & Bitirme Testi" },
   { value: "legal_investment_assessment", label: "📊 Yasal Yatırım Yöntemleri - Ölçme ve Değerlendirme" },
+  { value: "legal_investment_assessment_2", label: "🔐 Siber Güvenlik ve Dolandırıcılık Tespiti - Ölçme Değerlendirme" },
   { value: "economic_glossary_match", label: "📖 Ekonomi Sözlüğü - Sürükle-Bırak Bulmaca" },
   { value: "media_glossary_puzzle", label: "🧩 Finansal Medya Okuryazarlığı - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
   { value: "income_glossary_puzzle", label: "💰 Gelir Türleri ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
@@ -43,12 +45,14 @@ const GAME_OPTIONS = [
   { value: "credit_financing_glossary_puzzle", label: "🧩 Akademik Kredi ve Finansman - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
   { value: "fraud_hunt_glossary_puzzle", label: "🎣 Dolandırıcılık Avı - Akademik Finansal Güvenlik (Sürükle-Bırak Bulmaca)" },
   { value: "legal_investment_glossary_puzzle", label: "⚖️ Yasal Yatırım ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
-  { value: "debt_credit_assessment", label: "🏦 Borçlanma ve Kredi - Ölçme Değerlendirme" }
+  { value: "debt_credit_assessment", label: "🏦 Borçlanma ve Kredi - Ölçme Değerlendirme" },
+  { value: "debt_credit_assessment_2", label: "🧮 Borçlanma ve Kredi: Akıllı Tüketici Testi - Ölçme Değerlendirme" },
+  { value: "asset_liability_glossary_puzzle", label: "🧩 Aktif & Pasif Yönetimi - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" }
 ];
 
 export default function AdminPanel() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"units" | "users" | "reports">("units");
+  const [activeTab, setActiveTab] = useState<"units" | "users" | "reports" | "support">("units");
   
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [units, setUnits] = useState<any[]>([]);
@@ -79,6 +83,17 @@ export default function AdminPanel() {
   const [reportLoading, setReportLoading] = useState(false);
   const [sortField, setSortField] = useState<'type' | 'completions' | 'play_count' | 'avg_score'>('play_count');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  // --- DEĞERLER KÖPRÜSÜ (SOSYAL SORUMLULUK TERCİHLERİ) STATE'LERİ ---
+  const [supportStats, setSupportStats] = useState<any>(null);
+  const [supportStatsLoading, setSupportStatsLoading] = useState(false);
+  const [supportOrganizations, setSupportOrganizations] = useState<any[]>([]);
+  const [supportRows, setSupportRows] = useState<any[]>([]);
+  const [supportTableLoading, setSupportTableLoading] = useState(false);
+  const [supportPage, setSupportPage] = useState(1);
+  const [supportTotalPages, setSupportTotalPages] = useState(1);
+  const [supportFilters, setSupportFilters] = useState({ organization: "", student: "", date_from: "", date_to: "" });
+  const [supportFilterInput, setSupportFilterInput] = useState({ organization: "", student: "", date_from: "", date_to: "" });
 
   const fetchData = async () => {
     const token = localStorage.getItem("token");
@@ -144,6 +159,59 @@ export default function AdminPanel() {
   useEffect(() => {
     if (activeTab === "reports" && !report) fetchReport();
   }, [activeTab]);
+
+  const fetchSupportStats = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    setSupportStatsLoading(true);
+    try {
+      const [statsRes, orgsRes] = await Promise.all([
+        fetch("https://finedu-project.onrender.com/api/admin/support-preferences/stats/", { headers: { "Authorization": `Token ${token}` } }),
+        fetch("https://finedu-project.onrender.com/api/support-organizations/", { headers: { "Authorization": `Token ${token}` } }),
+      ]);
+      if (statsRes.ok) setSupportStats(await statsRes.json());
+      if (orgsRes.ok) setSupportOrganizations(await orgsRes.json());
+    } finally {
+      setSupportStatsLoading(false);
+    }
+  };
+
+  const fetchSupportPreferences = async (page: number, filters: typeof supportFilters) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    setSupportTableLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), page_size: "20" });
+      if (filters.organization) params.set("organization", filters.organization);
+      if (filters.student) params.set("student", filters.student);
+      if (filters.date_from) params.set("date_from", filters.date_from);
+      if (filters.date_to) params.set("date_to", filters.date_to);
+
+      const res = await fetch(`https://finedu-project.onrender.com/api/admin/support-preferences/?${params.toString()}`, {
+        headers: { "Authorization": `Token ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSupportRows(data.results);
+        setSupportTotalPages(data.total_pages || 1);
+      }
+    } finally {
+      setSupportTableLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "support" && !supportStats) fetchSupportStats();
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "support") fetchSupportPreferences(supportPage, supportFilters);
+  }, [activeTab, supportPage, supportFilters]);
+
+  const applySupportFilters = () => {
+    setSupportPage(1);
+    setSupportFilters(supportFilterInput);
+  };
 
   const handleMove = async (type: "UNIT" | "SUBTOPIC" | "CONTENT", list: any[], index: number, direction: "UP" | "DOWN") => {
     if ((direction === "UP" && index === 0) || (direction === "DOWN" && index === list.length - 1)) return;
@@ -306,6 +374,9 @@ export default function AdminPanel() {
           </button>
           <button onClick={() => setActiveTab("reports")} className={`px-6 py-3 font-medium transition-colors border-b-2 ${activeTab === "reports" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             <BarChart2 className="size-4 inline mr-2" /> Raporlar
+          </button>
+          <button onClick={() => setActiveTab("support")} className={`px-6 py-3 font-medium transition-colors border-b-2 ${activeTab === "support" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            <Heart className="size-4 inline mr-2" /> Sosyal Sorumluluk Tercihleri
           </button>
         </div>
 
@@ -817,6 +888,175 @@ export default function AdminPanel() {
               </Card>
             </>
           )}
+        </div>
+      )}
+
+      {/* SOSYAL SORUMLULUK TERCİHLERİ SEKMESİ (Değerler Köprüsü) */}
+      {activeTab === "support" && (
+        <div className="space-y-6 px-4 md:px-6">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h2 className="text-xl font-bold">Sosyal Sorumluluk Tercihleri</h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Öğrencilerin "hangi kurumu desteklemek isterdim" tercihleri — gerçek bağış/ödeme içermez.
+              </p>
+            </div>
+            <button
+              onClick={() => { fetchSupportStats(); fetchSupportPreferences(supportPage, supportFilters); }}
+              className="flex items-center gap-2 text-sm text-primary hover:underline font-medium"
+            >
+              <Activity className="size-4" /> Yenile
+            </button>
+          </div>
+
+          {supportStatsLoading && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => <div key={i} className="h-24 rounded-xl animate-pulse bg-muted" />)}
+            </div>
+          )}
+
+          {supportStats && !supportStatsLoading && (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="rounded-xl border-2 p-4 bg-rose-50 border-rose-200 text-rose-700">
+                  <div className="text-2xl mb-1">💝</div>
+                  <div className="text-3xl font-black">{supportStats.total_students_with_preference}</div>
+                  <div className="text-sm font-medium mt-1">Tercih Yapan Öğrenci</div>
+                </div>
+                {supportStats.by_organization.map((org: any, i: number) => (
+                  <div key={org.organization_id} className={`rounded-xl border-2 p-4 ${['bg-blue-50 border-blue-200 text-blue-700', 'bg-emerald-50 border-emerald-200 text-emerald-700', 'bg-amber-50 border-amber-200 text-amber-700', 'bg-purple-50 border-purple-200 text-purple-700'][i % 4]}`}>
+                    <div className="text-2xl mb-1">🏛️</div>
+                    <div className="text-3xl font-black">{org.count}</div>
+                    <div className="text-sm font-medium mt-1 truncate" title={org.organization_name}>{org.organization_name}</div>
+                  </div>
+                ))}
+              </div>
+
+              <Card>
+                <CardBody>
+                  <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+                    <BarChart2 className="size-4 text-primary" /> Kurum Bazlı Dağılım
+                  </h3>
+                  {supportStats.by_organization.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">Henüz aktif kurum bulunmuyor.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {supportStats.by_organization.map((org: any) => (
+                        <div key={org.organization_id}>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="font-medium">{org.organization_name}</span>
+                            <span className="font-bold text-primary">{org.count} öğrenci · %{org.percentage}</span>
+                          </div>
+                          <div className="h-2 bg-slate-100 rounded-full">
+                            <div className="h-2 bg-rose-500 rounded-full transition-all" style={{ width: `${org.percentage}%` }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            </>
+          )}
+
+          {/* FİLTRELER */}
+          <Card>
+            <CardBody>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                <Select
+                  label="Kurum"
+                  value={supportFilterInput.organization}
+                  onChange={(e) => setSupportFilterInput({ ...supportFilterInput, organization: e.target.value })}
+                  options={[{ value: "", label: "Tümü" }, ...supportOrganizations.map((o: any) => ({ value: String(o.id), label: o.name }))]}
+                />
+                <Input
+                  label="Öğrenci (ad, e-posta, kod)"
+                  placeholder="Ara..."
+                  value={supportFilterInput.student}
+                  onChange={(e) => setSupportFilterInput({ ...supportFilterInput, student: e.target.value })}
+                />
+                <Input
+                  label="Başlangıç Tarihi"
+                  type="date"
+                  value={supportFilterInput.date_from}
+                  onChange={(e) => setSupportFilterInput({ ...supportFilterInput, date_from: e.target.value })}
+                />
+                <Input
+                  label="Bitiş Tarihi"
+                  type="date"
+                  value={supportFilterInput.date_to}
+                  onChange={(e) => setSupportFilterInput({ ...supportFilterInput, date_to: e.target.value })}
+                />
+                <Button variant="primary" onClick={applySupportFilters}>
+                  <Search className="size-4 mr-2" /> Filtrele
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* TABLO */}
+          <Card>
+            <CardBody className="p-0">
+              {supportTableLoading ? (
+                <div className="p-6 space-y-2">
+                  {[...Array(5)].map((_, i) => <div key={i} className="h-10 rounded-lg animate-pulse bg-muted" />)}
+                </div>
+              ) : supportRows.length === 0 ? (
+                <div className="text-center py-12">
+                  <Heart className="size-12 mx-auto text-muted-foreground mb-3 opacity-30" />
+                  <p className="text-sm text-muted-foreground">Kriterlere uyan tercih bulunamadı.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-muted/50 border-b border-border">
+                        <tr>
+                          <th className="px-6 py-3 font-semibold">Öğrenci</th>
+                          <th className="px-6 py-3 font-semibold">Seviye</th>
+                          <th className="px-6 py-3 font-semibold">Seçilen Kurum</th>
+                          <th className="px-6 py-3 font-semibold">Seçim Tarihi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {supportRows.map((row: any) => (
+                          <tr key={row.id} className="hover:bg-muted/30">
+                            <td className="px-6 py-3">
+                              <div className="font-medium">{row.student_name}</div>
+                              <div className="text-xs text-muted-foreground">{row.student_email}</div>
+                            </td>
+                            <td className="px-6 py-3">
+                              {row.grade_level === 'PRIMARY' ? 'İlkokul' :
+                               row.grade_level === 'MIDDLE' ? 'Ortaokul' :
+                               row.grade_level === 'HIGH' ? 'Lise' :
+                               row.grade_level === 'UNIVERSITY_FINANCE' ? 'Üniv. (Finans)' :
+                               row.grade_level === 'UNIVERSITY_GENERAL' ? 'Üniv. (Genel)' : "-"}
+                            </td>
+                            <td className="px-6 py-3 font-medium">{row.organization_name}</td>
+                            <td className="px-6 py-3 text-muted-foreground">
+                              {new Date(row.selected_at).toLocaleDateString('tr-TR')}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+                    <span className="text-xs text-muted-foreground">Sayfa {supportPage} / {supportTotalPages}</span>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" disabled={supportPage <= 1} onClick={() => setSupportPage(p => p - 1)}>
+                        <ChevronLeft className="size-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" disabled={supportPage >= supportTotalPages} onClick={() => setSupportPage(p => p + 1)}>
+                        <ChevronRight className="size-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardBody>
+          </Card>
         </div>
       )}
 

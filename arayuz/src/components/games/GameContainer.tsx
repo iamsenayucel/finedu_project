@@ -22,6 +22,7 @@ import InformationFilter from './InformationFilter';
 import MarketDetective from './MarketDetective';
 import PortfolioMaster from './PortfolioMaster';
 import LegalInvestmentAssessment from './LegalInvestmentAssessment';
+import LegalInvestmentAssessment2 from './LegalInvestmentAssessment2';
 import EconomicGlossary from './EconomicGlossary';
 import MediaGlossaryPuzzle from './MediaGlossaryPuzzle';
 import IncomeGlossaryPuzzle from './IncomeGlossaryPuzzle';
@@ -30,6 +31,8 @@ import CreditFinancingGlossaryPuzzle from './CreditFinancingGlossaryPuzzle';
 import FraudHuntGlossaryPuzzle from './FraudHuntGlossaryPuzzle';
 import LegalInvestmentGlossaryPuzzle from './LegalInvestmentGlossaryPuzzle';
 import DebtCreditAssessmentGame from './DebtCreditAssessmentGame';
+import DebtCreditAssessmentGame2 from './DebtCreditAssessmentGame2';
+import AssetLiabilityGlossaryPuzzle from './AssetLiabilityGlossaryPuzzle';
 
 interface GameContainerProps {
   gameCode: string;
@@ -111,6 +114,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
       case 'legal_investment_assessment':
         return <LegalInvestmentAssessment onComplete={onComplete} onBack={onBack} />;
 
+      case 'legal_investment_assessment_2':
+        return <LegalInvestmentAssessment2 onComplete={onComplete} onBack={onBack} />;
+
       case 'economic_glossary_match':
         return <EconomicGlossary onComplete={onComplete} onBack={onBack} />;
 
@@ -134,6 +140,12 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'debt_credit_assessment':
         return <DebtCreditAssessmentGame onComplete={onComplete} onBack={onBack} />;
+
+      case 'debt_credit_assessment_2':
+        return <DebtCreditAssessmentGame2 onComplete={onComplete} onBack={onBack} />;
+
+      case 'asset_liability_glossary_puzzle':
+        return <AssetLiabilityGlossaryPuzzle onComplete={onComplete} onBack={onBack} />;
 
       default:
         return (

@@ -24,6 +24,10 @@ from .views import (
     api_survey_answer_view,
     api_survey_complete_view,
     api_survey_reset_view,
+    api_support_organizations_view,
+    api_student_support_preference_view,
+    api_admin_support_preferences_view,
+    api_admin_support_stats_view,
 )
 
 # Router ve ViewSet'leri tamamen sildik, çünkü kendi özel API'lerimizi kullanıyoruz.
@@ -62,4 +66,10 @@ urlpatterns = [
     path('survey/<str:survey_type>/answer/', api_survey_answer_view, name='api_survey_answer'),
     path('survey/<str:survey_type>/complete/', api_survey_complete_view, name='api_survey_complete'),
     path('survey/<str:survey_type>/reset/', api_survey_reset_view, name='api_survey_reset'),
+
+    # --- DEĞERLER KÖPRÜSÜ / SOSYAL SORUMLULUK TERCİHİ ---
+    path('support-organizations/', api_support_organizations_view, name='api_support_organizations'),
+    path('student/support-preference/', api_student_support_preference_view, name='api_student_support_preference'),
+    path('admin/support-preferences/', api_admin_support_preferences_view, name='api_admin_support_preferences'),
+    path('admin/support-preferences/stats/', api_admin_support_stats_view, name='api_admin_support_stats'),
 ]
