@@ -47,7 +47,11 @@ const GAME_OPTIONS = [
   { value: "legal_investment_glossary_puzzle", label: "⚖️ Yasal Yatırım ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
   { value: "debt_credit_assessment", label: "🏦 Borçlanma ve Kredi - Ölçme Değerlendirme" },
   { value: "debt_credit_assessment_2", label: "🧮 Borçlanma ve Kredi: Akıllı Tüketici Testi - Ölçme Değerlendirme" },
-  { value: "asset_liability_glossary_puzzle", label: "🧩 Aktif & Pasif Yönetimi - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" }
+  { value: "asset_liability_glossary_puzzle", label: "🧩 Aktif & Pasif Yönetimi - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
+  { value: "asset_income_expense_assessment", label: "💻 Senin Varlığın Ne Üretiyor? - Ölçme Değerlendirme" },
+  { value: "short_long_term_impact", label: "⏳ Kısa ve Uzun Vadeli Finansal Etki - Karar ve Eşleştirme" },
+  { value: "short_long_term_glossary_puzzle", label: "🧩 Kısa ve Uzun Vadeli Finansal Etki - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
+  { value: "investment_consumption_case_assessment", label: "⚖️ Yatırım mı, Tüketim mi? - Vaka Ölçme Değerlendirmesi" }
 ];
 
 export default function AdminPanel() {

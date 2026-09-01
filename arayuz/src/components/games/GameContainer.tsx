@@ -33,6 +33,10 @@ import LegalInvestmentGlossaryPuzzle from './LegalInvestmentGlossaryPuzzle';
 import DebtCreditAssessmentGame from './DebtCreditAssessmentGame';
 import DebtCreditAssessmentGame2 from './DebtCreditAssessmentGame2';
 import AssetLiabilityGlossaryPuzzle from './AssetLiabilityGlossaryPuzzle';
+import AssetIncomeExpenseAssessment from './AssetIncomeExpenseAssessment';
+import ShortLongTermImpact from './ShortLongTermImpact';
+import ShortLongTermGlossaryPuzzle from './ShortLongTermGlossaryPuzzle';
+import InvestmentConsumptionCaseAssessment from './InvestmentConsumptionCaseAssessment';
 
 interface GameContainerProps {
   gameCode: string;
@@ -146,6 +150,18 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
 
       case 'asset_liability_glossary_puzzle':
         return <AssetLiabilityGlossaryPuzzle onComplete={onComplete} onBack={onBack} />;
+
+      case 'asset_income_expense_assessment':
+        return <AssetIncomeExpenseAssessment onComplete={onComplete} onBack={onBack} />;
+
+      case 'short_long_term_impact':
+        return <ShortLongTermImpact onComplete={onComplete} onBack={onBack} />;
+
+      case 'short_long_term_glossary_puzzle':
+        return <ShortLongTermGlossaryPuzzle onComplete={onComplete} onBack={onBack} />;
+
+      case 'investment_consumption_case_assessment':
+        return <InvestmentConsumptionCaseAssessment onComplete={onComplete} onBack={onBack} />;
 
       default:
         return (

@@ -100,6 +100,10 @@ class Content(models.Model):
         ('debt_credit_assessment', '🏦 Borçlanma ve Kredi - Ölçme Değerlendirme'),
         ('debt_credit_assessment_2', '🧮 Borçlanma ve Kredi: Akıllı Tüketici Testi - Ölçme Değerlendirme'),
         ('asset_liability_glossary_puzzle', '🧩 Aktif & Pasif Yönetimi - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
+        ('asset_income_expense_assessment', '💻 Senin Varlığın Ne Üretiyor? - Ölçme Değerlendirme'),
+        ('short_long_term_impact', '⏳ Kısa ve Uzun Vadeli Finansal Etki - Karar ve Eşleştirme'),
+        ('short_long_term_glossary_puzzle', '🧩 Kısa ve Uzun Vadeli Finansal Etki - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
+        ('investment_consumption_case_assessment', '⚖️ Yatırım mı, Tüketim mi? - Vaka Ölçme Değerlendirmesi'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
