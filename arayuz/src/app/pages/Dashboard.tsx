@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { getCached, setCached, invalidateCache } from "../utils/apiCache";
 import { useNavigate } from "react-router";
 import { Navbar } from "../components/Navbar";
@@ -8,7 +8,8 @@ import { Input, Select } from "../components/Input";
 import {
   BookOpen, Award, Users, TrendingUp,
   Target, Play, Lock, Plus, UserPlus, X, GraduationCap, CheckCircle2, Gamepad2,
-  Flame, Trophy, BarChart2, AlertCircle, Settings, Heart
+  Flame, Trophy, BarChart2, AlertCircle, Settings, Heart, MapPin,
+  Landmark, LineChart, Coins, Scale, History, PieChart, CreditCard, Smartphone, ShieldCheck, HandCoins
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -216,6 +217,33 @@ export default function Dashboard() {
     });
     const overallProgress = globalTotal === 0 ? 0 : Math.round((globalCompleted / globalTotal) * 100);
 
+    // Roadmap: her ünite için ilerleme + kilit durumu (sıradaki tamamlanmamış ünite "current", sonrakiler "locked")
+    const unitIconPool = [Landmark, LineChart, Coins, Scale, History, PieChart, CreditCard, Smartphone, ShieldCheck, HandCoins];
+    const unitsWithStatus = (() => {
+      const withProgress = units.map((unit) => {
+        let unitTotal = 0, unitCompleted = 0;
+        unit.subtopics?.forEach((sub: any) => {
+          sub.contents?.forEach((content: any) => {
+            unitTotal++;
+            if (completedContents.includes(content.id)) unitCompleted++;
+          });
+        });
+        const progress = unitTotal === 0 ? 0 : Math.round((unitCompleted / unitTotal) * 100);
+        const completed = unitTotal > 0 && unitCompleted === unitTotal;
+        return { unit, progress, completed };
+      });
+      let currentIdx = withProgress.findIndex((u) => !u.completed);
+      if (currentIdx === -1) currentIdx = withProgress.length;
+      return withProgress.map((u, idx) => ({
+        ...u,
+        status: u.completed ? "completed" : idx === currentIdx ? "current" : "locked",
+      }));
+    })();
+    const roadmapRows: any[][] = [];
+    for (let i = 0; i < unitsWithStatus.length; i += 3) {
+      roadmapRows.push(unitsWithStatus.slice(i, i + 3));
+    }
+
     return (
       <div className="min-h-screen bg-background relative">
         <Navbar userName={user.first_name || "Öğrenci"} onLogout={handleLogout} streakDays={user.streak_days} />
@@ -341,10 +369,12 @@ export default function Dashboard() {
             </Card>
           </motion.div>
 
-          {/* Dinamik Üniteler Listesi */}
+          {/* Dinamik Üniteler Listesi - Roadmap */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-foreground">Eğitim Ünitelerin</h3>
+              <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+                <MapPin className="size-5 text-primary" /> Eğitim Ünitelerin
+              </h3>
             </div>
 
             {units.length === 0 ? (
@@ -352,59 +382,97 @@ export default function Dashboard() {
                  Henüz senin seviyene uygun bir ünite eklenmemiş. Lütfen daha sonra tekrar kontrol et!
                </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {units.map((unit, index) => {
-                  const isLocked = false; 
+              <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-b from-indigo-50 via-primary/5 to-transparent p-5 sm:p-10">
+                <div className="pointer-events-none absolute -top-16 -left-16 size-56 rounded-full bg-primary/10 blur-3xl" />
+                <div className="pointer-events-none absolute bottom-0 right-0 size-64 rounded-full bg-amber-200/20 blur-3xl" />
 
-                  let unitTotal = 0;
-                  let unitCompleted = 0;
-                  unit.subtopics?.forEach((sub: any) => {
-                    sub.contents?.forEach((content: any) => {
-                      unitTotal++;
-                      if (completedContents.includes(content.id)) unitCompleted++;
-                    });
-                  });
-                  const progress = unitTotal === 0 ? 0 : Math.round((unitCompleted / unitTotal) * 100);
+                <div className="relative flex flex-col">
+                  {roadmapRows.map((row, rowIndex) => {
+                    const reversed = rowIndex % 2 === 1;
+                    const isLastRow = rowIndex === roadmapRows.length - 1;
 
-                  return (
-                    <motion.div key={unit.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 * index }}>
-                      <Card className={isLocked ? "opacity-60" : ""}>
-                        <CardBody>
-                          <div className="flex items-start gap-4 mb-4">
-                            <div className={`p-3 rounded-lg ${isLocked ? "bg-muted" : "bg-gradient-to-br from-primary/10 to-indigo-100"}`}>
-                              {isLocked ? <Lock className="size-6 text-muted-foreground" /> : <BookOpen className="size-6 text-primary" />}
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-bold text-foreground mb-1">{unit.title}</h4>
-                              <p className="text-sm text-muted-foreground mb-2">Bu ünitedeki konuları tamamla ve rozeti kap!</p>
-                              <div className="flex items-center gap-2 text-xs font-semibold text-warning">
-                                <Award className="size-4" />
-                                <span>{unit.badge_name || "Gizli Rozet"}</span>
-                              </div>
+                    return (
+                      <div key={rowIndex}>
+                        <div className={`flex items-start ${reversed ? "flex-row-reverse" : ""}`}>
+                          {row.map((item, i) => {
+                            const isLastInRow = i === row.length - 1;
+                            const nextItem = row[i + 1];
+                            const segmentActive = !!nextItem && item.status !== "locked" && nextItem.status !== "locked";
+                            const Icon = unitIconPool[(rowIndex * 3 + i) % unitIconPool.length];
+
+                            return (
+                              <Fragment key={item.unit.id}>
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ duration: 0.35, delay: 0.06 * (rowIndex * 3 + i) }}
+                                  className="flex w-20 sm:w-28 flex-shrink-0 flex-col items-center"
+                                >
+                                  <button
+                                    type="button"
+                                    disabled={item.status === "locked"}
+                                    onClick={() => handleUnitClick(item.unit.id)}
+                                    title={item.status === "locked" ? "Önceki üniteyi tamamlayınca açılır" : item.unit.title}
+                                    className={`relative flex size-20 sm:size-24 items-center justify-center rounded-full shadow-lg transition-transform
+                                      ${item.status === "locked" ? "cursor-not-allowed bg-muted opacity-70" : "cursor-pointer hover:scale-105 active:scale-95"}
+                                      ${item.status === "completed" ? "border-4 border-emerald-200 bg-gradient-to-br from-emerald-400 to-emerald-600" : ""}
+                                      ${item.status === "current" ? "border-4 border-amber-200 bg-gradient-to-br from-amber-400 to-orange-500 ring-4 ring-amber-200/60 animate-pulse" : ""}
+                                    `}
+                                  >
+                                    {item.status === "current" && (
+                                      <span className="absolute -top-8 whitespace-nowrap rounded-full bg-amber-500 px-2.5 py-1 text-[10px] font-bold text-white shadow-md">
+                                        Devam Ediyor
+                                      </span>
+                                    )}
+                                    {item.status === "locked" ? (
+                                      <Lock className="size-7 text-muted-foreground/50" />
+                                    ) : (
+                                      <Icon className="size-8 sm:size-9 text-white drop-shadow" />
+                                    )}
+                                    {item.status === "completed" && (
+                                      <span className="absolute -bottom-1 -right-1 rounded-full bg-white p-0.5 shadow">
+                                        <CheckCircle2 className="size-5 text-emerald-500" />
+                                      </span>
+                                    )}
+                                  </button>
+                                  <p className={`mt-2 line-clamp-2 max-w-[5.5rem] sm:max-w-[7rem] text-center text-xs sm:text-sm font-bold ${item.status === "locked" ? "text-muted-foreground/60" : "text-foreground"}`}>
+                                    {item.unit.title}
+                                  </p>
+                                  <span className={`mt-0.5 flex items-center gap-1 text-[10px] font-semibold ${item.status === "completed" ? "text-emerald-600" : item.status === "current" ? "text-amber-600" : "text-muted-foreground/50"}`}>
+                                    {item.status === "completed" ? "Tamamlandı" : item.status === "current" ? `%${item.progress} tamamlandı` : (
+                                      <span className="flex items-center gap-1"><Lock className="size-2.5" /> Kilitli</span>
+                                    )}
+                                  </span>
+                                </motion.div>
+
+                                {!isLastInRow && (
+                                  <div className="relative mt-10 sm:mt-12 h-1.5 flex-1 min-w-[1rem]">
+                                    <div className={`h-full w-full rounded-full ${segmentActive ? "bg-gradient-to-r from-emerald-400 to-amber-400" : "bg-muted"}`} />
+                                    {segmentActive && (
+                                      <Coins className="absolute -top-4 left-1/2 size-4 -translate-x-1/2 text-amber-400 drop-shadow" />
+                                    )}
+                                  </div>
+                                )}
+                              </Fragment>
+                            );
+                          })}
+                        </div>
+
+                        {!isLastRow && (
+                          <div className={`flex ${reversed ? "justify-start" : "justify-end"}`}>
+                            <div className="flex w-20 sm:w-28 flex-shrink-0 justify-center py-1">
+                              <div
+                                className={`h-8 sm:h-10 w-1.5 rounded-full ${
+                                  row[row.length - 1]?.status !== "locked" ? "bg-gradient-to-b from-emerald-400 to-amber-400" : "bg-muted"
+                                }`}
+                              />
                             </div>
                           </div>
-
-                          {!isLocked && (
-                            <>
-                              <div className="mb-4">
-                                <div className="flex justify-between text-xs text-muted-foreground font-bold mb-1">
-                                  <span>İlerleme</span>
-                                  <span>{progress}%</span>
-                                </div>
-                                <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-                                  <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1, delay: 0.5 }} className="h-full bg-gradient-to-r from-primary to-indigo-500" />
-                                </div>
-                              </div>
-                              <Button variant="primary" size="sm" fullWidth onClick={() => handleUnitClick(unit.id)}>
-                                <Play className="size-4 mr-2" /> İçeriklere Göz At
-                              </Button>
-                            </>
-                          )}
-                        </CardBody>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
