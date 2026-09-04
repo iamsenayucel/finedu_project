@@ -63,6 +63,8 @@ class Unit(models.Model):
     order = models.IntegerField(default=1)
     badge_name = models.CharField(max_length=100)
     badge_image = models.ImageField(upload_to='badges/', null=True, blank=True)
+    class Meta:
+        ordering = ['order', 'id']
     def __str__(self):
         return f"{self.get_target_grade_display()} - {self.title}"
 class Subtopic(models.Model):

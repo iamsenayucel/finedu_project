@@ -153,7 +153,7 @@ def current_user_dashboard_api(request):
         user_data['completed_count'] = completed_count
         user_data['total_content_count'] = total_count
 
-    units = Unit.objects.filter(target_grade=user.grade_level).order_by('order')
+    units = Unit.objects.filter(target_grade=user.grade_level).order_by('order', 'id')
     units_data = UnitSerializer(units, many=True).data
 
     return Response({
