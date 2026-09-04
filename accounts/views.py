@@ -153,7 +153,7 @@ def current_user_dashboard_api(request):
         user_data['completed_count'] = completed_count
         user_data['total_content_count'] = total_count
 
-    units = Unit.objects.filter(target_grade=user.grade_level).order_by('order', 'id')
+    units = Unit.objects.filter(target_grade=user.grade_level).order_by('order', 'id').prefetch_related('subtopics__contents')
     units_data = UnitSerializer(units, many=True).data
 
     return Response({
@@ -233,7 +233,7 @@ def user_progress_api(request):
 def api_units_view(request):
     # GET: Tüm üniteleri listele
     if request.method == 'GET':
-        units = Unit.objects.all()
+        units = Unit.objects.all().prefetch_related('subtopics__contents')
         serializer = UnitSerializer(units, many=True)
         return Response(serializer.data)
     
@@ -465,12 +465,12 @@ def api_student_detail_view(request, student_id):
     
     # Kazanılan Rozetler (Eğer ünitedeki tüm içerikler bittiyse)
     earned_badges = []
-    units = Unit.objects.filter(target_grade=student.grade_level)
+    completed_content_ids = set(completed_qs.values_list('content_id', flat=True))
+    units = Unit.objects.filter(target_grade=student.grade_level).prefetch_related('subtopics__contents')
     for unit in units:
-        unit_contents = Content.objects.filter(subtopic__unit=unit)
-        if unit_contents.exists():
-            if completed_qs.filter(content__in=unit_contents).count() == unit_contents.count():
-                if unit.badge_name: earned_badges.append(unit.badge_name)
+        unit_content_ids = [c.id for s in unit.subtopics.all() for c in s.contents.all()]
+        if unit_content_ids and all(cid in completed_content_ids for cid in unit_content_ids):
+            if unit.badge_name: earned_badges.append(unit.badge_name)
                 
     total_contents = Content.objects.filter(subtopic__unit__target_grade=student.grade_level).count()
     progress_percent = int((len(completed_titles) / total_contents) * 100) if total_contents > 0 else 0
@@ -494,21 +494,20 @@ def api_analytics_view(request):
         return Response([])
 
     grade_levels = students.values_list('grade_level', flat=True).distinct()
-    contents = Content.objects.filter(subtopic__unit__target_grade__in=grade_levels).select_related('subtopic__unit')[:30]
+    contents = Content.objects.filter(subtopic__unit__target_grade__in=grade_levels).select_related('subtopic__unit').annotate(
+        completed=Count('userprogress', filter=Q(userprogress__student__in=students, userprogress__is_completed=True))
+    )[:30]
 
     student_count = students.count()
     result = []
     for content in contents:
-        completed = UserProgress.objects.filter(
-            student__in=students, content=content, is_completed=True
-        ).count()
-        rate = round((completed / student_count) * 100) if student_count > 0 else 0
+        rate = round((content.completed / student_count) * 100) if student_count > 0 else 0
         result.append({
             'content_id': content.id,
             'content_title': content.title,
             'content_type': content.content_type,
             'unit_title': content.subtopic.unit.title,
-            'completed_count': completed,
+            'completed_count': content.completed,
             'total_students': student_count,
             'completion_rate': rate,
         })
@@ -524,13 +523,12 @@ def api_profile_view(request):
     completed_count = UserProgress.objects.filter(student=user, is_completed=True).count()
     total_count = Content.objects.filter(subtopic__unit__target_grade=user.grade_level).count()
     completed_units = 0
-    units = Unit.objects.filter(target_grade=user.grade_level)
+    completed_content_ids = set(UserProgress.objects.filter(student=user, is_completed=True).values_list('content_id', flat=True))
+    units = Unit.objects.filter(target_grade=user.grade_level).prefetch_related('subtopics__contents')
     for unit in units:
-        unit_contents = Content.objects.filter(subtopic__unit=unit)
-        if unit_contents.exists():
-            done = UserProgress.objects.filter(student=user, content__in=unit_contents, is_completed=True).count()
-            if done == unit_contents.count():
-                completed_units += 1
+        unit_content_ids = [c.id for s in unit.subtopics.all() for c in s.contents.all()]
+        if unit_content_ids and all(cid in completed_content_ids for cid in unit_content_ids):
+            completed_units += 1
 
     return Response({
         'first_name': user.first_name,

@@ -71,6 +71,8 @@ class Subtopic(models.Model):
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='subtopics')
     title = models.CharField(max_length=200)
     order = models.IntegerField(default=0)
+    class Meta:
+        ordering = ['order', 'id']
     def __str__(self):
         return f"{self.unit.title} > {self.title}"
 class Content(models.Model):
@@ -115,6 +117,8 @@ class Content(models.Model):
     game_file_path = models.CharField(max_length=255, null=True, blank=True)
     game_code = models.CharField(max_length=50, choices=GAME_CHOICES, blank=True, null=True, verbose_name="Oyun Seçimi")
     order = models.IntegerField(default=0)
+    class Meta:
+        ordering = ['order', 'id']
     def __str__(self):
         return f"{self.subtopic.title} > {self.title}"
 # 4. İLERLEME VE OYUNLAŞTIRMA

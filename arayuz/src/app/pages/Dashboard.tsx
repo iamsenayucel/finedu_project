@@ -9,7 +9,7 @@ import {
   BookOpen, Award, Users, TrendingUp,
   Target, Play, Lock, Plus, UserPlus, X, GraduationCap, CheckCircle2, Gamepad2,
   Flame, Trophy, BarChart2, AlertCircle, Settings, Heart, MapPin,
-  Landmark, LineChart, Coins, Scale, History, PieChart, CreditCard, Smartphone, ShieldCheck, HandCoins
+  Landmark, LineChart, Coins, Scale, History, PieChart, CreditCard, Smartphone, ShieldCheck, HandCoins, Cloud
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -382,18 +382,21 @@ export default function Dashboard() {
                  Henüz senin seviyene uygun bir ünite eklenmemiş. Lütfen daha sonra tekrar kontrol et!
                </div>
             ) : (
-              <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-b from-indigo-50 via-primary/5 to-transparent p-5 sm:p-10">
+              <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-b from-indigo-50 via-primary/5 to-transparent p-4 sm:p-8">
                 <div className="pointer-events-none absolute -top-16 -left-16 size-56 rounded-full bg-primary/10 blur-3xl" />
                 <div className="pointer-events-none absolute bottom-0 right-0 size-64 rounded-full bg-amber-200/20 blur-3xl" />
+                <Cloud className="pointer-events-none absolute top-4 right-8 size-16 text-white/70 sm:size-24" fill="currentColor" strokeWidth={0} />
+                <Cloud className="pointer-events-none absolute bottom-6 left-4 size-12 text-white/60 sm:size-20" fill="currentColor" strokeWidth={0} />
 
-                <div className="relative flex flex-col">
+                <div className="relative flex flex-col overflow-x-auto">
                   {roadmapRows.map((row, rowIndex) => {
                     const reversed = rowIndex % 2 === 1;
                     const isLastRow = rowIndex === roadmapRows.length - 1;
+                    const cardWidth = "w-44 sm:w-56 lg:w-64";
 
                     return (
-                      <div key={rowIndex}>
-                        <div className={`flex items-start ${reversed ? "flex-row-reverse" : ""}`}>
+                      <div key={rowIndex} className="min-w-max">
+                        <div className={`flex items-center ${reversed ? "flex-row-reverse" : ""}`}>
                           {row.map((item, i) => {
                             const isLastInRow = i === row.length - 1;
                             const nextItem = row[i + 1];
@@ -403,50 +406,63 @@ export default function Dashboard() {
                             return (
                               <Fragment key={item.unit.id}>
                                 <motion.div
-                                  initial={{ opacity: 0, scale: 0.8 }}
-                                  animate={{ opacity: 1, scale: 1 }}
+                                  initial={{ opacity: 0, y: 12 }}
+                                  animate={{ opacity: 1, y: 0 }}
                                   transition={{ duration: 0.35, delay: 0.06 * (rowIndex * 3 + i) }}
-                                  className="flex w-20 sm:w-28 flex-shrink-0 flex-col items-center"
+                                  className={`relative ${cardWidth} flex-shrink-0`}
                                 >
+                                  {item.status === "current" && (
+                                    <span className="absolute -top-3 left-4 z-10 whitespace-nowrap rounded-full bg-amber-500 px-2.5 py-1 text-[10px] font-bold text-white shadow-md">
+                                      Devam Ediyor
+                                    </span>
+                                  )}
                                   <button
                                     type="button"
                                     disabled={item.status === "locked"}
                                     onClick={() => handleUnitClick(item.unit.id)}
                                     title={item.status === "locked" ? "Önceki üniteyi tamamlayınca açılır" : item.unit.title}
-                                    className={`relative flex size-20 sm:size-24 items-center justify-center rounded-full shadow-lg transition-transform
-                                      ${item.status === "locked" ? "cursor-not-allowed bg-muted opacity-70" : "cursor-pointer hover:scale-105 active:scale-95"}
-                                      ${item.status === "completed" ? "border-4 border-emerald-200 bg-gradient-to-br from-emerald-400 to-emerald-600" : ""}
-                                      ${item.status === "current" ? "border-4 border-amber-200 bg-gradient-to-br from-amber-400 to-orange-500 ring-4 ring-amber-200/60 animate-pulse" : ""}
+                                    className={`relative flex w-full items-center gap-3 rounded-2xl border-2 p-3 sm:p-4 text-left shadow-md transition-all
+                                      ${item.status === "locked" ? "cursor-not-allowed border-border bg-muted/40 opacity-70" : "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg"}
+                                      ${item.status === "completed" ? "border-emerald-300 bg-emerald-50" : ""}
+                                      ${item.status === "current" ? "border-amber-300 bg-amber-50 ring-2 ring-amber-200" : ""}
                                     `}
                                   >
-                                    {item.status === "current" && (
-                                      <span className="absolute -top-8 whitespace-nowrap rounded-full bg-amber-500 px-2.5 py-1 text-[10px] font-bold text-white shadow-md">
-                                        Devam Ediyor
+                                    <div className={`flex size-11 sm:size-12 flex-shrink-0 items-center justify-center rounded-xl shadow-inner
+                                      ${item.status === "locked" ? "bg-muted-foreground/10" : ""}
+                                      ${item.status === "completed" ? "bg-gradient-to-br from-emerald-400 to-emerald-600" : ""}
+                                      ${item.status === "current" ? "bg-gradient-to-br from-amber-400 to-orange-500" : ""}
+                                    `}>
+                                      {item.status === "locked" ? (
+                                        <Lock className="size-5 text-muted-foreground/50" />
+                                      ) : (
+                                        <Icon className="size-5 sm:size-6 text-white drop-shadow" />
+                                      )}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <p className={`truncate text-sm sm:text-base font-bold ${item.status === "locked" ? "text-muted-foreground/60" : "text-foreground"}`}>
+                                        {item.unit.title}
+                                      </p>
+                                      <span className={`flex items-center gap-1 text-[11px] sm:text-xs font-semibold ${item.status === "completed" ? "text-emerald-600" : item.status === "current" ? "text-amber-600" : "text-muted-foreground/50"}`}>
+                                        {item.status === "completed" ? "Tamamlandı" : item.status === "current" ? `%${item.progress} tamamlandı` : (
+                                          <span className="flex items-center gap-1"><Lock className="size-2.5" /> Kilitli</span>
+                                        )}
                                       </span>
-                                    )}
-                                    {item.status === "locked" ? (
-                                      <Lock className="size-7 text-muted-foreground/50" />
-                                    ) : (
-                                      <Icon className="size-8 sm:size-9 text-white drop-shadow" />
-                                    )}
+                                    </div>
                                     {item.status === "completed" && (
-                                      <span className="absolute -bottom-1 -right-1 rounded-full bg-white p-0.5 shadow">
+                                      <span className="absolute -top-2 -right-2 rounded-full bg-white p-0.5 shadow">
                                         <CheckCircle2 className="size-5 text-emerald-500" />
                                       </span>
                                     )}
-                                  </button>
-                                  <p className={`mt-2 line-clamp-2 max-w-[5.5rem] sm:max-w-[7rem] text-center text-xs sm:text-sm font-bold ${item.status === "locked" ? "text-muted-foreground/60" : "text-foreground"}`}>
-                                    {item.unit.title}
-                                  </p>
-                                  <span className={`mt-0.5 flex items-center gap-1 text-[10px] font-semibold ${item.status === "completed" ? "text-emerald-600" : item.status === "current" ? "text-amber-600" : "text-muted-foreground/50"}`}>
-                                    {item.status === "completed" ? "Tamamlandı" : item.status === "current" ? `%${item.progress} tamamlandı` : (
-                                      <span className="flex items-center gap-1"><Lock className="size-2.5" /> Kilitli</span>
+                                    {item.status === "locked" && (
+                                      <span className="absolute -top-2 -right-2 rounded-full border border-border bg-white p-1 shadow">
+                                        <Lock className="size-3 text-muted-foreground/50" />
+                                      </span>
                                     )}
-                                  </span>
+                                  </button>
                                 </motion.div>
 
                                 {!isLastInRow && (
-                                  <div className="relative mt-10 sm:mt-12 h-1.5 flex-1 min-w-[1rem]">
+                                  <div className="relative h-1.5 flex-1 min-w-[1.5rem] sm:min-w-[2.5rem]">
                                     <div className={`h-full w-full rounded-full ${segmentActive ? "bg-gradient-to-r from-emerald-400 to-amber-400" : "bg-muted"}`} />
                                     {segmentActive && (
                                       <Coins className="absolute -top-4 left-1/2 size-4 -translate-x-1/2 text-amber-400 drop-shadow" />
@@ -460,7 +476,7 @@ export default function Dashboard() {
 
                         {!isLastRow && (
                           <div className={`flex ${reversed ? "justify-start" : "justify-end"}`}>
-                            <div className="flex w-20 sm:w-28 flex-shrink-0 justify-center py-1">
+                            <div className={`flex ${cardWidth} flex-shrink-0 justify-center py-1`}>
                               <div
                                 className={`h-8 sm:h-10 w-1.5 rounded-full ${
                                   row[row.length - 1]?.status !== "locked" ? "bg-gradient-to-b from-emerald-400 to-amber-400" : "bg-muted"
