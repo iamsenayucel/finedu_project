@@ -17,16 +17,8 @@ export function Navbar({ userName, onLogout, streakDays }: NavbarProps) {
             <img
               src={logo}
               alt="FinEdu logo"
-              className="h-10 w-10 object-contain rounded-lg group-hover:shadow-lg transition-all duration-200"
+              className="h-14 w-14 object-contain rounded-lg group-hover:shadow-lg transition-all duration-200"
             />
-            <div>
-              <span className="text-xl font-semibold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
-                FinEdu
-              </span>
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                Finansal Eğitim Platformu
-              </p>
-            </div>
           </Link>
 
           {userName && (
