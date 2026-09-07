@@ -1,5 +1,6 @@
-import { GraduationCap, LogOut, User, Flame } from "lucide-react";
+import { LogOut, User, Flame } from "lucide-react";
 import { Link } from "react-router";
+import logo from "../../assets/logo.jpeg";
 
 interface NavbarProps {
   userName?: string;
@@ -13,9 +14,11 @@ export function Navbar({ userName, onLogout, streakDays }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/dashboard" className="flex items-center gap-2 group">
-            <div className="bg-gradient-to-br from-primary to-indigo-600 p-2 rounded-lg group-hover:shadow-lg transition-all duration-200">
-              <GraduationCap className="size-6 text-white" />
-            </div>
+            <img
+              src={logo}
+              alt="FinEdu logo"
+              className="h-10 w-10 object-contain rounded-lg group-hover:shadow-lg transition-all duration-200"
+            />
             <div>
               <span className="text-xl font-semibold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
                 FinEdu
