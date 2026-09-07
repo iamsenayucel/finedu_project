@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Bot, User, Loader2 } from 'lucide-react';
+import { X, Send, User, Loader2 } from 'lucide-react';
+import chatbotLogo from '../assets/chatbot_logo.png';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -104,8 +105,8 @@ export default function ChatBot() {
             {/* Header */}
             <div className="bg-gradient-to-r from-primary to-indigo-600 p-4 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="bg-white/20 rounded-full p-1.5">
-                  <Bot className="size-5 text-white" />
+                <div className="bg-white/20 rounded-full p-0.5">
+                  <img src={chatbotLogo} alt="FinEdu Asistanı" className="size-7 rounded-full object-cover" />
                 </div>
                 <div>
                   <p className="font-bold text-white text-sm">FinEdu Asistanı</p>
@@ -128,8 +129,8 @@ export default function ChatBot() {
                   className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   {msg.role === 'assistant' && (
-                    <div className="bg-primary/10 rounded-full p-1.5 flex-shrink-0 self-end">
-                      <Bot className="size-4 text-primary" />
+                    <div className="flex-shrink-0 self-end">
+                      <img src={chatbotLogo} alt="" className="size-7 rounded-full object-cover" />
                     </div>
                   )}
                   <div
@@ -151,8 +152,8 @@ export default function ChatBot() {
 
               {isLoading && (
                 <div className="flex gap-2 justify-start">
-                  <div className="bg-primary/10 rounded-full p-1.5 flex-shrink-0 self-end">
-                    <Bot className="size-4 text-primary" />
+                  <div className="flex-shrink-0 self-end">
+                    <img src={chatbotLogo} alt="" className="size-7 rounded-full object-cover" />
                   </div>
                   <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
                     <span className="size-1.5 bg-muted-foreground/60 rounded-full animate-bounce [animation-delay:0ms]" />
@@ -197,7 +198,7 @@ export default function ChatBot() {
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.94 }}
         onClick={() => setIsOpen((v) => !v)}
-        className="bg-primary text-primary-foreground rounded-full p-4 shadow-2xl flex items-center justify-center transition-colors hover:bg-primary/90"
+        className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-2xl flex items-center justify-center transition-colors hover:bg-primary/90 size-16"
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
@@ -218,7 +219,7 @@ export default function ChatBot() {
               exit={{ rotate: -90, opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              <MessageCircle className="size-6" />
+              <img src={chatbotLogo} alt="Sohbet asistanını aç" className="size-full rounded-full object-cover" />
             </motion.span>
           )}
         </AnimatePresence>

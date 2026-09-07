@@ -388,14 +388,13 @@ export default function Dashboard() {
                 <Cloud className="pointer-events-none absolute top-4 right-8 size-16 text-white/70 sm:size-24" fill="currentColor" strokeWidth={0} />
                 <Cloud className="pointer-events-none absolute bottom-6 left-4 size-12 text-white/60 sm:size-20" fill="currentColor" strokeWidth={0} />
 
-                <div className="relative flex flex-col overflow-x-auto">
+                <div className="relative flex flex-col">
                   {roadmapRows.map((row, rowIndex) => {
                     const reversed = rowIndex % 2 === 1;
                     const isLastRow = rowIndex === roadmapRows.length - 1;
-                    const cardWidth = "w-44 sm:w-56 lg:w-64";
 
                     return (
-                      <div key={rowIndex} className="min-w-max">
+                      <div key={rowIndex}>
                         <div className={`flex items-center ${reversed ? "flex-row-reverse" : ""}`}>
                           {row.map((item, i) => {
                             const isLastInRow = i === row.length - 1;
@@ -409,7 +408,7 @@ export default function Dashboard() {
                                   initial={{ opacity: 0, y: 12 }}
                                   animate={{ opacity: 1, y: 0 }}
                                   transition={{ duration: 0.35, delay: 0.06 * (rowIndex * 3 + i) }}
-                                  className={`relative ${cardWidth} flex-shrink-0`}
+                                  className="relative min-w-0 flex-1"
                                 >
                                   {item.status === "current" && (
                                     <span className="absolute -top-3 left-4 z-10 whitespace-nowrap rounded-full bg-amber-500 px-2.5 py-1 text-[10px] font-bold text-white shadow-md">
@@ -421,7 +420,7 @@ export default function Dashboard() {
                                     disabled={item.status === "locked"}
                                     onClick={() => handleUnitClick(item.unit.id)}
                                     title={item.status === "locked" ? "Önceki üniteyi tamamlayınca açılır" : item.unit.title}
-                                    className={`relative flex w-full items-center gap-3 rounded-2xl border-2 p-3 sm:p-4 text-left shadow-md transition-all
+                                    className={`relative flex w-full items-center gap-2 sm:gap-3 rounded-2xl border-2 p-2.5 sm:p-4 text-left shadow-md transition-all
                                       ${item.status === "locked" ? "cursor-not-allowed border-border bg-muted/40 opacity-70" : "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg"}
                                       ${item.status === "completed" ? "border-emerald-300 bg-emerald-50" : ""}
                                       ${item.status === "current" ? "border-amber-300 bg-amber-50 ring-2 ring-amber-200" : ""}
@@ -462,7 +461,7 @@ export default function Dashboard() {
                                 </motion.div>
 
                                 {!isLastInRow && (
-                                  <div className="relative h-1.5 flex-1 min-w-[1.5rem] sm:min-w-[2.5rem]">
+                                  <div className="relative h-1.5 w-4 flex-shrink-0 sm:w-8 md:w-10">
                                     <div className={`h-full w-full rounded-full ${segmentActive ? "bg-gradient-to-r from-emerald-400 to-amber-400" : "bg-muted"}`} />
                                     {segmentActive && (
                                       <Coins className="absolute -top-4 left-1/2 size-4 -translate-x-1/2 text-amber-400 drop-shadow" />
@@ -475,14 +474,21 @@ export default function Dashboard() {
                         </div>
 
                         {!isLastRow && (
-                          <div className={`flex ${reversed ? "justify-start" : "justify-end"}`}>
-                            <div className={`flex ${cardWidth} flex-shrink-0 justify-center py-1`}>
-                              <div
-                                className={`h-8 sm:h-10 w-1.5 rounded-full ${
-                                  row[row.length - 1]?.status !== "locked" ? "bg-gradient-to-b from-emerald-400 to-amber-400" : "bg-muted"
-                                }`}
-                              />
-                            </div>
+                          <div className={`flex ${reversed ? "flex-row-reverse" : ""}`}>
+                            {row.map((_, i) => (
+                              <Fragment key={i}>
+                                <div className="flex min-w-0 flex-1 justify-center py-1">
+                                  {i === row.length - 1 && (
+                                    <div
+                                      className={`h-8 sm:h-10 w-1.5 rounded-full ${
+                                        row[row.length - 1]?.status !== "locked" ? "bg-gradient-to-b from-emerald-400 to-amber-400" : "bg-muted"
+                                      }`}
+                                    />
+                                  )}
+                                </div>
+                                {i < row.length - 1 && <div className="w-4 flex-shrink-0 sm:w-8 md:w-10" />}
+                              </Fragment>
+                            ))}
                           </div>
                         )}
                       </div>
