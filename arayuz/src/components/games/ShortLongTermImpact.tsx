@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -94,19 +94,25 @@ function StrategyPanel({ compact = false }: { compact?: boolean }) {
 
 // ── Bölüm 2: sürüklenebilir vaka kartı ────────────────────────────────────────
 
-function DraggableCase({ title, scenario, shake }: { title: string; scenario: string; shake: boolean }) {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: DRAG_TYPE,
-    item: {},
-    collect: (m) => ({ isDragging: m.isDragging() }),
-  }));
+function DraggableCase({ title, scenario, shake, disabled }: { title: string; scenario: string; shake: boolean; disabled: boolean }) {
+  const [{ isDragging }, drag] = useDrag(
+    () => ({
+      type: DRAG_TYPE,
+      item: {},
+      canDrag: () => !disabled,
+      collect: (m) => ({ isDragging: m.isDragging() }),
+    }),
+    [disabled]
+  );
 
   return (
     <motion.div animate={shake ? { x: [0, -10, 10, -10, 10, -5, 5, 0] } : {}} transition={{ duration: 0.5 }}>
       <div
         ref={drag as any}
         style={{ opacity: isDragging ? 0.3 : 1 }}
-        className="select-none cursor-grab active:cursor-grabbing bg-slate-800 rounded-2xl border-2 border-purple-400/60 shadow-2xl px-5 py-4 w-72"
+        className={`select-none bg-slate-800 rounded-2xl border-2 border-purple-400/60 shadow-2xl px-5 py-4 w-72 ${
+          disabled ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'
+        }`}
       >
         <p className="text-purple-300 text-xs font-black uppercase tracking-wider mb-1.5">{title}</p>
         <p className="text-slate-200 text-sm leading-relaxed">{scenario}</p>
@@ -119,16 +125,24 @@ function ImpactDropZone({
   option,
   onDrop,
   isOverState,
+  disabled,
 }: {
   option: (typeof IMPACT_OPTIONS)[number];
   onDrop: (answer: ImpactAnswer) => void;
   isOverState: 'idle' | 'correct' | 'wrong';
+  disabled: boolean;
 }) {
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: DRAG_TYPE,
-    drop: () => onDrop(option.id),
-    collect: (m) => ({ isOver: m.isOver() }),
-  }));
+  const [{ isOver }, drop] = useDrop(
+    () => ({
+      accept: DRAG_TYPE,
+      canDrop: () => !disabled,
+      drop: () => {
+        if (!disabled) onDrop(option.id);
+      },
+      collect: (m) => ({ isOver: m.isOver() }),
+    }),
+    [disabled, onDrop, option.id]
+  );
 
   const isShort = option.id === 'SHORT';
   const base = isShort
@@ -182,6 +196,7 @@ function ShortLongTermImpactGame({ onComplete, onBack }: ShortLongTermImpactProp
   const [p2Processing, setP2Processing] = useState(false);
   const [p2Shake, setP2Shake] = useState(false);
   const [p2History, setP2History] = useState<Part2Record[]>([]);
+  const p2ProcessingRef = useRef(false);
 
   const p1Case = PART1_CASES[p1Index];
   const p2Case = PART2_CASES[p2Index];
@@ -233,7 +248,8 @@ function ShortLongTermImpactGame({ onComplete, onBack }: ShortLongTermImpactProp
 
   // ── Part 2 handlers ──
   const handleP2Drop = (answer: ImpactAnswer) => {
-    if (p2Processing) return;
+    if (p2ProcessingRef.current) return;
+    p2ProcessingRef.current = true;
     setP2Processing(true);
     const correct = answer === p2Case.correctAnswer;
     setP2Feedback({ zone: answer, correct });
@@ -253,6 +269,7 @@ function ShortLongTermImpactGame({ onComplete, onBack }: ShortLongTermImpactProp
       setP2Feedback(null);
       setP2Shake(false);
       setP2Processing(false);
+      p2ProcessingRef.current = false;
       if (p2Index < PART2_CASES.length - 1) {
         setP2Index((i) => i + 1);
       } else {
@@ -643,6 +660,7 @@ function ShortLongTermImpactGame({ onComplete, onBack }: ShortLongTermImpactProp
                   option={IMPACT_OPTIONS[0]}
                   onDrop={handleP2Drop}
                   isOverState={p2Feedback?.zone === 'SHORT' ? (p2Feedback.correct ? 'correct' : 'wrong') : 'idle'}
+                  disabled={p2Processing}
                 />
 
                 <div className="flex flex-col items-center justify-center gap-3 flex-shrink-0">
@@ -655,7 +673,7 @@ function ShortLongTermImpactGame({ onComplete, onBack }: ShortLongTermImpactProp
                         exit={{ opacity: 0, scale: 0.85 }}
                         transition={{ duration: 0.25 }}
                       >
-                        <DraggableCase title={p2Case.title} scenario={p2Case.scenario} shake={p2Shake} />
+                        <DraggableCase title={p2Case.title} scenario={p2Case.scenario} shake={p2Shake} disabled={p2Processing} />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -666,6 +684,7 @@ function ShortLongTermImpactGame({ onComplete, onBack }: ShortLongTermImpactProp
                   option={IMPACT_OPTIONS[1]}
                   onDrop={handleP2Drop}
                   isOverState={p2Feedback?.zone === 'LONG' ? (p2Feedback.correct ? 'correct' : 'wrong') : 'idle'}
+                  disabled={p2Processing}
                 />
               </div>
 

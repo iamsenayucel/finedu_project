@@ -1,21 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Scale, BookOpen, CheckCircle, XCircle, X } from 'lucide-react';
+import { Scale, Clock, CheckCircle, XCircle } from 'lucide-react';
 import {
   ASSESSMENT_CASES,
   CLASSIFICATION_OPTIONS,
-  GLOSSARY_TERMS,
-  STRATEGY_TIPS,
   POINTS_PER_STAGE,
   TOTAL_CASES,
   TOTAL_STAGES,
   MAX_SCORE,
+  GAME_DURATION_MS,
+  LOW_TIME_THRESHOLD_MS,
   getPerformance,
   shuffleCases,
   type AssessmentCase,
   type Classification,
   type McAnswer,
 } from './data/investmentConsumptionCaseAssessmentData';
+
+function formatCountdown(ms: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
 
 interface InvestmentConsumptionCaseAssessmentProps {
   onComplete?: (score: number) => void;
@@ -35,54 +49,6 @@ interface StageRecord {
   feedback: string;
 }
 
-// ── Bilgi Merkezi (kavramlar + stratejiler) — ortak panel içeriği ────────────
-
-function GlossaryPanel({ compact = false }: { compact?: boolean }) {
-  return (
-    <div
-      className="rounded-2xl overflow-hidden border border-cyan-800/50 shadow-xl"
-      style={{ background: 'linear-gradient(160deg, #0c2535 0%, #0f172a 100%)' }}
-    >
-      <div className={`${compact ? 'px-4 py-3.5' : 'px-5 py-4'} border-b border-cyan-800/40`}>
-        <div className={`text-cyan-400 ${compact ? 'text-xs' : 'text-base'} font-black uppercase tracking-widest`}>
-          📖 Ekonomi Sözlüğü
-        </div>
-      </div>
-      <div className={`${compact ? 'px-4 py-3.5' : 'px-5 py-4'} flex flex-col gap-3.5 max-h-[420px] overflow-y-auto`}>
-        {GLOSSARY_TERMS.map((item, i) => (
-          <div key={i}>
-            <div className={`${compact ? 'text-sm' : 'text-base'} font-bold text-cyan-300 mb-1`}>{item.term}</div>
-            <div className={`${compact ? 'text-xs' : 'text-sm'} text-slate-400 leading-relaxed`}>{item.def}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function StrategyPanel({ compact = false }: { compact?: boolean }) {
-  return (
-    <div
-      className="rounded-2xl overflow-hidden border border-amber-800/50 shadow-xl"
-      style={{ background: 'linear-gradient(160deg, #1f1200 0%, #0f172a 100%)' }}
-    >
-      <div className={`${compact ? 'px-4 py-3.5' : 'px-5 py-4'} border-b border-amber-800/40`}>
-        <div className={`text-amber-400 ${compact ? 'text-xs' : 'text-base'} font-black uppercase tracking-widest`}>
-          🎯 Strateji Merkezi
-        </div>
-      </div>
-      <div className={`${compact ? 'px-4 py-3.5' : 'px-5 py-4'} flex flex-col gap-3.5 max-h-[420px] overflow-y-auto`}>
-        {STRATEGY_TIPS.map((tip, i) => (
-          <div key={i}>
-            <div className={`${compact ? 'text-sm' : 'text-base'} font-bold text-amber-300 mb-1`}>{tip.title}</div>
-            <div className={`${compact ? 'text-xs' : 'text-sm'} text-slate-400 leading-relaxed`}>{tip.desc}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack }: InvestmentConsumptionCaseAssessmentProps) {
@@ -99,10 +65,41 @@ export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack
   const [classifyConfirmed, setClassifyConfirmed] = useState(false);
   const [questionSelected, setQuestionSelected] = useState<McAnswer | null>(null);
   const [questionConfirmed, setQuestionConfirmed] = useState(false);
-  const [infoCenterOpen, setInfoCenterOpen] = useState(false);
+
+  // ── Sayaç: oyun başladığında çalışır, süre dolunca değerlendirme otomatik biter ──
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [nowTick, setNowTick] = useState<number>(() => Date.now());
+  const [usedMs, setUsedMs] = useState(0);
+  const [finishReason, setFinishReason] = useState<'timeout' | 'user'>('user');
+  const finalizedRef = useRef(false);
+
+  useEffect(() => {
+    if (stage !== 'case' || startedAt === null) return;
+    const interval = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [stage, startedAt]);
+
+  const elapsedMs = startedAt !== null ? nowTick - startedAt : 0;
+  const remainingMs = startedAt !== null ? Math.max(0, GAME_DURATION_MS - elapsedMs) : GAME_DURATION_MS;
 
   const currentCase = orderedCases[caseIndex];
   const lastRecord = history[history.length - 1];
+
+  const finalizeAssessment = (reason: 'timeout' | 'user') => {
+    if (finalizedRef.current) return;
+    finalizedRef.current = true;
+    setUsedMs(startedAt !== null ? Date.now() - startedAt : 0);
+    setFinishReason(reason);
+    if (onComplete) onComplete(score);
+    setStage('finished');
+  };
+
+  useEffect(() => {
+    if (stage === 'case' && startedAt !== null && remainingMs <= 0) {
+      finalizeAssessment('timeout');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remainingMs, stage]);
 
   const handleStart = () => {
     setOrderedCases(shuffleEnabled ? shuffleCases(ASSESSMENT_CASES) : ASSESSMENT_CASES);
@@ -116,6 +113,12 @@ export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack
     setClassifyConfirmed(false);
     setQuestionSelected(null);
     setQuestionConfirmed(false);
+    setUsedMs(0);
+    setFinishReason('user');
+    finalizedRef.current = false;
+    const start = Date.now();
+    setStartedAt(start);
+    setNowTick(start);
     setStage('case');
   };
 
@@ -190,8 +193,7 @@ export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack
       setCaseIndex(prev => prev + 1);
       setSubStage('classify');
     } else {
-      if (onComplete) onComplete(score);
-      setStage('finished');
+      finalizeAssessment('user');
     }
   };
 
@@ -207,6 +209,10 @@ export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack
     setClassifyConfirmed(false);
     setQuestionSelected(null);
     setQuestionConfirmed(false);
+    setStartedAt(null);
+    setUsedMs(0);
+    setFinishReason('user');
+    finalizedRef.current = false;
   };
 
   // ── INTRO ────────────────────────────────────────────────────────────────
@@ -219,13 +225,8 @@ export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-white mb-1">Yatırım mı, Tüketim mi? Vaka Değerlendirmesi ⚖️</h1>
           <p className="text-slate-400 text-sm">
-            Oyuna geçmeden önce Bilgi Merkezi'ni incele · 10 vaka × 2 aşama · Maks. {MAX_SCORE} puan · ~20 dk
+            10 vaka × 2 aşama · Maks. {MAX_SCORE} puan · Süre: {Math.round(GAME_DURATION_MS / 60000)} dk
           </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-5 mb-6">
-          <GlossaryPanel />
-          <StrategyPanel />
         </div>
 
         <div className="bg-slate-800/60 rounded-2xl p-5 border border-slate-600/50 mb-6 max-w-3xl mx-auto">
@@ -234,11 +235,11 @@ export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack
           </h3>
           <ul className="space-y-2 text-sm text-slate-300">
             {[
-              `Oyunda ${TOTAL_CASES} vaka bulunur. Her vakanın 2 aşaması vardır: önce senaryoyu "Yatırım Kutusu" ya da "Tüketim Kutusu" olarak sınıflandırırsın, sonra Ekonomi Sözlüğü / Strateji Merkezi'ne dayanan bir soruyu cevaplarsın.`,
+              `Oyunda ${TOTAL_CASES} vaka bulunur. Her vakanın 2 aşaması vardır: önce senaryoyu "Yatırım Kutusu" ya da "Tüketim Kutusu" olarak sınıflandırırsın, sonra bir soruyu cevaplarsın.`,
               `Bir seçim yapmadan sonraki aşamaya geçemezsin. Cevabını onayladıktan sonra seçimini değiştiremezsin.`,
               `Her doğru cevap ${POINTS_PER_STAGE} puan değerindedir, toplam ${TOTAL_STAGES} aşama × ${POINTS_PER_STAGE} puan = ${MAX_SCORE} puandır. Yanlış cevaplar puan kaybettirmez.`,
               `Sonuç ekranında ham puanın yanında (doğru sayısı / ${TOTAL_STAGES}) × 100 formülüyle hesaplanan başarı yüzdesi de gösterilir.`,
-              `Bilgi Merkezi'ni oyun boyunca istediğin an açabilirsin, bu puan kaybettirmez.`,
+              `Toplam süren ${Math.round(GAME_DURATION_MS / 60000)} dakikadır. Süre dolduğunda değerlendirme o ana kadarki puanınla otomatik olarak sona erer.`,
             ].map((rule, i) => (
               <li key={i} className="flex items-start gap-2">
                 <span className="text-blue-400 mt-0.5">•</span>
@@ -298,14 +299,17 @@ export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack
               </motion.div>
               <h2 className="text-3xl font-black text-white mb-1">Değerlendirme Tamamlandı!</h2>
               <p className={`text-xl font-bold mb-4 ${perf.color}`}>{perf.label}</p>
-              <p className="text-slate-400 text-sm mb-6">{perf.sub}</p>
+              <p className="text-slate-400 text-sm mb-1">{perf.sub}</p>
+              <p className="text-slate-500 text-xs mb-6">
+                {finishReason === 'timeout' ? 'Süre dolduğu için otomatik tamamlandı.' : 'Tarafınca tamamlandı.'}
+              </p>
               <div className="inline-block bg-white text-slate-900 text-4xl font-black py-3 px-10 rounded-full shadow-xl mb-3">
                 {score} / {MAX_SCORE} Puan
               </div>
               <p className="text-slate-300 text-lg font-bold">Başarı Yüzdesi: %{successRate}</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               <div className="bg-slate-800 rounded-xl p-3 border border-slate-700 text-center">
                 <p className="text-xl sm:text-2xl font-black text-emerald-400">{correctCount}</p>
                 <p className="text-slate-400 text-[10px] sm:text-xs mt-0.5">Doğru Cevap</p>
@@ -317,6 +321,10 @@ export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack
               <div className="bg-slate-800 rounded-xl p-3 border border-slate-700 text-center">
                 <p className="text-xl sm:text-2xl font-black text-blue-400">{history.length} / {TOTAL_STAGES}</p>
                 <p className="text-slate-400 text-[10px] sm:text-xs mt-0.5">Tamamlanan Aşama</p>
+              </div>
+              <div className="bg-slate-800 rounded-xl p-3 border border-slate-700 text-center">
+                <p className="text-xl sm:text-2xl font-black text-amber-400">{formatDuration(usedMs)}</p>
+                <p className="text-slate-400 text-[10px] sm:text-xs mt-0.5">Kullanılan Süre</p>
               </div>
             </div>
 
@@ -371,50 +379,44 @@ export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack
 
   // ── CASE SCREEN ─────────────────────────────────────────────────────────
   return (
-    <div className="w-full max-w-7xl mx-auto">
-      <div className="flex items-start gap-4">
+    <div className="w-full max-w-4xl mx-auto">
+      <div className="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
+        <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
 
-        {/* ── Left Panel: Ekonomi Sözlüğü (sticky, desktop) ── */}
-        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
-          <GlossaryPanel compact />
+        {/* Header */}
+        <div className="bg-slate-800 px-6 py-4 flex flex-wrap justify-between items-center gap-3 border-b border-slate-700">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Vaka</span>
+            <div className="flex gap-1.5">
+              {orderedCases.map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-2 w-8 rounded-full transition-all duration-300 ${
+                    i < caseIndex ? 'bg-emerald-500' : i === caseIndex ? 'bg-blue-400' : 'bg-slate-600'
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-slate-300 font-bold text-sm">{caseIndex + 1} / {orderedCases.length}</span>
+            <span className="text-slate-500 text-xs font-bold">· {subStage === 'classify' ? 'Aşama 1/2' : 'Aşama 2/2'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <motion.span
+              animate={remainingMs <= LOW_TIME_THRESHOLD_MS && remainingMs > 0 ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+              transition={{ repeat: remainingMs <= LOW_TIME_THRESHOLD_MS && remainingMs > 0 ? Infinity : 0, duration: 1 }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-black border ${
+                remainingMs <= LOW_TIME_THRESHOLD_MS ? 'bg-red-900/60 text-red-300 border-red-600/60' : 'bg-slate-700/60 text-slate-200 border-slate-600'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" /> {formatCountdown(remainingMs)}
+            </motion.span>
+            <div className="bg-blue-900/60 text-blue-300 px-4 py-1.5 rounded-full text-sm font-black border border-blue-700/60">
+              ⚖️ {score} puan
+            </div>
+          </div>
         </div>
 
-        {/* ── Center: Game card ── */}
-        <div className="flex-1 min-w-0">
-          <div className="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
-            <div className="h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
-
-            {/* Header */}
-            <div className="bg-slate-800 px-6 py-4 flex flex-wrap justify-between items-center gap-3 border-b border-slate-700">
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Vaka</span>
-                <div className="flex gap-1.5">
-                  {orderedCases.map((_, i) => (
-                    <div
-                      key={i}
-                      className={`h-2 w-8 rounded-full transition-all duration-300 ${
-                        i < caseIndex ? 'bg-emerald-500' : i === caseIndex ? 'bg-blue-400' : 'bg-slate-600'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="text-slate-300 font-bold text-sm">{caseIndex + 1} / {orderedCases.length}</span>
-                <span className="text-slate-500 text-xs font-bold">· {subStage === 'classify' ? 'Aşama 1/2' : 'Aşama 2/2'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setInfoCenterOpen(true)}
-                  className="flex items-center gap-1.5 bg-slate-700/60 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-full text-xs font-bold border border-slate-600 transition-colors lg:hidden"
-                >
-                  <BookOpen className="w-3.5 h-3.5" /> Bilgi Merkezi
-                </button>
-                <div className="bg-blue-900/60 text-blue-300 px-4 py-1.5 rounded-full text-sm font-black border border-blue-700/60">
-                  ⚖️ {score} puan
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6">
+        <div className="p-6">
               <AnimatePresence mode="wait">
                 {subStage === 'classify' ? (
                   <motion.div
@@ -615,49 +617,7 @@ export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack
                 )}
               </AnimatePresence>
             </div>
-          </div>
-        </div>{/* end center */}
-
-        {/* ── Right Panel: Strateji Merkezi (sticky, desktop) ── */}
-        <div className="w-64 hidden lg:block sticky top-4 flex-shrink-0">
-          <StrategyPanel compact />
-        </div>
-
-      </div>{/* end 3-col flex */}
-
-      {/* ── Bilgi Merkezi modal (mobil ve her an erişim için) ── */}
-      <AnimatePresence>
-        {infoCenterOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 overflow-y-auto"
-            onClick={() => setInfoCenterOpen(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-lg"
-            >
-              <div className="flex justify-end mb-2">
-                <button
-                  onClick={() => setInfoCenterOpen(false)}
-                  className="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-full border border-slate-700"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="flex flex-col gap-4">
-                <GlossaryPanel />
-                <StrategyPanel />
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 }

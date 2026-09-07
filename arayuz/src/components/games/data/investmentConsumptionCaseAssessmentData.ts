@@ -8,6 +8,8 @@ export const POINTS_PER_STAGE = 5;
 export const TOTAL_CASES = 10;
 export const TOTAL_STAGES = TOTAL_CASES * 2;
 export const MAX_SCORE = POINTS_PER_STAGE * TOTAL_STAGES;
+export const GAME_DURATION_MS = 20 * 60 * 1000;
+export const LOW_TIME_THRESHOLD_MS = 2 * 60 * 1000;
 
 export type Classification = 'YATIRIM' | 'TUKETIM';
 export type McAnswer = 'A' | 'B' | 'C';

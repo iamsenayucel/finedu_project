@@ -63,7 +63,7 @@ export const PART1_CASES: McCase[] = [
     scenario:
       'Uzun zamandır hayalini kurduğun bir bilgisayarı/bisikleti almak için para biriktiriyorsun. Ancak son günlerde her okul/iş çıkışında birikim kumbarandan para alıp pahalı atıştırmalıklar ve kahveler almaya başladın.',
     question: 'Bu alışkanlığının gelecekteki hedefine etkisi ne olur?',
-    correctAnswer: 'B',
+    correctAnswer: 'C',
     options: [
       {
         id: 'A',
@@ -73,15 +73,15 @@ export const PART1_CASES: McCase[] = [
       },
       {
         id: 'B',
-        label: 'Hedefine ulaşma süren aylar, belki de yıllar kadar uzar.',
-        feedback:
-          '"Damlaya damlaya göl olur" sözü tersine de işler; küçük ve önemsiz görünen harcamalar birleştiğinde en büyük hedeflerini bile geciktirebilir.',
-      },
-      {
-        id: 'C',
         label: 'Aldığın atıştırmalıklar zamanla değerlenip sana kar getirir.',
         feedback:
           'Yanılgı! Atıştırmalık veya kahve gibi tüketim harcamaları bir yatırım aracı değildir ve sana finansal bir getiri sağlamaz.',
+      },
+      {
+        id: 'C',
+        label: 'Hedefine ulaşma süren aylar, belki de yıllar kadar uzar.',
+        feedback:
+          '"Damlaya damlaya göl olur" sözü tersine de işler; küçük ve önemsiz görünen harcamalar birleştiğinde en büyük hedeflerini bile geciktirebilir.',
       },
     ],
   },
@@ -119,19 +119,19 @@ export const PART1_CASES: McCase[] = [
     scenario:
       'Vitrinde gördüğün marka bir tişörtü almak yerine, o parayı "beklenmedik durumlar" için ayırdın ve biriktirdin. Bir sonraki hafta telefonunu düşürdün ve ekranı kırıldı.',
     question: 'Kenara para ayırma kararın bu durumu nasıl etkiler?',
-    correctAnswer: 'B',
+    correctAnswer: 'A',
     options: [
       {
         id: 'A',
-        label: 'Tişörtü almadığım için ekran kırılmasaydı para boşa gitmiş olurdu.',
-        feedback:
-          'Farklı Bir Bakış Açısı! Kötü bir olay yaşanmasa bile birikim yapmak "boşa giden" bir para değildir, senin finansal güvencendir.',
-      },
-      {
-        id: 'B',
         label: 'Tamir masrafını karşılayacak bütçem olduğu için borca girmeden günlük hayatıma devam edebilirim.',
         feedback:
           'Mükemmel! Acil durum fonu tam olarak bunun içindir. Beklenmedik kriz anlarında seni borca girmekten koruyan en güçlü kalkan kendi birikimindir.',
+      },
+      {
+        id: 'B',
+        label: 'Tişörtü almadığım için ekran kırılmasaydı para boşa gitmiş olurdu.',
+        feedback:
+          'Farklı Bir Bakış Açısı! Kötü bir olay yaşanmasa bile birikim yapmak "boşa giden" bir para değildir, senin finansal güvencendir.',
       },
       {
         id: 'C',
@@ -147,7 +147,7 @@ export const PART1_CASES: McCase[] = [
     scenario:
       'Çok gitmek istediğin bir etkinlik için cebinde para yok. Bir arkadaşından borç aldın ve "haftaya öderim" diye söz verdin. Ancak haftaya eline geçecek net bir gelirin veya harçlığın yok.',
     question: 'Önümüzdeki hafta geldiğinde yaşayacağın en olası durum nedir?',
-    correctAnswer: 'B',
+    correctAnswer: 'C',
     options: [
       {
         id: 'A',
@@ -157,15 +157,15 @@ export const PART1_CASES: McCase[] = [
       },
       {
         id: 'B',
-        label: 'Borcumu ödeyemediğim için hem güvenilirliğim zedelenir hem de stres yaşarım.',
-        feedback:
-          'Kesinlikle! Gelecekteki gelirini net olarak bilmeden "nasılsa öderim" diyerek borçlanmak, zamanı geldiğinde büyük bir strese ve ikili ilişkilerde güven kaybına yol açar.',
-      },
-      {
-        id: 'C',
         label: 'Etkinliğe gittiğim için borcum kendiliğinden silinir.',
         feedback:
           'Yanlış Eşleştirme! Etkinliğe katılmak sadece anlık bir eğlencedir, arkadaşına olan finansal yükümlülüğünü (borcunu) ortadan kaldırmaz.',
+      },
+      {
+        id: 'C',
+        label: 'Borcumu ödeyemediğim için hem güvenilirliğim zedelenir hem de stres yaşarım.',
+        feedback:
+          'Kesinlikle! Gelecekteki gelirini net olarak bilmeden "nasılsa öderim" diyerek borçlanmak, zamanı geldiğinde büyük bir strese ve ikili ilişkilerde güven kaybına yol açar.',
       },
     ],
   },
