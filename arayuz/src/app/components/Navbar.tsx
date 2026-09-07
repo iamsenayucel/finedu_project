@@ -1,6 +1,6 @@
 import { LogOut, User, Flame } from "lucide-react";
 import { Link } from "react-router";
-import logo from "../../assets/logo.jpeg";
+import logo from "../../assets/logo.png";
 
 interface NavbarProps {
   userName?: string;

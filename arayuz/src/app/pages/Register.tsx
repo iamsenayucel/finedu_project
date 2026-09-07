@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { UserPlus, Mail, Lock, User, AlertCircle } from "lucide-react";
-import logo from "../../assets/logo.jpeg";
+import logo from "../../assets/logo.png";
 import { Button } from "../components/Button";
 import { Select } from "../components/Input";
 import { Card, CardBody } from "../components/Card";

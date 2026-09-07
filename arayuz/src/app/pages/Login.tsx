@@ -5,7 +5,7 @@ import { LogIn, User, Lock, AlertCircle } from "lucide-react";
 import { Button } from "../components/Button";
 import { Card, CardBody } from "../components/Card";
 import { motion } from "framer-motion";
-import logo from "../../assets/logo.jpeg";
+import logo from "../../assets/logo.png";
 
 const API_BASE = "https://finedu-project.onrender.com";
 
