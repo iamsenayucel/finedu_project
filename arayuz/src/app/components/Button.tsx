@@ -16,15 +16,15 @@ export function Button({
   className = "",
   ...props
 }: ButtonProps) {
-  const baseClasses = "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
-  
+  const baseClasses = "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
+
   const variantClasses = {
-    primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md",
-    success: "bg-success text-success-foreground hover:bg-success/90 shadow-sm hover:shadow-md",
-    info: "bg-info text-info-foreground hover:bg-info/90 shadow-sm hover:shadow-md",
-    warning: "bg-warning text-warning-foreground hover:bg-warning/90 shadow-sm hover:shadow-md",
+    primary: "bg-gradient-to-r from-primary to-info text-primary-foreground shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30 hover:brightness-105",
+    success: "bg-gradient-to-r from-success to-emerald-400 text-success-foreground shadow-md shadow-success/25 hover:shadow-lg hover:shadow-success/30 hover:brightness-105",
+    info: "bg-gradient-to-r from-info to-sky-300 text-info-foreground shadow-md shadow-info/25 hover:shadow-lg hover:shadow-info/30 hover:brightness-105",
+    warning: "bg-gradient-to-r from-warning to-amber-400 text-warning-foreground shadow-md shadow-warning/25 hover:shadow-lg hover:shadow-warning/30 hover:brightness-105",
     destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm hover:shadow-md",
-    outline: "border border-border bg-transparent hover:bg-muted",
+    outline: "border-2 border-primary/30 bg-transparent text-foreground hover:bg-primary/5 hover:border-primary/60",
     ghost: "hover:bg-muted",
   };
 

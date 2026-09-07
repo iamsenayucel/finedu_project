@@ -79,18 +79,26 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-sky-50 flex items-center justify-center p-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-blue-50 flex items-center justify-center p-4 py-12 relative overflow-hidden">
+      <div className="pointer-events-none absolute -top-24 -right-20 size-72 rounded-full bg-info/20 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 -left-20 size-80 rounded-full bg-primary/15 blur-3xl" />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-2xl"
+        className="w-full max-w-2xl relative"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center mb-4">
-            <img src={logo} alt="FinEdu logo" className="h-24 w-24 object-contain" />
-          </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent mb-2">
+          <motion.div
+            initial={{ scale: 0.8, rotate: -6 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ duration: 0.5, type: "spring" }}
+            className="inline-flex items-center justify-center mb-4"
+          >
+            <img src={logo} alt="FinEdu logo" className="h-24 w-24 object-contain drop-shadow-lg" />
+          </motion.div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-info bg-clip-text text-transparent mb-2">
             FinEdu'ya Katıl
           </h1>
           <p className="text-muted-foreground">

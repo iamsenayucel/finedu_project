@@ -276,10 +276,10 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Hoş geldin Kartı */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-            <Card variant="success" className="mb-8 overflow-visible">
+            <Card variant="info" className="mb-8 overflow-visible">
               <CardBody className="flex flex-col md:flex-row items-center gap-6">
-                <div className="bg-success/10 p-6 rounded-full shadow-inner">
-                  <Award className="size-16 text-success" />
+                <div className="bg-gradient-to-br from-primary to-info p-6 rounded-full shadow-lg shadow-primary/20">
+                  <Award className="size-16 text-white drop-shadow" />
                 </div>
                 <div className="flex-1 text-center md:text-left">
                   <h2 className="text-2xl font-bold text-foreground mb-2">
@@ -389,7 +389,7 @@ export default function Dashboard() {
                  Henüz senin seviyene uygun bir ünite eklenmemiş. Lütfen daha sonra tekrar kontrol et!
                </div>
             ) : (
-              <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-b from-indigo-50 via-primary/5 to-transparent p-4 sm:p-8">
+              <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-b from-sky-50 via-primary/5 to-transparent p-4 sm:p-8">
                 <div className="pointer-events-none absolute -top-16 -left-16 size-56 rounded-full bg-primary/10 blur-3xl" />
                 <div className="pointer-events-none absolute bottom-0 right-0 size-64 rounded-full bg-amber-200/20 blur-3xl" />
                 <Cloud className="pointer-events-none absolute top-4 right-8 size-16 text-white/70 sm:size-24" fill="currentColor" strokeWidth={0} />
