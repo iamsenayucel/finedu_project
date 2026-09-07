@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { GraduationCap, UserPlus, Mail, Lock, User, AlertCircle } from "lucide-react";
+import { UserPlus, Mail, Lock, User, AlertCircle } from "lucide-react";
+import logo from "../../assets/logo.jpeg";
 import { Button } from "../components/Button";
 import { Select } from "../components/Input";
 import { Card, CardBody } from "../components/Card";
@@ -87,9 +88,7 @@ export default function Register() {
       >
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <div className="bg-gradient-to-br from-primary to-indigo-600 p-4 rounded-2xl shadow-lg">
-              <GraduationCap className="size-12 text-white" />
-            </div>
+            <img src={logo} alt="FinEdu logo" className="h-24 w-24 object-contain" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent mb-2">
             FinEdu'ya Katıl

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { invalidateCache } from "../utils/apiCache";
-import { GraduationCap, LogIn, User, Lock, AlertCircle } from "lucide-react";
+import { LogIn, User, Lock, AlertCircle } from "lucide-react";
 import { Button } from "../components/Button";
 import { Card, CardBody } from "../components/Card";
 import { motion } from "framer-motion";
+import logo from "../../assets/logo.jpeg";
 
 const API_BASE = "https://finedu-project.onrender.com";
 
@@ -146,9 +147,7 @@ export default function Login() {
       >
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center mb-4">
-            <div className="bg-gradient-to-br from-primary to-indigo-600 p-4 rounded-2xl shadow-lg">
-              <GraduationCap className="size-12 text-white" />
-            </div>
+            <img src={logo} alt="FinEdu logo" className="h-24 w-24 object-contain" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent mb-2">
             FinEdu'ya Hoş Geldin
