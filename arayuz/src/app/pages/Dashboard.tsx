@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [progressDetails, setProgressDetails] = useState<any[]>([]);
   const [showBadgesModal, setShowBadgesModal] = useState(false);
   const [showScoresModal, setShowScoresModal] = useState(false);
+  const [supportPreference, setSupportPreference] = useState<any>(null);
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -88,6 +89,12 @@ export default function Dashboard() {
             }
           }
         }
+
+        const prefRes = await fetch("https://finedu-project.onrender.com/api/student/support-preference/", { headers });
+        if (prefRes.ok) {
+          const prefData = await prefRes.json();
+          setSupportPreference(prefData.preference);
+        }
       }
 
       setUser(meData.user);
@@ -143,7 +150,11 @@ export default function Dashboard() {
     navigate("/login");
   };
 
-  const handleUnitClick = (unitId: number) => {
+  const handleUnitClick = (unitId: number | string) => {
+    if (unitId === "values-bridge") {
+      navigate("/values-bridge");
+      return;
+    }
     navigate(`/unit/${unitId}`);
   };
 
@@ -218,6 +229,8 @@ export default function Dashboard() {
     const overallProgress = globalTotal === 0 ? 0 : Math.round((globalCompleted / globalTotal) * 100);
 
     // Roadmap: her ünite için ilerleme + kilit durumu (sıradaki tamamlanmamış ünite "current", sonrakiler "locked")
+    // Değerler Köprüsü her zaman yolun en sonunda, ayrı bir "bölüm" olarak yer alır ve
+    // yalnızca tüm eğitim üniteleri tamamlandığında açılır.
     const unitIconPool = [Landmark, LineChart, Coins, Scale, History, PieChart, CreditCard, Smartphone, ShieldCheck, HandCoins];
     const unitsWithStatus = (() => {
       const withProgress = units.map((unit) => {
@@ -234,10 +247,22 @@ export default function Dashboard() {
       });
       let currentIdx = withProgress.findIndex((u) => !u.completed);
       if (currentIdx === -1) currentIdx = withProgress.length;
-      return withProgress.map((u, idx) => ({
+      const withStatus = withProgress.map((u, idx) => ({
         ...u,
         status: u.completed ? "completed" : idx === currentIdx ? "current" : "locked",
       }));
+
+      const allUnitsCompleted = units.length > 0 && withProgress.every((u) => u.completed);
+      const valuesBridgeStatus = !allUnitsCompleted ? "locked" : supportPreference ? "completed" : "current";
+      withStatus.push({
+        unit: { id: "values-bridge", title: "Değerler Köprüsü" },
+        progress: valuesBridgeStatus === "completed" ? 100 : 0,
+        completed: valuesBridgeStatus === "completed",
+        status: valuesBridgeStatus,
+        isValuesBridge: true,
+      });
+
+      return withStatus;
     })();
     const roadmapRows: any[][] = [];
     for (let i = 0; i < unitsWithStatus.length; i += 3) {
@@ -351,24 +376,6 @@ export default function Dashboard() {
             </motion.div>
           </div>
 
-          {/* Değerler Köprüsü CTA */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.5 }} className="mb-8">
-            <Card className="border-rose-200 bg-gradient-to-br from-rose-50 to-pink-50">
-              <CardBody className="flex flex-col sm:flex-row items-center gap-4">
-                <div className="bg-rose-100 p-4 rounded-full flex-shrink-0">
-                  <Heart className="size-8 text-rose-600" />
-                </div>
-                <div className="flex-1 text-center sm:text-left">
-                  <h3 className="font-bold text-foreground mb-1">Değerler Köprüsü</h3>
-                  <p className="text-sm text-muted-foreground">Hangi kurumu desteklemek isterdin? Sosyal sorumluluk tercihini keşfet.</p>
-                </div>
-                <Button variant="outline" className="border-rose-300 text-rose-700 hover:bg-rose-100 flex-shrink-0" onClick={() => navigate("/values-bridge")}>
-                  <Heart className="size-4 mr-2" /> Değerler Köprüsüne Git
-                </Button>
-              </CardBody>
-            </Card>
-          </motion.div>
-
           {/* Dinamik Üniteler Listesi - Roadmap */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
@@ -400,7 +407,13 @@ export default function Dashboard() {
                             const isLastInRow = i === row.length - 1;
                             const nextItem = row[i + 1];
                             const segmentActive = !!nextItem && item.status !== "locked" && nextItem.status !== "locked";
-                            const Icon = unitIconPool[(rowIndex * 3 + i) % unitIconPool.length];
+                            const isVB = !!item.isValuesBridge;
+                            const Icon = isVB ? Heart : unitIconPool[(rowIndex * 3 + i) % unitIconPool.length];
+                            const vbTooltip = item.status === "locked"
+                              ? "Tüm eğitim ünitelerini tamamlayınca açılır"
+                              : item.status === "completed"
+                              ? "Sosyal sorumluluk tercihini gör ya da değiştir"
+                              : "Tebrikler, yolu tamamladın! Bağış yapmaya hak kazandın";
 
                             return (
                               <Fragment key={item.unit.id}>
@@ -411,25 +424,25 @@ export default function Dashboard() {
                                   className="relative min-w-0 flex-1"
                                 >
                                   {item.status === "current" && (
-                                    <span className="absolute -top-3 left-4 z-10 whitespace-nowrap rounded-full bg-amber-500 px-2.5 py-1 text-[10px] font-bold text-white shadow-md">
-                                      Devam Ediyor
+                                    <span className={`absolute -top-3 left-4 z-10 whitespace-nowrap rounded-full px-2.5 py-1 text-[10px] font-bold text-white shadow-md ${isVB ? "bg-rose-500" : "bg-amber-500"}`}>
+                                      {isVB ? "Bağışa Hak Kazandın" : "Devam Ediyor"}
                                     </span>
                                   )}
                                   <button
                                     type="button"
                                     disabled={item.status === "locked"}
                                     onClick={() => handleUnitClick(item.unit.id)}
-                                    title={item.status === "locked" ? "Önceki üniteyi tamamlayınca açılır" : item.unit.title}
+                                    title={isVB ? vbTooltip : (item.status === "locked" ? "Önceki üniteyi tamamlayınca açılır" : item.unit.title)}
                                     className={`relative flex w-full items-center gap-2 sm:gap-3 rounded-2xl border-2 p-2.5 sm:p-4 text-left shadow-md transition-all
                                       ${item.status === "locked" ? "cursor-not-allowed border-border bg-muted/40 opacity-70" : "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg"}
-                                      ${item.status === "completed" ? "border-emerald-300 bg-emerald-50" : ""}
-                                      ${item.status === "current" ? "border-amber-300 bg-amber-50 ring-2 ring-amber-200" : ""}
+                                      ${item.status === "completed" ? (isVB ? "border-rose-300 bg-rose-50" : "border-emerald-300 bg-emerald-50") : ""}
+                                      ${item.status === "current" ? (isVB ? "border-rose-300 bg-rose-50 ring-2 ring-rose-200" : "border-amber-300 bg-amber-50 ring-2 ring-amber-200") : ""}
                                     `}
                                   >
                                     <div className={`flex size-11 sm:size-12 flex-shrink-0 items-center justify-center rounded-xl shadow-inner
                                       ${item.status === "locked" ? "bg-muted-foreground/10" : ""}
-                                      ${item.status === "completed" ? "bg-gradient-to-br from-emerald-400 to-emerald-600" : ""}
-                                      ${item.status === "current" ? "bg-gradient-to-br from-amber-400 to-orange-500" : ""}
+                                      ${item.status === "completed" ? (isVB ? "bg-gradient-to-br from-rose-400 to-pink-600" : "bg-gradient-to-br from-emerald-400 to-emerald-600") : ""}
+                                      ${item.status === "current" ? (isVB ? "bg-gradient-to-br from-rose-400 to-pink-500" : "bg-gradient-to-br from-amber-400 to-orange-500") : ""}
                                     `}>
                                       {item.status === "locked" ? (
                                         <Lock className="size-5 text-muted-foreground/50" />
@@ -441,15 +454,21 @@ export default function Dashboard() {
                                       <p className={`truncate text-sm sm:text-base font-bold ${item.status === "locked" ? "text-muted-foreground/60" : "text-foreground"}`}>
                                         {item.unit.title}
                                       </p>
-                                      <span className={`flex items-center gap-1 text-[11px] sm:text-xs font-semibold ${item.status === "completed" ? "text-emerald-600" : item.status === "current" ? "text-amber-600" : "text-muted-foreground/50"}`}>
-                                        {item.status === "completed" ? "Tamamlandı" : item.status === "current" ? `%${item.progress} tamamlandı` : (
-                                          <span className="flex items-center gap-1"><Lock className="size-2.5" /> Kilitli</span>
+                                      <span className={`flex items-center gap-1 text-[11px] sm:text-xs font-semibold ${item.status === "completed" ? (isVB ? "text-rose-600" : "text-emerald-600") : item.status === "current" ? (isVB ? "text-rose-600" : "text-amber-600") : "text-muted-foreground/50"}`}>
+                                        {isVB ? (
+                                          item.status === "completed" ? "Tercihin kaydedildi" : item.status === "current" ? "Bağış yapmaya hak kazandın!" : (
+                                            <span className="flex items-center gap-1"><Lock className="size-2.5" /> Kilitli</span>
+                                          )
+                                        ) : (
+                                          item.status === "completed" ? "Tamamlandı" : item.status === "current" ? `%${item.progress} tamamlandı` : (
+                                            <span className="flex items-center gap-1"><Lock className="size-2.5" /> Kilitli</span>
+                                          )
                                         )}
                                       </span>
                                     </div>
                                     {item.status === "completed" && (
                                       <span className="absolute -top-2 -right-2 rounded-full bg-white p-0.5 shadow">
-                                        <CheckCircle2 className="size-5 text-emerald-500" />
+                                        <CheckCircle2 className={`size-5 ${isVB ? "text-rose-500" : "text-emerald-500"}`} />
                                       </span>
                                     )}
                                     {item.status === "locked" && (
