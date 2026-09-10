@@ -223,8 +223,8 @@ export default function InvestmentConsumptionCaseAssessment({ onComplete, onBack
           <div className="inline-flex items-center gap-2 bg-gradient-to-br from-blue-600 to-purple-600 p-3 rounded-2xl mb-4 shadow-lg">
             <Scale className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-black text-white mb-1">Yatırım mı, Tüketim mi? Vaka Değerlendirmesi ⚖️</h1>
-          <p className="text-slate-400 text-sm">
+          <h1 className="text-2xl md:text-3xl font-black text-foreground mb-1">Yatırım mı, Tüketim mi? Vaka Değerlendirmesi ⚖️</h1>
+          <p className="text-muted-foreground text-sm">
             10 vaka × 2 aşama · Maks. {MAX_SCORE} puan · Süre: {Math.round(GAME_DURATION_MS / 60000)} dk
           </p>
         </div>

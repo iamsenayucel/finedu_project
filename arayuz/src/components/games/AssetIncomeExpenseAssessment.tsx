@@ -165,8 +165,8 @@ export default function AssetIncomeExpenseAssessment({ onComplete, onBack }: Ass
           <div className="inline-flex items-center gap-2 bg-gradient-to-br from-blue-600 to-purple-600 p-3 rounded-2xl mb-4 shadow-lg">
             <Wallet className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-black text-white mb-1">Senin Varlığın Ne Üretiyor? 💻</h1>
-          <p className="text-slate-400 text-sm">
+          <h1 className="text-2xl md:text-3xl font-black text-foreground mb-1">Senin Varlığın Ne Üretiyor? 💻</h1>
+          <p className="text-muted-foreground text-sm">
             Oyuna geçmeden önce Bilgi Merkezi'ni incele · 10 vaka · Maks. {MAX_SCORE} puan
           </p>
         </div>

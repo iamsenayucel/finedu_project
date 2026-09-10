@@ -12,9 +12,10 @@ from .models import (
     CustomUser, Unit, Subtopic, Content, UserProgress, Classroom, UserBadge,
     SurveyResponse, SurveyStatus, SupportOrganization, StudentSupportPreference,
 )
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from .serializers import UserSerializer, UnitSerializer, SupportOrganizationSerializer, StudentSupportPreferenceSerializer
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import AllowAny
@@ -682,8 +683,13 @@ def api_admin_report_view(request):
     })
 
 
+class ChatbotRateThrottle(UserRateThrottle):
+    scope = 'chatbot'
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([ChatbotRateThrottle])
 def api_chatbot_view(request):
     import requests as http_requests
     import os
@@ -725,7 +731,7 @@ def api_chatbot_view(request):
                 'max_tokens': 400,
                 'temperature': 0.7,
             },
-            timeout=30,
+            timeout=15,
         )
 
         if resp.status_code != 200:

@@ -245,10 +245,10 @@ export default function UnitDetail() {
       <AnimatePresence>
         {notification && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-white font-semibold text-sm ${notification.badge ? 'bg-yellow-500' : 'bg-green-600'}`}
+            exit={{ opacity: 0, y: -50 }}
+            className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-white font-semibold text-sm ${notification.badge ? 'bg-yellow-500' : 'bg-green-600'}`}
           >
             {notification.msg}
           </motion.div>

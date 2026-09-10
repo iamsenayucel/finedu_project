@@ -23,12 +23,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-nid!p@121jji@!s&t#zuqe_c%%3z$^_5)#2iv06t5vnvpe!3sw'
+# Render'da SECRET_KEY ortam değişkeni tanımlıysa o kullanılır; tanımlı
+# değilse (yerel geliştirme) eski gömülü anahtara düşer.
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-nid!p@121jji@!s&t#zuqe_c%%3z$^_5)#2iv06t5vnvpe!3sw',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Varsayılan False (güvenli); yerel geliştirmede terminalde
+# `DEBUG=True` set edip runserver'ı öyle çalıştırabilirsin.
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
+# Render'da ALLOWED_HOSTS ortam değişkeni tanımlıysa onu, değilse yerel
+# geliştirme + bilinen prod backend adresini kullan.
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1,finedu-project.onrender.com',
+).split(',')
 
 
 # Application definition
@@ -136,13 +148,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-CORS_ALLOW_ALL_ORIGINS = True
+# Render'da CORS_ALLOWED_ORIGINS ortam değişkeni tanımlıysa onu, değilse
+# yerel geliştirme + prod Vercel adresini kullan. Yeni bir domain eklenirse
+# (özel domain vb.) Render'da ortam değişkeniyle override edilebilir.
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    'CORS_ALLOWED_ORIGINS',
+    'http://localhost:5173,https://finedu-project.vercel.app',
+).split(',')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
+    'DEFAULT_THROTTLE_RATES': {
+        # Chatbot dış API'ye (OpenAI) senkron istek attığı için kullanıcı
+        # başına sınırlanmazsa tek worker'ı art arda isteklerle kilitleyebilir.
+        'chatbot': '5/min',
+    },
 }
 
 # settings.py dosyasının en altı

@@ -165,8 +165,8 @@ export default function CreditCardAwareness({ onComplete, onBack }: CreditCardAw
           <div className="inline-flex items-center gap-2 bg-gradient-to-br from-blue-600 to-purple-600 p-3 rounded-2xl mb-4 shadow-lg">
             <CreditCard className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-black text-white mb-1">Bilinçli Kredi Kartı Kullanımı 💳</h1>
-          <p className="text-slate-400 text-sm">
+          <h1 className="text-2xl md:text-3xl font-black text-foreground mb-1">Bilinçli Kredi Kartı Kullanımı 💳</h1>
+          <p className="text-muted-foreground text-sm">
             Oyuna geçmeden önce Bilgi Merkezi'ni incele · 7 vaka · Maks. {MAX_SCORE} puan
           </p>
         </div>

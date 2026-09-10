@@ -386,8 +386,8 @@ export default function CreditCostAnalysis({ onComplete }: CreditCostAnalysisPro
     return (
       <div className="w-full max-w-5xl mx-auto">
         <div className="text-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-black text-white mb-1">Kredi Maliyeti Analizi 🧮</h1>
-          <p className="text-slate-400 text-sm">5 vaka · Her vakada 3 doğrulama · Toplam 100 puan</p>
+          <h1 className="text-2xl md:text-3xl font-black text-foreground mb-1">Kredi Maliyeti Analizi 🧮</h1>
+          <p className="text-muted-foreground text-sm">5 vaka · Her vakada 3 doğrulama · Toplam 100 puan</p>
         </div>
 
         <div className="rounded-2xl overflow-hidden border border-blue-700/50 shadow-xl bg-gradient-to-r from-blue-950 to-slate-900 mb-5 px-6 py-6 text-center">

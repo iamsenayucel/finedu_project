@@ -274,8 +274,8 @@ export default function RiskReturnTradeoff({ onComplete }: RiskReturnTradeoffPro
       <div className="w-full max-w-5xl mx-auto">
         {/* Kompakt başlık */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-black text-white mb-1">Mirasın Kaderi</h1>
-          <p className="text-slate-400 text-sm">
+          <h1 className="text-2xl md:text-3xl font-black text-foreground mb-1">Mirasın Kaderi</h1>
+          <p className="text-muted-foreground text-sm">
             Oyuna geçmeden önce sözlüğü ve stratejiyi incele · {QUESTIONS.length} karar · Maks. {MAX_SCORE} puan
           </p>
         </div>
