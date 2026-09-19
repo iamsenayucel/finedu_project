@@ -12,9 +12,6 @@ export function LandingNavbar() {
               alt="FinEdu logo"
               className="h-12 w-12 object-contain transition-transform duration-300 group-hover:scale-105"
             />
-            <span className="text-lg font-bold text-foreground tracking-tight hidden sm:inline">
-              FinEdu
-            </span>
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">

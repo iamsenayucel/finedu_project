@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, Play, CheckCircle2, Lock, Award, Sparkles } from "lucide-react";
+import { ArrowRight, Play, CheckCircle2, Lock, Award } from "lucide-react";
+import logo from "../../../assets/logo.png";
 
 const previewModules = [
   { title: "Bütçe Nedir?", type: "Video", status: "done" as const },
@@ -22,10 +23,11 @@ export function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="inline-flex items-center gap-2 bg-primary/8 text-primary px-3.5 py-1.5 rounded-full text-sm font-semibold mb-6">
-              <Sparkles className="size-4" />
-              Finansal Okuryazarlık Platformu
-            </div>
+            <img
+              src={logo}
+              alt="FinEdu logo"
+              className="h-20 w-20 object-contain mb-6"
+            />
 
             <h1 className="text-4xl sm:text-5xl font-bold leading-tight text-foreground mb-6">
               Finansal okuryazarlığını geliştir,{" "}
