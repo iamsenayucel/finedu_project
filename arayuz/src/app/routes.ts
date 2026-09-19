@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router";
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -10,7 +11,7 @@ import PostSurvey from "./pages/PostSurvey";
 import ValuesBridge from "./pages/ValuesBridge";
 
 export const router = createBrowserRouter([
-  { path: "/", Component: Login },
+  { path: "/", Component: Landing },
   { path: "/login", Component: Login },
   { path: "/register", Component: Register },
   { path: "/pre-survey", Component: PreSurvey },
