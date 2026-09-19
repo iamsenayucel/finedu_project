@@ -26,7 +26,7 @@ export function HeroSection() {
             <img
               src={logo}
               alt="FinEdu logo"
-              className="h-20 w-20 object-contain mb-6"
+              className="h-32 w-32 object-contain mb-6"
             />
 
             <h1 className="text-4xl sm:text-5xl font-bold leading-tight text-foreground mb-6">
