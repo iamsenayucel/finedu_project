@@ -855,6 +855,114 @@ def api_survey_reset_view(request, survey_type):
     return Response({'status': 'reset'})
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_admin_survey_results_view(request, survey_type):
+    if request.user.role != 'ADMIN':
+        return Response({'error': 'Yetkiniz yok'}, status=403)
+    if survey_type not in VALID_SURVEY_TYPES:
+        return Response({'error': 'Geçersiz anket tipi.'}, status=400)
+
+    statuses = SurveyStatus.objects.filter(survey_type=survey_type).select_related('student')
+
+    student_query = request.query_params.get('student')
+    if student_query:
+        statuses = statuses.filter(
+            Q(student__first_name__icontains=student_query) |
+            Q(student__last_name__icontains=student_query) |
+            Q(student__email__icontains=student_query) |
+            Q(student__student_code__icontains=student_query)
+        )
+
+    grade_level = request.query_params.get('grade_level')
+    if grade_level:
+        statuses = statuses.filter(student__grade_level=grade_level)
+
+    completed_only = request.query_params.get('completed_only')
+    if completed_only == 'true':
+        statuses = statuses.filter(is_completed=True)
+
+    statuses = statuses.order_by('-completed_at')
+
+    try:
+        page = max(1, int(request.query_params.get('page', 1)))
+    except (TypeError, ValueError):
+        page = 1
+    try:
+        page_size = min(100, max(1, int(request.query_params.get('page_size', 20))))
+    except (TypeError, ValueError):
+        page_size = 20
+
+    total_count = statuses.count()
+    start = (page - 1) * page_size
+    page_items = list(statuses[start:start + page_size])
+
+    responses = SurveyResponse.objects.filter(
+        survey_type=survey_type,
+        student_id__in=[s.student_id for s in page_items],
+    ).values('student_id', 'question_id', 'selected_option')
+    answers_by_student: dict = {}
+    for r in responses:
+        answers_by_student.setdefault(r['student_id'], {})[r['question_id']] = r['selected_option']
+
+    results = [{
+        'student_id': s.student_id,
+        'student_name': f"{s.student.first_name} {s.student.last_name}".strip() or s.student.username,
+        'student_email': s.student.email,
+        'student_code': s.student.student_code,
+        'grade_level': s.student.grade_level,
+        'is_completed': s.is_completed,
+        'completed_at': s.completed_at.isoformat() if s.completed_at else None,
+        'answers': answers_by_student.get(s.student_id, {}),
+    } for s in page_items]
+
+    return Response({
+        'results': results,
+        'count': total_count,
+        'page': page,
+        'page_size': page_size,
+        'total_pages': (total_count + page_size - 1) // page_size if total_count else 0,
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_admin_survey_stats_view(request, survey_type):
+    if request.user.role != 'ADMIN':
+        return Response({'error': 'Yetkiniz yok'}, status=403)
+    if survey_type not in VALID_SURVEY_TYPES:
+        return Response({'error': 'Geçersiz anket tipi.'}, status=400)
+
+    total_started = SurveyStatus.objects.filter(survey_type=survey_type).count()
+    total_completed = SurveyStatus.objects.filter(survey_type=survey_type, is_completed=True).count()
+
+    completed_student_ids = SurveyStatus.objects.filter(
+        survey_type=survey_type, is_completed=True
+    ).values_list('student_id', flat=True)
+
+    option_counts = (
+        SurveyResponse.objects
+        .filter(survey_type=survey_type, student_id__in=completed_student_ids)
+        .values('question_id', 'selected_option')
+        .annotate(count=Count('id'))
+        .order_by('question_id', 'selected_option')
+    )
+
+    by_question: dict = {}
+    for row in option_counts:
+        by_question.setdefault(row['question_id'], []).append({
+            'option': row['selected_option'],
+            'count': row['count'],
+        })
+
+    return Response({
+        'survey_type': survey_type,
+        'total_started': total_started,
+        'total_completed': total_completed,
+        'by_question': by_question,
+    })
+
+
 # --- DEĞERLER KÖPRÜSÜ / SOSYAL SORUMLULUK TERCİHİ API'LERİ ---
 # ÖNEMLİ: Bu modül gerçek bağış veya ödeme içermez. Öğrenci yalnızca
 # "hangi kurumu desteklemek isterdim" sorusuna cevap veren bir tercih kaydeder.

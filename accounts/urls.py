@@ -24,6 +24,8 @@ from .views import (
     api_survey_answer_view,
     api_survey_complete_view,
     api_survey_reset_view,
+    api_admin_survey_results_view,
+    api_admin_survey_stats_view,
     api_support_organizations_view,
     api_student_support_preference_view,
     api_admin_support_preferences_view,
@@ -66,6 +68,8 @@ urlpatterns = [
     path('survey/<str:survey_type>/answer/', api_survey_answer_view, name='api_survey_answer'),
     path('survey/<str:survey_type>/complete/', api_survey_complete_view, name='api_survey_complete'),
     path('survey/<str:survey_type>/reset/', api_survey_reset_view, name='api_survey_reset'),
+    path('admin/survey-results/<str:survey_type>/', api_admin_survey_results_view, name='api_admin_survey_results'),
+    path('admin/survey-results/<str:survey_type>/stats/', api_admin_survey_stats_view, name='api_admin_survey_stats'),
 
     # --- DEĞERLER KÖPRÜSÜ / SOSYAL SORUMLULUK TERCİHİ ---
     path('support-organizations/', api_support_organizations_view, name='api_support_organizations'),

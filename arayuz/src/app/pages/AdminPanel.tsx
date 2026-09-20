@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router";
 import { getCached, setCached } from "../utils/apiCache";
 import { Navbar } from "../components/Navbar";
@@ -9,9 +9,10 @@ import {
   Plus, BookOpen, Video, Gamepad2, Users,
   Trash2, Edit, ChevronDown, ChevronRight, Layers, X, UserPlus,
   ArrowUp, ArrowDown, BarChart2, TrendingUp, AlertTriangle, Award, Activity,
-  Heart, ChevronLeft, Search
+  Heart, ChevronLeft, Search, ClipboardList
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { SURVEY_QUESTIONS_BY_TYPE } from "../data/surveyQuestions";
 
 const GAME_OPTIONS = [
   { value: "financial_detective", label: "🕵️‍♂️ Finansal Haber Dedektifi (10. Sınıf)" },
@@ -56,7 +57,7 @@ const GAME_OPTIONS = [
 
 export default function AdminPanel() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"units" | "users" | "reports" | "support">("units");
+  const [activeTab, setActiveTab] = useState<"units" | "users" | "reports" | "support" | "surveys">("units");
   
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [units, setUnits] = useState<any[]>([]);
@@ -98,6 +99,18 @@ export default function AdminPanel() {
   const [supportTotalPages, setSupportTotalPages] = useState(1);
   const [supportFilters, setSupportFilters] = useState({ organization: "", student: "", date_from: "", date_to: "" });
   const [supportFilterInput, setSupportFilterInput] = useState({ organization: "", student: "", date_from: "", date_to: "" });
+
+  // --- ÖN ANKET / SON ANKET SONUÇLARI STATE'LERİ ---
+  const [surveyType, setSurveyType] = useState<"pre_survey" | "post_survey">("pre_survey");
+  const [surveyStats, setSurveyStats] = useState<any>(null);
+  const [surveyStatsLoading, setSurveyStatsLoading] = useState(false);
+  const [surveyRows, setSurveyRows] = useState<any[]>([]);
+  const [surveyTableLoading, setSurveyTableLoading] = useState(false);
+  const [surveyPage, setSurveyPage] = useState(1);
+  const [surveyTotalPages, setSurveyTotalPages] = useState(1);
+  const [surveyFilters, setSurveyFilters] = useState({ student: "", grade_level: "", completed_only: false });
+  const [surveyFilterInput, setSurveyFilterInput] = useState({ student: "", grade_level: "", completed_only: false });
+  const [expandedSurveyStudentId, setExpandedSurveyStudentId] = useState<number | null>(null);
 
   const fetchData = async () => {
     const token = localStorage.getItem("token");
@@ -215,6 +228,62 @@ export default function AdminPanel() {
   const applySupportFilters = () => {
     setSupportPage(1);
     setSupportFilters(supportFilterInput);
+  };
+
+  const fetchSurveyStats = async (type: typeof surveyType) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    setSurveyStatsLoading(true);
+    try {
+      const res = await fetch(`https://finedu-project.onrender.com/api/admin/survey-results/${type}/stats/`, {
+        headers: { "Authorization": `Token ${token}` },
+      });
+      if (res.ok) setSurveyStats(await res.json());
+    } finally {
+      setSurveyStatsLoading(false);
+    }
+  };
+
+  const fetchSurveyResults = async (type: typeof surveyType, page: number, filters: typeof surveyFilters) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    setSurveyTableLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), page_size: "20" });
+      if (filters.student) params.set("student", filters.student);
+      if (filters.grade_level) params.set("grade_level", filters.grade_level);
+      if (filters.completed_only) params.set("completed_only", "true");
+
+      const res = await fetch(`https://finedu-project.onrender.com/api/admin/survey-results/${type}/?${params.toString()}`, {
+        headers: { "Authorization": `Token ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSurveyRows(data.results);
+        setSurveyTotalPages(data.total_pages || 1);
+      }
+    } finally {
+      setSurveyTableLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "surveys") fetchSurveyStats(surveyType);
+  }, [activeTab, surveyType]);
+
+  useEffect(() => {
+    if (activeTab === "surveys") fetchSurveyResults(surveyType, surveyPage, surveyFilters);
+  }, [activeTab, surveyType, surveyPage, surveyFilters]);
+
+  const applySurveyFilters = () => {
+    setSurveyPage(1);
+    setSurveyFilters(surveyFilterInput);
+  };
+
+  const handleSurveyTypeChange = (type: typeof surveyType) => {
+    setSurveyType(type);
+    setSurveyPage(1);
+    setExpandedSurveyStudentId(null);
   };
 
   const handleMove = async (type: "UNIT" | "SUBTOPIC" | "CONTENT", list: any[], index: number, direction: "UP" | "DOWN") => {
@@ -381,6 +450,9 @@ export default function AdminPanel() {
           </button>
           <button onClick={() => setActiveTab("support")} className={`px-6 py-3 font-medium transition-colors border-b-2 ${activeTab === "support" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
             <Heart className="size-4 inline mr-2" /> Sosyal Sorumluluk Tercihleri
+          </button>
+          <button onClick={() => setActiveTab("surveys")} className={`px-6 py-3 font-medium transition-colors border-b-2 ${activeTab === "surveys" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            <ClipboardList className="size-4 inline mr-2" /> Anket Sonuçları
           </button>
         </div>
 
@@ -1053,6 +1125,249 @@ export default function AdminPanel() {
                         <ChevronLeft className="size-4" />
                       </Button>
                       <Button variant="outline" size="sm" disabled={supportPage >= supportTotalPages} onClick={() => setSupportPage(p => p + 1)}>
+                        <ChevronRight className="size-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardBody>
+          </Card>
+        </div>
+      )}
+
+      {/* ÖN ANKET / SON ANKET SONUÇLARI SEKMESİ */}
+      {activeTab === "surveys" && (
+        <div className="space-y-6 px-4 md:px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
+            <div>
+              <h2 className="text-xl font-bold">Anket Sonuçları</h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Yeni kayıt olan öğrencilere uygulanan ön anket ve programı tamamlayanlara uygulanan son anket sonuçları.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-lg border border-border overflow-hidden">
+                <button
+                  onClick={() => handleSurveyTypeChange("pre_survey")}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${surveyType === "pre_survey" ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground"}`}
+                >
+                  Ön Anket
+                </button>
+                <button
+                  onClick={() => handleSurveyTypeChange("post_survey")}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${surveyType === "post_survey" ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground"}`}
+                >
+                  Son Anket
+                </button>
+              </div>
+              <button
+                onClick={() => { fetchSurveyStats(surveyType); fetchSurveyResults(surveyType, surveyPage, surveyFilters); }}
+                className="flex items-center gap-2 text-sm text-primary hover:underline font-medium"
+              >
+                <Activity className="size-4" /> Yenile
+              </button>
+            </div>
+          </div>
+
+          {surveyStatsLoading && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[...Array(3)].map((_, i) => <div key={i} className="h-24 rounded-xl animate-pulse bg-muted" />)}
+            </div>
+          )}
+
+          {surveyStats && !surveyStatsLoading && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="rounded-xl border-2 p-4 bg-indigo-50 border-indigo-200 text-indigo-700">
+                <div className="text-2xl mb-1">📝</div>
+                <div className="text-3xl font-black">{surveyStats.total_started}</div>
+                <div className="text-sm font-medium mt-1">Ankete Başlayan</div>
+              </div>
+              <div className="rounded-xl border-2 p-4 bg-emerald-50 border-emerald-200 text-emerald-700">
+                <div className="text-2xl mb-1">✅</div>
+                <div className="text-3xl font-black">{surveyStats.total_completed}</div>
+                <div className="text-sm font-medium mt-1">Anketi Tamamlayan</div>
+              </div>
+              <div className="rounded-xl border-2 p-4 bg-amber-50 border-amber-200 text-amber-700">
+                <div className="text-2xl mb-1">📊</div>
+                <div className="text-3xl font-black">
+                  {surveyStats.total_started ? Math.round((surveyStats.total_completed / surveyStats.total_started) * 100) : 0}%
+                </div>
+                <div className="text-sm font-medium mt-1">Tamamlama Oranı</div>
+              </div>
+            </div>
+          )}
+
+          {surveyStats && !surveyStatsLoading && surveyStats.total_completed > 0 && (
+            <Card>
+              <CardBody>
+                <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+                  <BarChart2 className="size-4 text-primary" /> Soru Bazlı Cevap Dağılımı
+                </h3>
+                <div className="space-y-5 max-h-96 overflow-y-auto pr-1">
+                  {(SURVEY_QUESTIONS_BY_TYPE[surveyType] || []).map((q) => {
+                    const rows: any[] = surveyStats.by_question?.[q.id] || [];
+                    const total = rows.reduce((sum, r) => sum + r.count, 0);
+                    return (
+                      <div key={q.id}>
+                        <p className="text-sm font-semibold mb-2">{q.text}</p>
+                        <div className="space-y-1.5">
+                          {q.options.map((opt) => {
+                            const row = rows.find((r) => r.option === opt.key);
+                            const count = row?.count || 0;
+                            const pct = total ? Math.round((count / total) * 100) : 0;
+                            return (
+                              <div key={opt.key}>
+                                <div className="flex justify-between text-xs mb-0.5">
+                                  <span className="text-muted-foreground truncate pr-2">{opt.key}) {opt.label}</span>
+                                  <span className="font-semibold text-foreground shrink-0">{count} · %{pct}</span>
+                                </div>
+                                <div className="h-1.5 bg-slate-100 rounded-full">
+                                  <div className="h-1.5 bg-indigo-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
+          {/* FİLTRELER */}
+          <Card>
+            <CardBody>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                <Input
+                  label="Öğrenci (ad, e-posta, kod)"
+                  placeholder="Ara..."
+                  value={surveyFilterInput.student}
+                  onChange={(e) => setSurveyFilterInput({ ...surveyFilterInput, student: e.target.value })}
+                />
+                <Select
+                  label="Eğitim Seviyesi"
+                  value={surveyFilterInput.grade_level}
+                  onChange={(e) => setSurveyFilterInput({ ...surveyFilterInput, grade_level: e.target.value })}
+                  options={[
+                    { value: "", label: "Tümü" },
+                    { value: "PRIMARY", label: "İlkokul" },
+                    { value: "MIDDLE", label: "Ortaokul" },
+                    { value: "HIGH", label: "Lise" },
+                    { value: "UNIVERSITY_FINANCE", label: "Üniv. (Finans)" },
+                    { value: "UNIVERSITY_GENERAL", label: "Üniv. (Genel)" },
+                  ]}
+                />
+                <label className="flex items-center gap-2 text-sm font-medium pb-2">
+                  <input
+                    type="checkbox"
+                    checked={surveyFilterInput.completed_only}
+                    onChange={(e) => setSurveyFilterInput({ ...surveyFilterInput, completed_only: e.target.checked })}
+                    className="size-4 rounded border-border"
+                  />
+                  Sadece tamamlananlar
+                </label>
+                <Button variant="primary" onClick={applySurveyFilters}>
+                  <Search className="size-4 mr-2" /> Filtrele
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* TABLO */}
+          <Card>
+            <CardBody className="p-0">
+              {surveyTableLoading ? (
+                <div className="p-6 space-y-2">
+                  {[...Array(5)].map((_, i) => <div key={i} className="h-10 rounded-lg animate-pulse bg-muted" />)}
+                </div>
+              ) : surveyRows.length === 0 ? (
+                <div className="text-center py-12">
+                  <ClipboardList className="size-12 mx-auto text-muted-foreground mb-3 opacity-30" />
+                  <p className="text-sm text-muted-foreground">Kriterlere uyan anket sonucu bulunamadı.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-muted/50 border-b border-border">
+                        <tr>
+                          <th className="px-6 py-3 font-semibold">Öğrenci</th>
+                          <th className="px-6 py-3 font-semibold">Seviye</th>
+                          <th className="px-6 py-3 font-semibold">Durum</th>
+                          <th className="px-6 py-3 font-semibold">Tamamlanma Tarihi</th>
+                          <th className="px-6 py-3 font-semibold text-right">Cevaplar</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {surveyRows.map((row: any) => (
+                          <Fragment key={row.student_id}>
+                            <tr className="hover:bg-muted/30">
+                              <td className="px-6 py-3">
+                                <div className="font-medium">{row.student_name}</div>
+                                <div className="text-xs text-muted-foreground">{row.student_email}</div>
+                              </td>
+                              <td className="px-6 py-3">
+                                {row.grade_level === 'PRIMARY' ? 'İlkokul' :
+                                 row.grade_level === 'MIDDLE' ? 'Ortaokul' :
+                                 row.grade_level === 'HIGH' ? 'Lise' :
+                                 row.grade_level === 'UNIVERSITY_FINANCE' ? 'Üniv. (Finans)' :
+                                 row.grade_level === 'UNIVERSITY_GENERAL' ? 'Üniv. (Genel)' : "-"}
+                              </td>
+                              <td className="px-6 py-3">
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${row.is_completed ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                                  {row.is_completed ? 'Tamamlandı' : 'Devam Ediyor'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-3 text-muted-foreground">
+                                {row.completed_at ? new Date(row.completed_at).toLocaleDateString('tr-TR') : "-"}
+                              </td>
+                              <td className="px-6 py-3 text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setExpandedSurveyStudentId(expandedSurveyStudentId === row.student_id ? null : row.student_id)}
+                                >
+                                  {expandedSurveyStudentId === row.student_id ? "Gizle" : "Göster"}
+                                  {expandedSurveyStudentId === row.student_id ? <ChevronDown className="size-4 ml-1" /> : <ChevronRight className="size-4 ml-1" />}
+                                </Button>
+                              </td>
+                            </tr>
+                            {expandedSurveyStudentId === row.student_id && (
+                              <tr>
+                                <td colSpan={5} className="px-6 py-4 bg-muted/10 border-t border-border">
+                                  <div className="space-y-3">
+                                    {(SURVEY_QUESTIONS_BY_TYPE[surveyType] || []).map((q) => {
+                                      const selected = row.answers?.[q.id];
+                                      const selectedLabel = q.options.find((o) => o.key === selected)?.label;
+                                      return (
+                                        <div key={q.id} className="text-sm">
+                                          <p className="font-medium text-foreground">{q.text}</p>
+                                          <p className={selected ? "text-primary font-semibold mt-0.5" : "text-muted-foreground italic mt-0.5"}>
+                                            {selected ? `${selected}) ${selectedLabel}` : "Cevaplanmadı"}
+                                          </p>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+                    <span className="text-xs text-muted-foreground">Sayfa {surveyPage} / {surveyTotalPages}</span>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" disabled={surveyPage <= 1} onClick={() => setSurveyPage(p => p - 1)}>
+                        <ChevronLeft className="size-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" disabled={surveyPage >= surveyTotalPages} onClick={() => setSurveyPage(p => p + 1)}>
                         <ChevronRight className="size-4" />
                       </Button>
                     </div>
