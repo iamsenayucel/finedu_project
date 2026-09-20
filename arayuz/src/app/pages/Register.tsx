@@ -217,10 +217,11 @@ export default function Register() {
                     onChange={(e) => setFormData({ ...formData, gradeLevel: e.target.value })}
                     options={[
                       { value: "", label: "Seçiniz" },
-                      { value: "İlkokul", label: "İlkokul" },
-                      { value: "Ortaokul", label: "Ortaokul" },
-                      { value: "Lise", label: "Lise" },
-                      { value: "Üniversite", label: "Üniversite" },
+                      { value: "PRIMARY", label: "İlkokul" },
+                      { value: "MIDDLE", label: "Ortaokul" },
+                      { value: "HIGH", label: "Lise" },
+                      { value: "UNIVERSITY_FINANCE", label: "Üniversite (Finans/İşletme)" },
+                      { value: "UNIVERSITY_GENERAL", label: "Üniversite (Genel)" },
                     ]}
                   />
                 )}
