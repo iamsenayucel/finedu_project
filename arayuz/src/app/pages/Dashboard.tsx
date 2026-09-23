@@ -1,5 +1,6 @@
 import { useState, useEffect, Fragment } from "react";
 import { getCached, setCached, invalidateCache } from "../utils/apiCache";
+import { API_BASE_URL, authHeaders, getAuthToken } from "../utils/api";
 import { useNavigate } from "react-router";
 import { Navbar } from "../components/Navbar";
 import { Card, CardHeader, CardBody } from "../components/Card";
@@ -49,15 +50,15 @@ export default function Dashboard() {
       return;
     }
 
-    const headers = { "Authorization": `Token ${token}`, "Content-Type": "application/json" };
+    const headers = authHeaders(true);
 
     try {
       const cachedMe = getCached("me");
 
       // me cache'deyse atla, progress her zaman taze çek
       const [meRes, progRes] = await Promise.all([
-        cachedMe ? Promise.resolve(null) : fetch("https://finedu-project.onrender.com/api/me/", { headers }),
-        fetch("https://finedu-project.onrender.com/api/progress/", { headers }),
+        cachedMe ? Promise.resolve(null) : fetch(`${API_BASE_URL}/api/me/`, { headers }),
+        fetch(`${API_BASE_URL}/api/progress/`, { headers }),
       ]);
 
       let meData = cachedMe;
@@ -66,7 +67,7 @@ export default function Dashboard() {
         setCached("me", meData);
       }
       if (meData.user.role === "STUDENT") {
-        const surveyRes = await fetch("https://finedu-project.onrender.com/api/survey/pre_survey/status/", { headers });
+        const surveyRes = await fetch(`${API_BASE_URL}/api/survey/pre_survey/status/`, { headers });
         if (surveyRes.ok) {
           const surveyData = await surveyRes.json();
           if (!surveyData.is_completed) {
@@ -80,7 +81,7 @@ export default function Dashboard() {
         const completedCount = meData.user.completed_count ?? 0;
         const totalContentCount = meData.user.total_content_count ?? 0;
         if (totalContentCount > 0 && completedCount >= totalContentCount) {
-          const postSurveyRes = await fetch("https://finedu-project.onrender.com/api/survey/post_survey/status/", { headers });
+          const postSurveyRes = await fetch(`${API_BASE_URL}/api/survey/post_survey/status/`, { headers });
           if (postSurveyRes.ok) {
             const postSurveyData = await postSurveyRes.json();
             if (!postSurveyData.is_completed) {
@@ -90,7 +91,7 @@ export default function Dashboard() {
           }
         }
 
-        const prefRes = await fetch("https://finedu-project.onrender.com/api/student/support-preference/", { headers });
+        const prefRes = await fetch(`${API_BASE_URL}/api/student/support-preference/`, { headers });
         if (prefRes.ok) {
           const prefData = await prefRes.json();
           setSupportPreference(prefData.preference);
@@ -125,17 +126,16 @@ export default function Dashboard() {
   };
 
   const fetchClassrooms = async (headers: any) => {
-    const classRes = await fetch("https://finedu-project.onrender.com/api/classrooms/", { headers });
+    const classRes = await fetch(`${API_BASE_URL}/api/classrooms/`, { headers });
     if (classRes.ok) setClassrooms(await classRes.json());
   };
 
   const fetchAnalytics = async (headers?: any) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!getAuthToken()) return;
     setIsLoadingAnalytics(true);
     try {
-      const h = headers || { "Authorization": `Token ${token}` };
-      const res = await fetch("https://finedu-project.onrender.com/api/analytics/", { headers: h });
+      const h = headers || authHeaders();
+      const res = await fetch(`${API_BASE_URL}/api/analytics/`, { headers: h });
       if (res.ok) setAnalytics(await res.json());
     } finally {
       setIsLoadingAnalytics(false);
@@ -161,34 +161,31 @@ export default function Dashboard() {
   // --- ÖĞRETMEN FONKSİYONLARI ---
   const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    const res = await fetch("https://finedu-project.onrender.com/api/classrooms/", {
-      method: "POST", headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
+    const res = await fetch(`${API_BASE_URL}/api/classrooms/`, {
+      method: "POST", headers: authHeaders(true),
       body: JSON.stringify(classForm)
     });
     if (res.ok) {
       setShowClassModal(false); setClassForm({ name: "", grade_level: "" });
-      fetchClassrooms({ "Authorization": `Token ${token}`, "Content-Type": "application/json" });
+      fetchClassrooms(authHeaders(true));
     }
   };
 
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    const res = await fetch(`https://finedu-project.onrender.com/api/classrooms/${selectedClassId}/add_student/`, {
-      method: "POST", headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
+    const res = await fetch(`${API_BASE_URL}/api/classrooms/${selectedClassId}/add_student/`, {
+      method: "POST", headers: authHeaders(true),
       body: JSON.stringify({ student_code: studentCode })
     });
     if (res.ok) {
-      fetchClassrooms({ "Authorization": `Token ${token}`, "Content-Type": "application/json" });
+      fetchClassrooms(authHeaders(true));
       setShowStudentModal(false);
-    } 
+    }
   };
 
   const handleStudentClick = async (studentId: number) => {
-    const token = localStorage.getItem("token");
-    const res = await fetch(`https://finedu-project.onrender.com/api/student/${studentId}/detail/`, {
-      headers: { "Authorization": `Token ${token}` }
+    const res = await fetch(`${API_BASE_URL}/api/student/${studentId}/detail/`, {
+      headers: authHeaders()
     });
     if (res.ok) {
       setStudentDetail(await res.json());
@@ -250,6 +247,7 @@ export default function Dashboard() {
       const withStatus = withProgress.map((u, idx) => ({
         ...u,
         status: u.completed ? "completed" : idx === currentIdx ? "current" : "locked",
+        isValuesBridge: false,
       }));
 
       const allUnitsCompleted = units.length > 0 && withProgress.every((u) => u.completed);

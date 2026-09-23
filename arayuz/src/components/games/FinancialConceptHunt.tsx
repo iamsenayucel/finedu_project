@@ -152,7 +152,6 @@ export default function FinancialConceptHunt({ onComplete, onBack }: FinancialCo
     return 'unanswered';
   };
 
-  const displayedAnswer = practiceAnswers[currentQuestion.id] ?? scoredAnswers[currentQuestion.id] ?? [];
 
   // Soru değişince taslak seçim, o soru için son onaylanmış cevaba döner (onaylanmamış değişiklikler atılır)
   useEffect(() => {

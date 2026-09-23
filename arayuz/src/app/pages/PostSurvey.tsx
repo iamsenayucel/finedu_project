@@ -5,8 +5,9 @@ import { Button } from "../components/Button";
 import { GraduationCap, ArrowRight, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { POST_SURVEY_QUESTIONS as QUESTIONS, POST_SURVEY_SECTION_TITLES as SECTION_TITLES } from "../data/surveyQuestions";
+import { API_BASE_URL } from "../utils/api";
 
-const API_BASE = "https://finedu-project.onrender.com";
+const API_BASE = API_BASE_URL;
 const SURVEY_TYPE = "post_survey";
 
 const COMPLETION_MESSAGE =

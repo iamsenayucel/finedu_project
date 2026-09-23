@@ -6,6 +6,7 @@ import { Button } from "../components/Button";
 import { Select } from "../components/Input";
 import { Card, CardBody } from "../components/Card";
 import { motion } from "framer-motion";
+import { API_BASE_URL } from "../utils/api";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ export default function Register() {
         grade_level: formData.role === "STUDENT" ? formData.gradeLevel : null,
       };
 
-      const response = await fetch("https://finedu-project.onrender.com/api/register/", {
+      const response = await fetch(`${API_BASE_URL}/api/register/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

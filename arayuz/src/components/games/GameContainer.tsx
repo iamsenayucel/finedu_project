@@ -1,42 +1,47 @@
-import React from 'react';
-import FinancialDetectiveGame from './FinancialDetectiveGame';
-import DragDropNeedsGame from './DragDropNeedsGame';
-import RiskHunter from './RiskHunter';
-import RealDataHunter from './RealDataHunter';
-import SpaceShoppingDepot from './SpaceShoppingDepot';
-import RiskReturnTradeoff from './RiskReturnTradeoff';
-import EconomicTerms from './EconomicTerms';
-import MoneyFlow from './MoneyFlow';
-import RevenueMatching from './RevenueMatching';
-import FutureChoice from './FutureChoice';
-import InvestmentMethods from './InvestmentMethods';
-import ScamDetector from './ScamDetector';
-import FinancialConceptHunt from './FinancialConceptHunt';
-import FinancialSystemQuest2 from './FinancialSystemQuest2';
-import IncomeTypeAssessment from './IncomeTypeAssessment';
-import MediaLiteracyAssessment from './MediaLiteracyAssessment';
-import CreditCardAwareness from './CreditCardAwareness';
-import CreditCostAnalysis from './CreditCostAnalysis';
-import InvestmentOrConsumption from './InvestmentOrConsumption';
-import InformationFilter from './InformationFilter';
-import MarketDetective from './MarketDetective';
-import PortfolioMaster from './PortfolioMaster';
-import LegalInvestmentAssessment from './LegalInvestmentAssessment';
-import LegalInvestmentAssessment2 from './LegalInvestmentAssessment2';
-import EconomicGlossary from './EconomicGlossary';
-import MediaGlossaryPuzzle from './MediaGlossaryPuzzle';
-import IncomeGlossaryPuzzle from './IncomeGlossaryPuzzle';
-import RiskGlossaryPuzzle from './RiskGlossaryPuzzle';
-import CreditFinancingGlossaryPuzzle from './CreditFinancingGlossaryPuzzle';
-import FraudHuntGlossaryPuzzle from './FraudHuntGlossaryPuzzle';
-import LegalInvestmentGlossaryPuzzle from './LegalInvestmentGlossaryPuzzle';
-import DebtCreditAssessmentGame from './DebtCreditAssessmentGame';
-import DebtCreditAssessmentGame2 from './DebtCreditAssessmentGame2';
-import AssetLiabilityGlossaryPuzzle from './AssetLiabilityGlossaryPuzzle';
-import AssetIncomeExpenseAssessment from './AssetIncomeExpenseAssessment';
-import ShortLongTermImpact from './ShortLongTermImpact';
-import ShortLongTermGlossaryPuzzle from './ShortLongTermGlossaryPuzzle';
-import InvestmentConsumptionCaseAssessment from './InvestmentConsumptionCaseAssessment';
+import React, { lazy, Suspense } from 'react';
+
+// Her oyun kendi chunk'ında lazy yükleniyor (MEASURED: statik import'larla bu
+// dosya tek başına ~931KB'lık bir chunk'a giriyordu, bkz. AŞAMA 4 bundle
+// analizi). Switch case yapısı ve her oyunun prop kontratı DEĞİŞMEDİ —
+// yalnızca "ne zaman indirilir" değişti.
+const FinancialDetectiveGame = lazy(() => import('./FinancialDetectiveGame'));
+const DragDropNeedsGame = lazy(() => import('./DragDropNeedsGame'));
+const RiskHunter = lazy(() => import('./RiskHunter'));
+const RealDataHunter = lazy(() => import('./RealDataHunter'));
+const SpaceShoppingDepot = lazy(() => import('./SpaceShoppingDepot'));
+const RiskReturnTradeoff = lazy(() => import('./RiskReturnTradeoff'));
+const EconomicTerms = lazy(() => import('./EconomicTerms'));
+const MoneyFlow = lazy(() => import('./MoneyFlow'));
+const RevenueMatching = lazy(() => import('./RevenueMatching'));
+const FutureChoice = lazy(() => import('./FutureChoice'));
+const InvestmentMethods = lazy(() => import('./InvestmentMethods'));
+const ScamDetector = lazy(() => import('./ScamDetector'));
+const FinancialConceptHunt = lazy(() => import('./FinancialConceptHunt'));
+const FinancialSystemQuest2 = lazy(() => import('./FinancialSystemQuest2'));
+const IncomeTypeAssessment = lazy(() => import('./IncomeTypeAssessment'));
+const MediaLiteracyAssessment = lazy(() => import('./MediaLiteracyAssessment'));
+const CreditCardAwareness = lazy(() => import('./CreditCardAwareness'));
+const CreditCostAnalysis = lazy(() => import('./CreditCostAnalysis'));
+const InvestmentOrConsumption = lazy(() => import('./InvestmentOrConsumption'));
+const InformationFilter = lazy(() => import('./InformationFilter'));
+const MarketDetective = lazy(() => import('./MarketDetective'));
+const PortfolioMaster = lazy(() => import('./PortfolioMaster'));
+const LegalInvestmentAssessment = lazy(() => import('./LegalInvestmentAssessment'));
+const LegalInvestmentAssessment2 = lazy(() => import('./LegalInvestmentAssessment2'));
+const EconomicGlossary = lazy(() => import('./EconomicGlossary'));
+const MediaGlossaryPuzzle = lazy(() => import('./MediaGlossaryPuzzle'));
+const IncomeGlossaryPuzzle = lazy(() => import('./IncomeGlossaryPuzzle'));
+const RiskGlossaryPuzzle = lazy(() => import('./RiskGlossaryPuzzle'));
+const CreditFinancingGlossaryPuzzle = lazy(() => import('./CreditFinancingGlossaryPuzzle'));
+const FraudHuntGlossaryPuzzle = lazy(() => import('./FraudHuntGlossaryPuzzle'));
+const LegalInvestmentGlossaryPuzzle = lazy(() => import('./LegalInvestmentGlossaryPuzzle'));
+const DebtCreditAssessmentGame = lazy(() => import('./DebtCreditAssessmentGame'));
+const DebtCreditAssessmentGame2 = lazy(() => import('./DebtCreditAssessmentGame2'));
+const AssetLiabilityGlossaryPuzzle = lazy(() => import('./AssetLiabilityGlossaryPuzzle'));
+const AssetIncomeExpenseAssessment = lazy(() => import('./AssetIncomeExpenseAssessment'));
+const ShortLongTermImpact = lazy(() => import('./ShortLongTermImpact'));
+const ShortLongTermGlossaryPuzzle = lazy(() => import('./ShortLongTermGlossaryPuzzle'));
+const InvestmentConsumptionCaseAssessment = lazy(() => import('./InvestmentConsumptionCaseAssessment'));
 
 interface GameContainerProps {
   gameCode: string;
@@ -191,7 +196,9 @@ export default function GameContainer({ gameCode, onComplete, onBack }: GameCont
       </div>
 
       {/* Oyunun Kendisi */}
-      {renderGame()}
+      <Suspense fallback={<div className="p-10 text-center text-slate-500">Oyun yükleniyor...</div>}>
+        {renderGame()}
+      </Suspense>
     </div>
   );
 }

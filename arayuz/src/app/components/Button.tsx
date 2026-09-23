@@ -1,7 +1,15 @@
 import { ReactNode, ButtonHTMLAttributes } from "react";
 import { motion } from "motion/react";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+// framer-motion'ın motion.button'a ilettiği event handler'ları (onDrag,
+// onAnimationStart, vb.) native ButtonHTMLAttributes ile aynı isimde ama
+// farklı imzaya sahip — bu yüzden çakışan handler'lar burada dışlanıyor.
+type NativeButtonProps = Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart" | "onAnimationEnd" | "onAnimationIteration"
+>;
+
+interface ButtonProps extends NativeButtonProps {
   children: ReactNode;
   variant?: "primary" | "success" | "info" | "warning" | "destructive" | "outline" | "ghost";
   size?: "sm" | "md" | "lg";

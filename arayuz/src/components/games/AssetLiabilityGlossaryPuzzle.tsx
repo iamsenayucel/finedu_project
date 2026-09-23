@@ -195,7 +195,6 @@ function AnswerChip({ word }: { word: WordDef }) {
   });
 
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <div ref={drag as any} style={{ opacity: isDragging ? 0.3 : 1 }} className="cursor-grab active:cursor-grabbing select-none">
       <div className="bg-white border-2 border-indigo-300 hover:border-indigo-500 hover:shadow-md text-indigo-700 font-black text-xs sm:text-sm px-3 py-2 rounded-xl shadow-sm transition-all whitespace-nowrap">
         {word.label}
@@ -226,7 +225,6 @@ function DefinitionSlot({
 
   return (
     <motion.div
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={drop as any}
       animate={wrongFlash ? { x: [0, -6, 6, -5, 5, 0] } : {}}
       transition={{ duration: 0.4 }}

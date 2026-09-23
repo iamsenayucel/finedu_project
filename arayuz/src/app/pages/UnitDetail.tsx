@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { getCached, setCached } from "../utils/apiCache";
+import { API_BASE_URL, authHeaders } from "../utils/api";
 import { Navbar } from "../components/Navbar";
 import { Card, CardHeader, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
@@ -45,14 +46,14 @@ export default function UnitDetail() {
 
     const fetchData = async () => {
       try {
-        const headers = { "Authorization": `Token ${token}`, "Content-Type": "application/json" };
+        const headers = authHeaders(true);
 
         // 3 isteği aynı anda başlat — sıralı değil paralel
         const cachedMe = getCached("me");
         const [meRes, unitRes, progressRes] = await Promise.all([
-          cachedMe ? Promise.resolve(null) : fetch("https://finedu-project.onrender.com/api/me/", { headers }),
-          fetch(`https://finedu-project.onrender.com/api/units/${unitId}/`, { headers }),
-          fetch("https://finedu-project.onrender.com/api/progress/", { headers }),
+          cachedMe ? Promise.resolve(null) : fetch(`${API_BASE_URL}/api/me/`, { headers }),
+          fetch(`${API_BASE_URL}/api/units/${unitId}/`, { headers }),
+          fetch(`${API_BASE_URL}/api/progress/`, { headers }),
         ]);
 
         let userData = cachedMe;
@@ -91,16 +92,15 @@ export default function UnitDetail() {
     setIsCompleting(true);
     
     try {
-      const token = localStorage.getItem("token");
       const payload: any = { content_id: contentId };
       // Puan varsa payload'a ekle!
       if (score !== undefined) {
          payload.score = score;
       }
 
-      const res = await fetch("https://finedu-project.onrender.com/api/progress/", {
+      const res = await fetch(`${API_BASE_URL}/api/progress/`, {
         method: "POST",
-        headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
+        headers: authHeaders(true),
         body: JSON.stringify(payload) // Artık sadece ID değil, gerekiyorsa puanı da yolluyoruz!
       });
 
@@ -279,7 +279,7 @@ export default function UnitDetail() {
                       videoUrl={
                         activeContent.video_file.startsWith('http') 
                           ? activeContent.video_file 
-                          : `https://finedu-project.onrender.com${activeContent.video_file}`
+                          : `${API_BASE_URL}${activeContent.video_file}`
                       } 
                       onComplete={() => {
                         markAsCompleted(activeContent.id);

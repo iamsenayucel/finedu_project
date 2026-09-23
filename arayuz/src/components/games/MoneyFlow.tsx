@@ -108,7 +108,6 @@ function DragCard({ cardId, fromZone, disabled, children }: {
     collect: m => ({ isDragging: m.isDragging() }),
   });
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <div ref={drag as any} className={isDragging ? 'opacity-30' : 'opacity-100'}
       style={{ cursor: disabled ? 'default' : 'grab' }}>
       {children}
@@ -125,7 +124,6 @@ function CardZone({ onDrop, className, children }: {
     collect: m => ({ isOver: m.isOver() }),
   });
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <div ref={drop as any} className={`${className ?? ''} transition-all ${isOver ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-slate-800' : ''}`}>
       {children}
     </div>
@@ -142,7 +140,6 @@ function DragStep({ stepId, fromSlot, disabled, children }: {
     collect: m => ({ isDragging: m.isDragging() }),
   });
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <div ref={drag as any} className={isDragging ? 'opacity-30' : 'opacity-100'}
       style={{ cursor: disabled ? 'default' : 'grab' }}>
       {children}
@@ -159,7 +156,6 @@ function StepSlot({ onDrop, className, children }: {
     collect: m => ({ isOver: m.isOver() }),
   });
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <div ref={drop as any} className={`${className ?? ''} transition-all ${isOver ? 'ring-2 ring-orange-400 ring-offset-2 ring-offset-slate-800' : ''}`}>
       {children}
     </div>
@@ -175,7 +171,6 @@ function CardPoolZone({ onDrop, className, children }: {
     collect: m => ({ isOver: m.isOver() }),
   });
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <div ref={drop as any} className={`${className ?? ''} transition-all ${isOver ? 'ring-2 ring-blue-400/60' : ''}`}>
       {children}
     </div>
@@ -191,7 +186,6 @@ function PoolZone({ onDrop, className, children }: {
     collect: m => ({ isOver: m.isOver() }),
   });
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <div ref={drop as any} className={`${className ?? ''} transition-all ${isOver ? 'ring-2 ring-orange-400/60' : ''}`}>
       {children}
     </div>

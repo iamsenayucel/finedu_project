@@ -1,5 +1,5 @@
-from rest_framework import viewsets
-from .serializers import UserSerializer, UnitSerializer, UserProgressSerializer
+import os
+import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from .forms import CustomUserCreationForm
@@ -15,26 +15,41 @@ from .models import (
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.throttling import UserRateThrottle
-from .serializers import UserSerializer, UnitSerializer, SupportOrganizationSerializer, StudentSupportPreferenceSerializer
+from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
+from rest_framework.authtoken.views import ObtainAuthToken
+from .serializers import (
+    UserSerializer, UnitSerializer, SupportOrganizationSerializer,
+    StudentSupportPreferenceSerializer, RegisterSerializer,
+    SubtopicCreateSerializer, ContentCreateSerializer, ContentUpdateSerializer,
+    ReorderSerializer,
+)
+from .permissions import IsAdmin, IsTeacher, IsStudent
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import AllowAny
-from django.db.models import Count, Sum, Avg, Q
+from django.db.models import Count, Sum, Avg, Q, Prefetch
 from django.db import transaction, IntegrityError
 from django.utils import timezone
 from datetime import timedelta
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer
+logger = logging.getLogger(__name__)
 
-class UnitViewSet(viewsets.ModelViewSet):
-    queryset = Unit.objects.all()
-    serializer_class = UnitSerializer
 
-class UserProgressViewSet(viewsets.ModelViewSet):
-    queryset = UserProgress.objects.all()
-    serializer_class = UserProgressSerializer
+class LoginRateThrottle(AnonRateThrottle):
+    # /api/login/ brute-force koruması. AnonRateThrottle IP'ye (get_ident)
+    # göre sınırlar ve yalnızca authenticate OLMAMIŞ istekleri sayar — login
+    # denemesi zaten her zaman anonim olduğu için bu tam uyuyor. Oran
+    # DEFAULT_THROTTLE_RATES['login'] içinde tanımlı (bkz. settings.py).
+    scope = 'login'
+
+
+class ThrottledObtainAuthToken(ObtainAuthToken):
+    # DRF'nin hazır obtain_auth_token view'ı class-based olduğu için
+    # @throttle_classes decorator'ı (function-based view'lar için) buraya
+    # uygulanamıyor; bu yüzden ince bir alt sınıf ile throttle_classes
+    # ekleniyor. Davranışın geri kalanı (kimlik doğrulama, token üretimi)
+    # ObtainAuthToken'dan değişmeden miras alınıyor.
+    throttle_classes = [LoginRateThrottle]
+
 
     # Yeni Kullanıcı Kayıt Sayfası
 def register_view(request):
@@ -49,30 +64,6 @@ def register_view(request):
         form = CustomUserCreationForm()
     
     return render(request, 'register.html', {'form': form})
-
-def dashboard_view(request):
-    # Eğer kullanıcı giriş yapmamışsa login'e at
-    if not request.user.is_authenticated:
-        return redirect('login')
-    
-    context = {}
-    
-    # EĞER GİREN KİŞİ ÖĞRENCİ İSE:
-    if request.user.role == 'STUDENT':
-        
-        # Filtreyi orijinal ve doğru haliyle bırakıyoruz
-        student_units = Unit.objects.filter(target_grade=request.user.grade_level)
-        context['units'] = student_units
-        
-        # --- TERMINALE YAZDIRMA (DEBUG) KISMI ---
-        print("\n" + "="*30)
-        print(f"Giriş Yapan: {request.user.username}")
-        print(f"Öğrencinin Veritabanındaki Seviyesi: {request.user.grade_level}")
-        print(f"Bulunan Üniteler: {student_units}")
-        print("="*30 + "\n")
-        # ----------------------------------------
-        
-    return render(request, 'dashboard.html', context)
 
 # Kullanıcı Giriş Sayfası
 def login_view(request):
@@ -100,24 +91,16 @@ def dashboard_view(request):
     # Eğer giriş yapılmamışsa login'e gönder
     if not request.user.is_authenticated:
         return redirect('login')
-    
+
     context = {}
-    
+
     # EĞER GİREN KİŞİ ÖĞRENCİ İSE:
     if request.user.role == 'STUDENT':
-        
+
         # Öğrencinin seviyesine (İlkokul) uygun üniteleri filtrele
         student_units = Unit.objects.filter(target_grade=request.user.grade_level)
         context['units'] = student_units
-        
-        # --- TERMINALE YAZDIRMA (DEBUG) KISMI ---
-        print("\n" + "🌟"*10 + " HATA AYIKLAMA (DEBUG) " + "🌟"*10)
-        print(f"Giriş Yapan: {request.user.username}")
-        print(f"Öğrencinin Veritabanındaki Seviyesi: {request.user.grade_level}")
-        print(f"Filtrelenen Üniteler: {student_units}")
-        print("🌟"*25 + "\n")
-        # ----------------------------------------
-        
+
     return render(request, 'dashboard.html', context)
 
 def unit_detail_view(request, unit_id):
@@ -242,72 +225,115 @@ def api_units_view(request):
     elif request.method == 'POST':
         if request.user.role != 'ADMIN':
             return Response({'error': 'Yetkiniz yok'}, status=403)
-            
+
         serializer = UnitSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
         else:
-            print("Form Hatası:", serializer.errors) # Terminalde hatayı görmek için
             return Response(serializer.errors, status=400)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_users_view(request):
-    # Sadece adminler tüm kullanıcıları görebilir
-    if request.user.role != 'ADMIN':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
-        
     users = CustomUser.objects.all()
     serializer = UserSerializer(users, many=True)
     return Response(serializer.data)
 
 # Alt Başlık (Subtopic) Ekleme API'si
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_add_subtopic_view(request):
-    if request.user.role != 'ADMIN':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
+    serializer = SubtopicCreateSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+    data = serializer.validated_data
     try:
-        unit = Unit.objects.get(id=request.data.get('unitId'))
+        unit = Unit.objects.get(id=data['unitId'])
         subtopic = Subtopic.objects.create(
             unit=unit,
-            title=request.data.get('title'),
+            title=data['title'],
             order=1
         )
         return Response({'message': 'Alt başlık eklendi!', 'id': subtopic.id}, status=201)
     except Unit.DoesNotExist:
         return Response({'error': 'Ünite bulunamadı.'}, status=404)
-    except Exception as e:
-        return Response({'error': str(e)}, status=400)
+    except Exception:
+        logger.exception('Alt başlık eklenirken beklenmeyen hata oluştu.')
+        return Response({'error': 'Alt başlık eklenirken bir hata oluştu.'}, status=400)
+
+
+# Video yükleme kontratı: mevcut frontend (AdminPanel.tsx) <input type="file">
+# için accept="video/mp4,video/x-m4v,video/*" kullanıyor — yani en azından
+# mp4/m4v açıkça destekleniyor, "video/*" ile tarayıcı genel video türlerine
+# izin veriyor. Ürün için kesin/nihai format listesi başka bir yerde
+# belgelenmediğinden, bu genel web-uyumlu (HTML5 <video> ile oynatılabilen)
+# formatlarla sınırlı güvenli bir allow-list kullanılıyor. Format desteği
+# genişletilmek istenirse bu liste güncellenmelidir (OPEN QUESTION: nihai
+# ürün kararı repository dışında netleştirilmeli).
+ALLOWED_VIDEO_EXTENSIONS = {'.mp4', '.webm', '.mov', '.m4v'}
+ALLOWED_VIDEO_CONTENT_TYPES = {
+    'video/mp4', 'video/webm', 'video/quicktime', 'video/x-m4v',
+}
+# 100MB: repository içinde belgelenmiş bir ürün limiti yok (OPEN QUESTION).
+# Bu, tipik bir ders videosu için makul ama üst sınıra yakın olmayan,
+# muhafazakar bir varsayılan değerdir; kesin değer ürün kararı gerektirir.
+MAX_VIDEO_UPLOAD_BYTES = 100 * 1024 * 1024
+
+
+def _validate_video_file(video_file):
+    """Geçersizse kullanıcıya gösterilecek hata metnini, geçerliyse None döner.
+
+    NOT: content_type tarayıcı/istemci tarafından bildiriliyor, yani tek
+    başına güvenilir bir güvenlik sınırı değil — bu yüzden extension ve
+    boyut kontrolüyle birlikte katmanlı olarak kullanılıyor.
+    """
+    ext = os.path.splitext(video_file.name or '')[1].lower()
+    if ext not in ALLOWED_VIDEO_EXTENSIONS:
+        return 'Desteklenmeyen video formatı. İzin verilenler: ' + ', '.join(sorted(ALLOWED_VIDEO_EXTENSIONS))
+    if video_file.content_type not in ALLOWED_VIDEO_CONTENT_TYPES:
+        return 'Desteklenmeyen dosya türü.'
+    if video_file.size > MAX_VIDEO_UPLOAD_BYTES:
+        return f'Dosya çok büyük. Maksimum boyut: {MAX_VIDEO_UPLOAD_BYTES // (1024 * 1024)}MB.'
+    return None
+
 
 # İçerik (Video/Oyun) Ekleme API'si (GERÇEK DOSYA YÜKLEMELİ)
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_add_content_view(request):
-    if request.user.role != 'ADMIN':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
-    
-    data = request.data
+    serializer = ContentCreateSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+    data = serializer.validated_data
     try:
-        subtopic = Subtopic.objects.get(id=data.get('subtopicId'))
+        subtopic = Subtopic.objects.get(id=data['subtopicId'])
         video_file = request.FILES.get('video_file')
         game_code = data.get('game_code')
+
+        # Backend, frontend validation'ına güvenmez: video_file varsa
+        # sunucu tarafında da doğrulanır. Geçersiz dosya durumunda hiçbir
+        # Content satırı oluşturulmaz (bkz. AŞAMA 1 upload regression testleri).
+        if video_file is not None:
+            validation_error = _validate_video_file(video_file)
+            if validation_error:
+                return Response({'error': validation_error}, status=400)
 
         Content.objects.create(
             subtopic=subtopic,
             title=data.get('contentTitle'),
             content_type=data.get('contentType'),
-            video_file=video_file,  
+            video_file=video_file,
             game_code=game_code,
             order=1
         )
         return Response({'message': 'İçerik başarıyla eklendi!'}, status=201)
-        
+
     except Subtopic.DoesNotExist:
         return Response({'error': 'Seçilen alt başlık bulunamadı.'}, status=404)
-    except Exception as e:
-        return Response({'error': str(e)}, status=400)
+    except Exception:
+        logger.exception('İçerik eklenirken beklenmeyen hata oluştu.')
+        return Response({'error': 'İçerik eklenirken bir hata oluştu.'}, status=400)
     
     
 # Ünite Detay, Düzenleme ve Silme
@@ -338,47 +364,52 @@ def api_unit_detail_view(request, pk):
 
 # Alt Başlık Düzenleme ve Silme
 @api_view(['PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_subtopic_detail_view(request, pk):
-    if request.user.role != 'ADMIN': return Response(status=403)
     subtopic = get_object_or_404(Subtopic, pk=pk)
-    
+
     if request.method == 'PUT':
         subtopic.title = request.data.get('title', subtopic.title)
         subtopic.save()
         return Response({'message': 'Alt başlık güncellendi'})
-        
+
     elif request.method == 'DELETE':
         subtopic.delete()
         return Response(status=204)
 
 # İçerik Düzenleme ve Silme
 @api_view(['PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_content_detail_view(request, pk):
-    if request.user.role != 'ADMIN': return Response(status=403)
     content = get_object_or_404(Content, pk=pk)
-    
+
     if request.method == 'PUT':
-        content.title = request.data.get('contentTitle', content.title)
-        content.content_type = request.data.get('contentType', content.content_type)
-        content.video_url = request.data.get('videoUrl', content.video_url)
+        serializer = ContentUpdateSerializer(data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+        data = serializer.validated_data
+        if 'contentTitle' in data:
+            content.title = data['contentTitle']
+        if 'contentType' in data:
+            content.content_type = data['contentType']
+        # NOT: Content modelinde artık 'video_url' alanı yok (bkz. migration
+        # 0004_remove_content_video_url_content_video_file) — video yalnızca
+        # video_file üzerinden yönetiliyor. Var olmayan alana yazmak
+        # AttributeError/500 üretiyordu, bu satır bu yüzden kaldırıldı.
         # YENİ: Düzenleme yaparken de oyun kodunu güncelle
-        content.game_code = request.data.get('game_code', content.game_code)
+        if 'game_code' in data:
+            content.game_code = data['game_code']
         content.save()
         return Response({'message': 'İçerik güncellendi'})
-        
+
     elif request.method == 'DELETE':
         content.delete()
         return Response(status=204)
-    
+
 
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_user_detail_view(request, pk):
-    if request.user.role != 'ADMIN':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
-        
     user_to_delete = get_object_or_404(CustomUser, pk=pk)
     
     # Adminin yanlışlıkla kendisini silmesini engelliyoruz
@@ -388,49 +419,81 @@ def api_user_detail_view(request, pk):
     user_to_delete.delete()
     return Response(status=204)
 
-# KULLANICI KAYIT API'Sİ (Hem dışarıdan kayıt hem de Admin panelinden ekleme için)
+# KULLANICI KAYIT API'Sİ (Herkese açık kayıt — yalnızca STUDENT/TEACHER oluşturabilir)
 @api_view(['POST'])
 @permission_classes([AllowAny]) # Herkesin kayıt olabilmesi için açık bırakıyoruz
 def api_register_view(request):
-    data = request.data
+    # Güvenlik: role dahil hiçbir alan request.data'dan ham okunmaz. Role
+    # RegisterSerializer.PUBLIC_ROLES ile sınırlıdır — bu uç noktadan asla
+    # ADMIN hesabı oluşturulamaz.
+    serializer = RegisterSerializer(data=request.data)
+    if not serializer.is_valid():
+        first_error = next(iter(serializer.errors.values()))[0]
+        return Response({'error': str(first_error)}, status=400)
+
+    validated = serializer.validated_data
     try:
         # Yeni kullanıcıyı veritabanına güvenli şifreleme (make_password) ile ekliyoruz
         user = CustomUser.objects.create(
-            username=data.get('email'), # Kullanıcı adını e-posta olarak ayarlıyoruz
-            email=data.get('email'),
-            first_name=data.get('first_name', ''),
-            last_name=data.get('last_name', ''),
-            password=make_password(data.get('password')), # Şifreyi kriptoluyoruz
-            role=data.get('role', 'STUDENT'),
-            grade_level=data.get('grade_level')
+            username=validated['email'], # Kullanıcı adını e-posta olarak ayarlıyoruz
+            email=validated['email'],
+            first_name=validated.get('first_name', ''),
+            last_name=validated.get('last_name', ''),
+            password=make_password(validated['password']), # Şifreyi kriptoluyoruz
+            role=validated['role'],
+            grade_level=validated.get('grade_level'),
         )
         return Response({'message': 'Kullanıcı başarıyla oluşturuldu!', 'user_id': user.id}, status=201)
-    except Exception as e:
-        return Response({'error': str(e)}, status=400)
+    except Exception:
+        # Örn. e-posta zaten kayıtlıysa (username=email üzerinden unique
+        # constraint) burada IntegrityError yakalanır — ham DB hata metni
+        # (ör. "UNIQUE constraint failed: ...") istemciye asla sızdırılmaz.
+        logger.exception('Kullanıcı kaydı sırasında beklenmeyen hata oluştu.')
+        return Response({'error': 'Kayıt işlemi gerçekleştirilemedi.'}, status=400)
     
 
 # accounts/views.py dosyasındaki güncel Öğretmen ve Analiz Fonksiyonları
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsTeacher])
 def api_classrooms_view(request):
-    if request.user.role != 'TEACHER': return Response(status=403)
-    
     if request.method == 'GET':
-        classrooms = Classroom.objects.filter(teacher=request.user).order_by('-created_at')
+        # N+1 fix (AŞAMA 4, MEASURED: 3 öğrenci=12 sorgu, 20 öğrenci=63 sorgu
+        # — öğrenci başına 3 sorgu: completed count, grade seviyesine göre
+        # toplam içerik sayısı, total_score). Öğrenci başına sorgu yerine:
+        # - completed/total_score tek annotate edilmiş prefetch sorgusunda,
+        # - grade_level başına toplam içerik sayısı yalnızca bir kez
+        #   hesaplanıp (aynı seviyedeki tüm öğrenciler arasında paylaşılıp)
+        #   önbelleğe alınıyor.
+        classrooms = list(
+            Classroom.objects.filter(teacher=request.user).order_by('-created_at').prefetch_related(
+                Prefetch(
+                    'students',
+                    queryset=CustomUser.objects.annotate(
+                        completed_count=Count('userprogress', filter=Q(userprogress__is_completed=True), distinct=True),
+                        computed_total_score=Sum('userprogress__score'),
+                    ),
+                )
+            )
+        )
+
+        grade_levels = {s.grade_level for c in classrooms for s in c.students.all()}
+        content_count_by_grade = {
+            grade: Content.objects.filter(subtopic__unit__target_grade=grade).count()
+            for grade in grade_levels
+        }
+
         data = []
         for c in classrooms:
             students_data = []
             for s in c.students.all():
-                # DÜZELTME: user=s yerine student=s yapıldı
-                completed = UserProgress.objects.filter(student=s, is_completed=True).count()
-                total = Content.objects.filter(subtopic__unit__target_grade=s.grade_level).count()
-                prog = int((completed / total) * 100) if total > 0 else 0
-                
+                total = content_count_by_grade.get(s.grade_level, 0)
+                prog = int((s.completed_count / total) * 100) if total > 0 else 0
+
                 students_data.append({
                     'id': s.id, 'first_name': s.first_name, 'last_name': s.last_name,
                     'student_code': s.student_code, 'progress': prog,
-                    'total_score': s.total_score, 'streak_days': s.streak_days,
+                    'total_score': s.computed_total_score or 0, 'streak_days': s.streak_days,
                 })
             data.append({'id': c.id, 'name': c.name, 'grade_level': c.grade_level, 'students': students_data})
         return Response(data)
@@ -451,10 +514,15 @@ def api_add_student_to_class(request, pk):
         return Response({'error': 'Bu koda sahip bir öğrenci bulunamadı.'}, status=404)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsTeacher])
 def api_student_detail_view(request, student_id):
-    if request.user.role != 'TEACHER': return Response(status=403)
-    student = get_object_or_404(CustomUser, id=student_id, role='STUDENT')
+    # Ownership zorunlu: teacher yalnızca kendi classroom'una kayıtlı
+    # öğrencinin detayını görebilir (bkz. api_add_student_to_class'taki
+    # aynı desen — Classroom.teacher=request.user).
+    student = get_object_or_404(
+        CustomUser.objects.filter(role='STUDENT', enrolled_classes__teacher=request.user).distinct(),
+        id=student_id,
+    )
     
     # DÜZELTME: user=student yerine student=student yapıldı
     completed_qs = UserProgress.objects.filter(student=student, is_completed=True)
@@ -483,11 +551,8 @@ def api_student_detail_view(request, student_id):
     })
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsTeacher])
 def api_analytics_view(request):
-    if request.user.role != 'TEACHER':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
-
     classrooms = Classroom.objects.filter(teacher=request.user)
     students = CustomUser.objects.filter(enrolled_classes__in=classrooms, role='STUDENT').distinct()
 
@@ -550,36 +615,29 @@ def api_profile_view(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_reorder_view(request):
-    if request.user.role != 'ADMIN':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
-    
-    # Hangi listenin sırası değişiyor? (UNIT, SUBTOPIC veya CONTENT)
-    item_type = request.data.get('type') 
-    # Gelen yeni sıralama listesi. Örn: [{"id": 5, "order": 1}, {"id": 2, "order": 2}]
-    items = request.data.get('items', []) 
-    
+    serializer = ReorderSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+
+    item_type = serializer.validated_data['type']
+    items = serializer.validated_data['items']
+    model_by_type = {'UNIT': Unit, 'SUBTOPIC': Subtopic, 'CONTENT': Content}
+    model = model_by_type[item_type]
+
     try:
         for item in items:
-            if item_type == 'UNIT':
-                Unit.objects.filter(id=item['id']).update(order=item['order'])
-            elif item_type == 'SUBTOPIC':
-                Subtopic.objects.filter(id=item['id']).update(order=item['order'])
-            elif item_type == 'CONTENT':
-                Content.objects.filter(id=item['id']).update(order=item['order'])
-                
+            model.objects.filter(id=item['id']).update(order=item['order'])
         return Response({'message': 'Sıralama başarıyla kaydedildi!'})
-    except Exception as e:
-        return Response({'error': str(e)}, status=400)
+    except Exception:
+        logger.exception('Sıralama kaydedilirken beklenmeyen hata oluştu.')
+        return Response({'error': 'Sıralama kaydedilirken bir hata oluştu.'}, status=400)
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_admin_report_view(request):
-    if request.user.role != 'ADMIN':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
-
     today = timezone.now().date()
     week_ago = today - timedelta(days=7)
 
@@ -603,21 +661,25 @@ def api_admin_report_view(request):
         daily_activity.append({'date': day.strftime('%d.%m'), 'count': count})
 
     # --- İçerik performansı (tüm içerikler) ---
-    contents = Content.objects.select_related('subtopic__unit').all()
+    # N+1 fix (AŞAMA 4, MEASURED): önceki hali her Content için 3 ayrı sorgu
+    # (count + Sum aggregate + Avg aggregate) çalıştırıyordu. Aynı üç değer
+    # artık tek bir annotate edilmiş sorguda hesaplanıyor — sonuç kontratı
+    # (content_stats öğelerinin alanları/anlamı) değişmedi.
+    contents = Content.objects.select_related('subtopic__unit').annotate(
+        completions=Count('userprogress', filter=Q(userprogress__is_completed=True), distinct=True),
+        play_count=Sum('userprogress__play_count', filter=Q(userprogress__is_completed=True)),
+        avg_score_raw=Avg('userprogress__score', filter=Q(userprogress__is_completed=True)),
+    )
     content_stats = []
     for c in contents:
-        prog = UserProgress.objects.filter(content=c, is_completed=True)
-        unique_students = prog.count()
-        total_plays = prog.aggregate(total=Sum('play_count'))['total'] or 0
-        avg = prog.aggregate(avg=Avg('score'))['avg']
         content_stats.append({
             'id': c.id,
             'title': c.title,
             'type': c.content_type,
             'unit': c.subtopic.unit.title,
-            'completions': unique_students,
-            'play_count': total_plays,
-            'avg_score': round(avg, 1) if avg else 0,
+            'completions': c.completions,
+            'play_count': c.play_count or 0,
+            'avg_score': round(c.avg_score_raw, 1) if c.avg_score_raw else 0,
         })
     content_stats.sort(key=lambda x: x['completions'], reverse=True)
 
@@ -657,11 +719,15 @@ def api_admin_report_view(request):
         g['label'] = grade_labels.get(g['grade_level'], g['grade_level'])
 
     # --- Top 10 öğrenci ---
+    # N+1 fix (AŞAMA 4, MEASURED): `s.total_score` property'si her öğrenci
+    # için ayrı bir aggregate sorgusu çalıştırıyordu. CustomUser.total_score
+    # ile birebir aynı hesaplama (is_completed filtresi yok, bkz. models.py)
+    # artık tek bir annotate edilmiş sorguda yapılıyor.
     top_students = []
-    for s in students:
+    for s in students.annotate(computed_total_score=Sum('userprogress__score')):
         top_students.append({
             'name': f"{s.first_name} {s.last_name}".strip() or s.username,
-            'total_score': s.total_score,
+            'total_score': s.computed_total_score or 0,
             'streak_days': s.streak_days,
             'grade_level': grade_labels.get(s.grade_level, s.grade_level),
         })
@@ -835,12 +901,10 @@ def api_survey_complete_view(request, survey_type):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_survey_reset_view(request, survey_type):
     # Yalnızca sistem yöneticileri, test/gerekli durumlarda bir öğrencinin anket
     # sonuçlarını sıfırlayabilir (öğrenci kendi sonucunu asla değiştiremez).
-    if request.user.role != 'ADMIN':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
     if survey_type not in VALID_SURVEY_TYPES:
         return Response({'error': 'Geçersiz anket tipi.'}, status=400)
 
@@ -856,10 +920,8 @@ def api_survey_reset_view(request, survey_type):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_admin_survey_results_view(request, survey_type):
-    if request.user.role != 'ADMIN':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
     if survey_type not in VALID_SURVEY_TYPES:
         return Response({'error': 'Geçersiz anket tipi.'}, status=400)
 
@@ -926,10 +988,8 @@ def api_admin_survey_results_view(request, survey_type):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_admin_survey_stats_view(request, survey_type):
-    if request.user.role != 'ADMIN':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
     if survey_type not in VALID_SURVEY_TYPES:
         return Response({'error': 'Geçersiz anket tipi.'}, status=400)
 
@@ -976,11 +1036,8 @@ def api_support_organizations_view(request):
 
 
 @api_view(['GET', 'PUT'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsStudent])
 def api_student_support_preference_view(request):
-    if request.user.role != 'STUDENT':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
-
     if request.method == 'GET':
         current = StudentSupportPreference.objects.filter(student=request.user, is_active=True).select_related('organization').first()
         if not current:
@@ -1020,11 +1077,8 @@ def api_student_support_preference_view(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_admin_support_preferences_view(request):
-    if request.user.role != 'ADMIN':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
-
     preferences = StudentSupportPreference.objects.filter(is_active=True).select_related('student', 'organization')
 
     organization_id = request.query_params.get('organization')
@@ -1082,11 +1136,8 @@ def api_admin_support_preferences_view(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdmin])
 def api_admin_support_stats_view(request):
-    if request.user.role != 'ADMIN':
-        return Response({'error': 'Yetkiniz yok'}, status=403)
-
     active_preferences = StudentSupportPreference.objects.filter(is_active=True)
     total_students = active_preferences.count()
 

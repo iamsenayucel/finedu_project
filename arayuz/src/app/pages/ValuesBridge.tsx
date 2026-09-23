@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { getCached, setCached, invalidateCache } from "../utils/apiCache";
+import { API_BASE_URL, authHeaders } from "../utils/api";
 import { Navbar } from "../components/Navbar";
 import { Card, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
@@ -46,13 +47,13 @@ export default function ValuesBridge() {
     setIsLoading(true);
     setLoadError(false);
     try {
-      const headers = { "Authorization": `Token ${token}` };
+      const headers = authHeaders();
       const cachedMe = getCached("me");
 
       const [meRes, orgsRes, prefRes] = await Promise.all([
-        cachedMe ? Promise.resolve(null) : fetch("https://finedu-project.onrender.com/api/me/", { headers }),
-        fetch("https://finedu-project.onrender.com/api/support-organizations/", { headers }),
-        fetch("https://finedu-project.onrender.com/api/student/support-preference/", { headers }),
+        cachedMe ? Promise.resolve(null) : fetch(`${API_BASE_URL}/api/me/`, { headers }),
+        fetch(`${API_BASE_URL}/api/support-organizations/`, { headers }),
+        fetch(`${API_BASE_URL}/api/student/support-preference/`, { headers }),
       ]);
 
       let meData = cachedMe;
@@ -90,10 +91,9 @@ export default function ValuesBridge() {
     setSubmitError("");
     setSubmittingOrgId(org.id);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("https://finedu-project.onrender.com/api/student/support-preference/", {
+      const res = await fetch(`${API_BASE_URL}/api/student/support-preference/`, {
         method: "PUT",
-        headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
+        headers: authHeaders(true),
         body: JSON.stringify({ organization_id: org.id }),
       });
 

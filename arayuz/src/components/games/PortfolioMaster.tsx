@@ -68,7 +68,7 @@ interface ExamResults {
 const TOTAL_ITEMS = MARKET_SCENARIOS.length + SECTION2_QUESTIONS.length;
 
 function emptySelections(): Record<ScenarioId, ToolId[]> {
-  return Object.fromEntries(MARKET_SCENARIOS.map((s) => [s.id, []])) as Record<ScenarioId, ToolId[]>;
+  return Object.fromEntries(MARKET_SCENARIOS.map((s) => [s.id, []])) as unknown as Record<ScenarioId, ToolId[]>;
 }
 
 function emptyAnswers2(): Record<number, string | null> {

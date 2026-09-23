@@ -5,8 +5,9 @@ import { Card, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
 import { ArrowLeft, Award, Flame, BookOpen, Target, Calendar, Star, Trophy, Hash } from "lucide-react";
 import { motion } from "framer-motion";
+import { API_BASE_URL, authHeaders } from "../utils/api";
 
-const API = "https://finedu-project.onrender.com/api";
+const API = `${API_BASE_URL}/api`;
 
 const GRADE_LABELS: Record<string, string> = {
   PRIMARY: "İlkokul",
@@ -29,7 +30,7 @@ export default function Profile() {
     const token = localStorage.getItem("token");
     if (!token) { navigate("/login"); return; }
 
-    fetch(`${API}/profile/`, { headers: { Authorization: `Token ${token}` } })
+    fetch(`${API}/profile/`, { headers: authHeaders() })
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(setProfile)
       .catch(() => navigate("/login"))

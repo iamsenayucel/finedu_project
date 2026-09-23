@@ -79,35 +79,49 @@ class Content(models.Model):
     CONTENT_TYPES = (('VIDEO', 'Video'), ('GAME', 'Oyun/Simülasyon'))
 
     GAME_CHOICES = (
-        ('financial_detective', '🕵️‍♂️ Finansal Haber Dedektifi (10. Sınıf)'),
+        ('financial_detective', '🕵️‍♂️ Finansal Medya Okuryazarlığı - 2'),
         ('drag_drop_needs', '🛒 İstek mi İhtiyaç mı? (İlkokul)'),
         ('stock_market', '📈 Borsa Simülatörü (Çok Yakında)'),
-        ('financial_concept_hunt', '🧠 Finansal Sistem: Kavram Avı - Ölçme Değerlendirme'),
-        ('financial_system_concepts_2', '🧭 Finansal Sistem Kavramlarını Keşfet-2 - Ölçme Değerlendirme'),
-        ('income_type_assessment', '💵 Gelir Türü - Ölçme Değerlendirme'),
-        ('media_literacy_assessment', '📰 Finansal Medya Okuryazarlığı - Ölçme Değerlendirme'),
-        ('credit_card_awareness', '💳 Bilinçli Kredi Kartı Kullanımı'),
-        ('credit_cost_analysis', '🧮 Kredi Maliyeti Analizi'),
+        # NOT: Aşağıdaki 10 kod, GameContainer.tsx (frontend render switch) ve
+        # AdminPanel.tsx (admin seçim listesi) içinde tam çalışır oyunlar
+        # olarak zaten mevcuttu, ancak burada (backend choices) hiç
+        # tanımlanmamışlardı — AŞAMA 2 game-registry drift düzeltmesi.
+        ('risk_hunter', '🎯 Risk Getiri Dengesi - 2'),
+        ('real_data_hunter', '🔍 Finansal Medya Okuryazarlığı - 1'),
+        ('space_shopping_depot', '🚀 Uzay Alışveriş Deposu - İstek & İhtiyaç'),
+        ('risk_return_tradeoff', '📈 Risk Getiri Dengesi - 1'),
+        ('economic_terms', '💡 Finansal Sistem Kavramlarını Keşfet - 1'),
+        ('money_flow', '💸 Finansal Sistem Kavramlarını Keşfet - 2'),
+        ('revenue_matching', '💰 Gelir Türleri - 1'),
+        ('future_choice', '🎯 Gelir Türleri - 2'),
+        ('investment_methods', '💹 Yasal Yatırım Araçlarını Keşfet'),
+        ('scam_detector', '🕵️ Finansal Güvenlik Yöntemleri - 1'),
+        ('financial_concept_hunt', '🧠 Finansal Sistem - Ölçme Değerlendirme 1'),
+        ('financial_system_concepts_2', '🧭 Finansal Sistem - Ölçme Değerlendirme 2'),
+        ('income_type_assessment', '💵 Gelir Türleri - Ölçme Değerlendirme 1'),
+        ('media_literacy_assessment', '📰 Finansal Medya Okuryazarlığı - Ölçme Değerlendirme 2'),
+        ('credit_card_awareness', '💳 Sağlıklı Borçlanma ve Kredi Kullanımı - 1'),
+        ('credit_cost_analysis', '🧮 Sağlıklı Borçlanma ve Kredi Kullanımı - 2'),
         ('investment_or_consumption', '⚖️ Yatırım mı, Tüketim mi?'),
-        ('information_filter', '🛡️ Bilgi Filtresi - Finansal Medya Okuryazarlığı'),
-        ('market_detective', '🐂 Piyasa Dedektifi & Davranışsal Finans Testi'),
-        ('portfolio_master', '💼 Portföy Ustası - Portföy Matrisi & Bitirme Testi'),
-        ('legal_investment_assessment', '📊 Yasal Yatırım Yöntemleri - Ölçme ve Değerlendirme'),
-        ('legal_investment_assessment_2', '🔐 Siber Güvenlik ve Dolandırıcılık Tespiti - Ölçme Değerlendirme'),
-        ('economic_glossary_match', '📖 Ekonomi Sözlüğü - Sürükle-Bırak Bulmaca'),
-        ('media_glossary_puzzle', '🧩 Finansal Medya Okuryazarlığı - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
-        ('income_glossary_puzzle', '💰 Gelir Türleri ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
-        ('risk_glossary_puzzle', '🧩 Risk Yönetimi ve Piyasa Kavramları - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
-        ('credit_financing_glossary_puzzle', '🧩 Akademik Kredi ve Finansman - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
-        ('fraud_hunt_glossary_puzzle', '🎣 Dolandırıcılık Avı - Akademik Finansal Güvenlik (Sürükle-Bırak Bulmaca)'),
-        ('legal_investment_glossary_puzzle', '⚖️ Yasal Yatırım ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
-        ('debt_credit_assessment', '🏦 Borçlanma ve Kredi - Ölçme Değerlendirme'),
-        ('debt_credit_assessment_2', '🧮 Borçlanma ve Kredi: Akıllı Tüketici Testi - Ölçme Değerlendirme'),
-        ('asset_liability_glossary_puzzle', '🧩 Aktif & Pasif Yönetimi - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
-        ('asset_income_expense_assessment', '💻 Senin Varlığın Ne Üretiyor? - Ölçme Değerlendirme'),
-        ('short_long_term_impact', '⏳ Kısa ve Uzun Vadeli Finansal Etki - Karar ve Eşleştirme'),
-        ('short_long_term_glossary_puzzle', '🧩 Kısa ve Uzun Vadeli Finansal Etki - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)'),
-        ('investment_consumption_case_assessment', '⚖️ Yatırım mı, Tüketim mi? - Vaka Ölçme Değerlendirmesi'),
+        ('information_filter', '🛡️ Finansal Medya Okuryazarlığı - Ölçme Değerlendirme 1'),
+        ('market_detective', '🐂 Risk Getiri Dengesi - Ölçme Değerlendirme 1'),
+        ('portfolio_master', '💼 Risk Getiri Dengesi - Ölçme Değerlendirme 2'),
+        ('legal_investment_assessment', '📊 Yasal Yatırım Araçları - Ölçme ve Değerlendirme'),
+        ('legal_investment_assessment_2', '🔐 Finansal Güvenlik Yöntemleri - Ölçme Değerlendirme 1'),
+        ('economic_glossary_match', '📖 Ekonomi Sözlüğü'),
+        ('media_glossary_puzzle', '🧩 Ekonomi Sözlüğü'),
+        ('income_glossary_puzzle', '💰 Ekonomi Sözlüğü'),
+        ('risk_glossary_puzzle', '🧩 Ekonomi Sözlüğü'),
+        ('credit_financing_glossary_puzzle', '🧩 Ekonomi Sözlüğü'),
+        ('fraud_hunt_glossary_puzzle', '🎣 Ekonomi Sözlüğü'),
+        ('legal_investment_glossary_puzzle', '⚖️ Ekonomi Sözlüğü'),
+        ('debt_credit_assessment', '🏦 Sağlıklı Borçlanma ve Kredi Kullanımı - Ölçme Değerlendirme 2'),
+        ('debt_credit_assessment_2', '🧮 Sağlıklı Borçlanma ve Kredi Kullanımı - Ölçme Değerlendirme 1'),
+        ('asset_liability_glossary_puzzle', '🧩 Ekonomi Sözlüğü'),
+        ('asset_income_expense_assessment', '💻 Aktif ve Pasif Varlık Mantığı - 1'),
+        ('short_long_term_impact', '⏳ Kısa ve Uzun Vadeli Finansal Etki - 1'),
+        ('short_long_term_glossary_puzzle', '🧩 Ekonomi Sözlüğü'),
+        ('investment_consumption_case_assessment', '⚖️ Aktif ve Pasif Varlık Mantığı - Ölçme Değerlendirme 1'),
     )
     
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE, related_name='contents')
@@ -129,12 +143,28 @@ class UserProgress(models.Model):
     score = models.IntegerField(null=True, blank=True)
     play_count = models.IntegerField(default=1)
     date_completed = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        # Bir öğrenci + bir content için yalnızca bir UserProgress satırı
+        # olabilir. Uygulama katmanı zaten get_or_create() ile bu invariantı
+        # varsayıyor (bkz. views.user_progress_api) ama concurrency altında
+        # (ör. aynı içerik için iki eşzamanlı tamamlama isteği) DB seviyesinde
+        # garanti olmadan iki satır oluşabilirdi.
+        constraints = [
+            models.UniqueConstraint(fields=['student', 'content'], name='unique_userprogress_student_content')
+        ]
     def __str__(self):
         return f"{self.student.username} - {self.content.title}"
 class UserBadge(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
     earned_date = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        # Bir öğrenci aynı ünite rozetini yalnızca bir kez taşıyabilir
+        # (bkz. views.user_progress_api badge_created mantığı — burada da
+        # aynı get_or_create + concurrency gerekçesi geçerli).
+        constraints = [
+            models.UniqueConstraint(fields=['student', 'unit'], name='unique_userbadge_student_unit')
+        ]
     def __str__(self):
         return f"{self.student.username} - {self.unit.badge_name}"
     

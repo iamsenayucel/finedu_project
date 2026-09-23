@@ -1,6 +1,7 @@
 import { useState, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router";
 import { getCached, setCached } from "../utils/apiCache";
+import { API_BASE_URL, authHeaders, getAuthToken } from "../utils/api";
 import { Navbar } from "../components/Navbar";
 import { Card, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
@@ -13,47 +14,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SURVEY_QUESTIONS_BY_TYPE } from "../data/surveyQuestions";
-
-const GAME_OPTIONS = [
-  { value: "financial_detective", label: "🕵️‍♂️ Finansal Haber Dedektifi (10. Sınıf)" },
-  { value: "drag_drop_needs", label: "🛒 İstek mi İhtiyaç mı? (İlkokul)" },
-  { value: "risk_hunter", label: "🎯 FinEdu Yatırım Okulu" },
-  { value: "real_data_hunter", label: "🔍 Gerçek Veri Avı - Bilgi Doğrulama" },
-  { value: "space_shopping_depot", label: "🚀 Uzay Alışveriş Deposu - İstek & İhtiyaç" },
-  { value: "risk_return_tradeoff", label: "📈 Mirasın Kaderi - Risk & Getiri" },
-  { value: "economic_terms", label: "💡 Ekonomi Terimleri - Kavram Eşleştirme" },
-  { value: "money_flow", label: "💸 Para Akışı - Finansal Kurumlar" },
-  { value: "revenue_matching", label: "💰 Aktif & Pasif Gelir - Eşleştirme Oyunu" },
-  { value: "future_choice",       label: "🎯 Geleceğini Seç - Risk mi Güven mi?" },
-  { value: "investment_methods",  label: "💹 Yasal Yatırım Yöntemleri - Kavram Eşleştirme" },
-  { value: "scam_detector",       label: "🕵️ Dolandırıcı Avı - Gerçek mi Tuzak mı?" },
-  { value: "financial_concept_hunt", label: "📊 Finansal Sistem: Kavram Avı - Ölçme Değerlendirme" },
-  { value: "financial_system_concepts_2", label: "📊 Finansal Sistem Kavramlarını Keşfet-2 - Ölçme Değerlendirme" },
-  { value: "income_type_assessment", label: "📊 Gelir Türü - Ölçme Değerlendirme" },
-  { value: "media_literacy_assessment", label: "📊 Finansal Medya Okuryazarlığı - Ölçme Değerlendirme" },
-  { value: "credit_card_awareness", label: "💳 Bilinçli Kredi Kartı Kullanımı" },
-  { value: "credit_cost_analysis", label: "🧮 Kredi Maliyeti Analizi" },
-  { value: "investment_or_consumption", label: "⚖️ Yatırım mı, Tüketim mi?" },
-  { value: "information_filter", label: "🛡️ Bilgi Filtresi - Finansal Medya Okuryazarlığı" },
-  { value: "market_detective", label: "🐂 Piyasa Dedektifi & Davranışsal Finans Testi" },
-  { value: "portfolio_master", label: "💼 Portföy Ustası - Portföy Matrisi & Bitirme Testi" },
-  { value: "legal_investment_assessment", label: "📊 Yasal Yatırım Yöntemleri - Ölçme ve Değerlendirme" },
-  { value: "legal_investment_assessment_2", label: "📊 Siber Güvenlik ve Dolandırıcılık Tespiti - Ölçme Değerlendirme" },
-  { value: "economic_glossary_match", label: "🧩 Ekonomi Sözlüğü - Sürükle-Bırak Bulmaca" },
-  { value: "media_glossary_puzzle", label: "🧩 Finansal Medya Okuryazarlığı - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
-  { value: "income_glossary_puzzle", label: "🧩 Gelir Türleri ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
-  { value: "risk_glossary_puzzle", label: "🧩 Risk Yönetimi ve Piyasa Kavramları - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
-  { value: "credit_financing_glossary_puzzle", label: "🧩 Akademik Kredi ve Finansman - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
-  { value: "fraud_hunt_glossary_puzzle", label: "🧩 Dolandırıcılık Avı - Akademik Finansal Güvenlik (Sürükle-Bırak Bulmaca)" },
-  { value: "legal_investment_glossary_puzzle", label: "🧩 Yasal Yatırım ve Finansal Kavramlar - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
-  { value: "debt_credit_assessment", label: "📊 Borçlanma ve Kredi - Ölçme Değerlendirme" },
-  { value: "debt_credit_assessment_2", label: "📊 Borçlanma ve Kredi: Akıllı Tüketici Testi - Ölçme Değerlendirme" },
-  { value: "asset_liability_glossary_puzzle", label: "🧩 Aktif & Pasif Yönetimi - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
-  { value: "asset_income_expense_assessment", label: "📊 Senin Varlığın Ne Üretiyor? - Ölçme Değerlendirme" },
-  { value: "short_long_term_impact", label: "⏳ Kısa ve Uzun Vadeli Finansal Etki - Karar ve Eşleştirme" },
-  { value: "short_long_term_glossary_puzzle", label: "🧩 Kısa ve Uzun Vadeli Finansal Etki - Ekonomi Sözlüğü (Sürükle-Bırak Bulmaca)" },
-  { value: "investment_consumption_case_assessment", label: "📊 Yatırım mı, Tüketim mi? - Vaka Ölçme Değerlendirmesi" }
-];
+import { GAME_OPTIONS } from "../../components/games/gameRegistry";
 
 export default function AdminPanel() {
   const navigate = useNavigate();
@@ -117,13 +78,13 @@ export default function AdminPanel() {
     if (!token) return navigate("/login");
 
     try {
-      const headers = { "Authorization": `Token ${token}` };
+      const headers = authHeaders();
       const cachedMe = getCached("me");
 
       const [meRes, unitsRes, usersRes] = await Promise.all([
-        cachedMe ? Promise.resolve(null) : fetch("https://finedu-project.onrender.com/api/me/", { headers }),
-        fetch("https://finedu-project.onrender.com/api/units/", { headers }),
-        fetch("https://finedu-project.onrender.com/api/users/", { headers })
+        cachedMe ? Promise.resolve(null) : fetch(`${API_BASE_URL}/api/me/`, { headers }),
+        fetch(`${API_BASE_URL}/api/units/`, { headers }),
+        fetch(`${API_BASE_URL}/api/users/`, { headers })
       ]);
 
       let meData = cachedMe;
@@ -160,12 +121,11 @@ export default function AdminPanel() {
   useEffect(() => { fetchData(); }, []);
 
   const fetchReport = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!getAuthToken()) return;
     setReportLoading(true);
     try {
-      const res = await fetch("https://finedu-project.onrender.com/api/admin-report/", {
-        headers: { "Authorization": `Token ${token}` },
+      const res = await fetch(`${API_BASE_URL}/api/admin-report/`, {
+        headers: authHeaders(),
       });
       if (res.ok) setReport(await res.json());
     } finally {
@@ -178,13 +138,12 @@ export default function AdminPanel() {
   }, [activeTab]);
 
   const fetchSupportStats = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!getAuthToken()) return;
     setSupportStatsLoading(true);
     try {
       const [statsRes, orgsRes] = await Promise.all([
-        fetch("https://finedu-project.onrender.com/api/admin/support-preferences/stats/", { headers: { "Authorization": `Token ${token}` } }),
-        fetch("https://finedu-project.onrender.com/api/support-organizations/", { headers: { "Authorization": `Token ${token}` } }),
+        fetch(`${API_BASE_URL}/api/admin/support-preferences/stats/`, { headers: authHeaders() }),
+        fetch(`${API_BASE_URL}/api/support-organizations/`, { headers: authHeaders() }),
       ]);
       if (statsRes.ok) setSupportStats(await statsRes.json());
       if (orgsRes.ok) setSupportOrganizations(await orgsRes.json());
@@ -194,8 +153,7 @@ export default function AdminPanel() {
   };
 
   const fetchSupportPreferences = async (page: number, filters: typeof supportFilters) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!getAuthToken()) return;
     setSupportTableLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), page_size: "20" });
@@ -204,8 +162,8 @@ export default function AdminPanel() {
       if (filters.date_from) params.set("date_from", filters.date_from);
       if (filters.date_to) params.set("date_to", filters.date_to);
 
-      const res = await fetch(`https://finedu-project.onrender.com/api/admin/support-preferences/?${params.toString()}`, {
-        headers: { "Authorization": `Token ${token}` },
+      const res = await fetch(`${API_BASE_URL}/api/admin/support-preferences/?${params.toString()}`, {
+        headers: authHeaders(),
       });
       if (res.ok) {
         const data = await res.json();
@@ -231,12 +189,11 @@ export default function AdminPanel() {
   };
 
   const fetchSurveyStats = async (type: typeof surveyType) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!getAuthToken()) return;
     setSurveyStatsLoading(true);
     try {
-      const res = await fetch(`https://finedu-project.onrender.com/api/admin/survey-results/${type}/stats/`, {
-        headers: { "Authorization": `Token ${token}` },
+      const res = await fetch(`${API_BASE_URL}/api/admin/survey-results/${type}/stats/`, {
+        headers: authHeaders(),
       });
       if (res.ok) setSurveyStats(await res.json());
     } finally {
@@ -245,8 +202,7 @@ export default function AdminPanel() {
   };
 
   const fetchSurveyResults = async (type: typeof surveyType, page: number, filters: typeof surveyFilters) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!getAuthToken()) return;
     setSurveyTableLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), page_size: "20" });
@@ -254,8 +210,8 @@ export default function AdminPanel() {
       if (filters.grade_level) params.set("grade_level", filters.grade_level);
       if (filters.completed_only) params.set("completed_only", "true");
 
-      const res = await fetch(`https://finedu-project.onrender.com/api/admin/survey-results/${type}/?${params.toString()}`, {
-        headers: { "Authorization": `Token ${token}` },
+      const res = await fetch(`${API_BASE_URL}/api/admin/survey-results/${type}/?${params.toString()}`, {
+        headers: authHeaders(),
       });
       if (res.ok) {
         const data = await res.json();
@@ -296,10 +252,9 @@ export default function AdminPanel() {
     const itemsPayload = newList.map((item, i) => ({ id: item.id, order: i + 1 }));
 
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("https://finedu-project.onrender.com/api/reorder/", {
+      const res = await fetch(`${API_BASE_URL}/api/reorder/`, {
         method: "POST",
-        headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
+        headers: authHeaders(true),
         body: JSON.stringify({ type, items: itemsPayload })
       });
 
@@ -343,23 +298,23 @@ export default function AdminPanel() {
       if (formData.role === "STUDENT" && !formData.target_grade) return;
     }
 
-    setIsSaving(true); 
-    const token = localStorage.getItem("token");
+    setIsSaving(true);
+    const token = getAuthToken();
     let url = "";
-    let method = modal.action === "ADD" ? "POST" : "PUT";
+    const method = modal.action === "ADD" ? "POST" : "PUT";
     let isFormData = false;
     let bodyData: any = {};
-    let formPayload = new FormData();
+    const formPayload = new FormData();
 
     if (modal.type === "UNIT") {
-      url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/units/" : `https://finedu-project.onrender.com/api/units/${modal.data.id}/`;
+      url = modal.action === "ADD" ? `${API_BASE_URL}/api/units/` : `${API_BASE_URL}/api/units/${modal.data.id}/`;
       bodyData = { title: formData.title, badge_name: formData.badge_name, target_grade: formData.target_grade };
     } else if (modal.type === "SUBTOPIC") {
-      url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/subtopics/add/" : `https://finedu-project.onrender.com/api/subtopics/${modal.data.id}/`;
+      url = modal.action === "ADD" ? `${API_BASE_URL}/api/subtopics/add/` : `${API_BASE_URL}/api/subtopics/${modal.data.id}/`;
       bodyData = { title: formData.title, unitId: modal.parentId };
     } else if (modal.type === "CONTENT") {
-      isFormData = true; 
-      url = modal.action === "ADD" ? "https://finedu-project.onrender.com/api/contents/add/" : `https://finedu-project.onrender.com/api/contents/${modal.data.id}/`;
+      isFormData = true;
+      url = modal.action === "ADD" ? `${API_BASE_URL}/api/contents/add/` : `${API_BASE_URL}/api/contents/${modal.data.id}/`;
       let finalTitle = formData.title;
       if (formData.contentType === "GAME") {
         if (!formData.gameCode) { setIsSaving(false); return; }
@@ -376,7 +331,7 @@ export default function AdminPanel() {
         else if (modal.action === "ADD") { setIsSaving(false); return; }
       }
     } else if (modal.type === "USER") {
-      url = "https://finedu-project.onrender.com/api/register/";
+      url = `${API_BASE_URL}/api/register/`;
       bodyData = {
         username: formData.email, email: formData.email, first_name: formData.firstName,
         last_name: formData.lastName, password: formData.password, role: formData.role,
@@ -419,11 +374,10 @@ export default function AdminPanel() {
 
   const handleDelete = async (type: string, id: number) => {
     if (!window.confirm("Bunu kalıcı olarak silmek istediğinize emin misiniz?")) return;
-    const token = localStorage.getItem("token");
     const endpoints: any = { "UNIT": "units", "SUBTOPIC": "subtopics", "CONTENT": "contents", "USER": "users" };
     try {
-      const res = await fetch(`https://finedu-project.onrender.com/api/${endpoints[type]}/${id}/`, {
-        method: "DELETE", headers: { "Authorization": `Token ${token}` }
+      const res = await fetch(`${API_BASE_URL}/api/${endpoints[type]}/${id}/`, {
+        method: "DELETE", headers: authHeaders()
       });
       if (res.ok) fetchData();
     } catch (error) { console.error(error); }
@@ -1431,11 +1385,11 @@ export default function AdminPanel() {
                           <Input label="İçerik Başlığı" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required />
                           <div className="mt-4">
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Sisteme Video Yükle (.mp4)
+                              Sisteme Video Yükle (.mp4, .webm, .mov, .m4v)
                             </label>
                             <input
                               type="file"
-                              accept="video/mp4,video/x-m4v,video/*"
+                              accept="video/mp4,video/webm,video/quicktime,video/x-m4v"
                               onChange={(e) => {
                                 if (e.target.files && e.target.files[0]) {
                                   setVideoFile(e.target.files[0]);
@@ -1443,6 +1397,9 @@ export default function AdminPanel() {
                               }}
                               className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background"
                             />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              İzin verilen formatlar: MP4, WebM, MOV, M4V — maksimum 100MB.
+                            </p>
                             {modal.action === "EDIT" && (
                               <p className="text-xs text-muted-foreground mt-1">
                                 Mevcut videoyu değiştirmek istemiyorsanız boş bırakın.

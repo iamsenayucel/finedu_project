@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -125,7 +125,6 @@ function DraggableCard({ card, shake }: { card: IncomeCard; shake: boolean }) {
       animate={shake ? { x: [0, -12, 12, -12, 12, -6, 6, 0] } : {}}
       transition={{ duration: 0.5 }}
     >
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <div ref={drag as any} style={{ opacity: isDragging ? 0.3 : 1, cursor: 'grab' }} className="select-none">
         <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border-4 border-indigo-300 hover:border-indigo-500 hover:shadow-indigo-200 hover:shadow-xl transition-all duration-200 w-60">
           <img
@@ -155,7 +154,6 @@ function DropZone({ category, count, onDrop }: {
   const isAktif = category === 'aktif';
 
   return (
-    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
     <div ref={drop as any} className={`relative flex-1 rounded-3xl border-4 min-h-[300px] flex flex-col items-center justify-center gap-3 transition-all duration-200 ${
       isAktif
         ? isOver ? 'bg-blue-100 border-blue-500 shadow-lg shadow-blue-200' : 'bg-blue-50 border-blue-200'

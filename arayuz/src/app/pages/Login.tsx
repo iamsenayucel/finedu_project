@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
-import { invalidateCache } from "../utils/apiCache";
+import { invalidateCache, setCached } from "../utils/apiCache";
+import { API_BASE_URL } from "../utils/api";
 import { LogIn, User, Lock, AlertCircle } from "lucide-react";
 import { Button } from "../components/Button";
 import { Card, CardBody } from "../components/Card";
 import { motion } from "framer-motion";
 import logo from "../../assets/logo.png";
 
-const API_BASE = "https://finedu-project.onrender.com";
+const API_BASE = API_BASE_URL;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -48,6 +49,14 @@ export default function Login() {
       const headers = { "Authorization": `Token ${token}` };
       const meRes = await fetch(`${API_BASE}/api/me/`, { headers });
       const meData = await meRes.json();
+
+      // Dashboard/UnitDetail sonraki mount'ta getCached("me") ile aynı
+      // veriyi bulsun diye önbelleğe yazılıyor — önceden bu eksikti ve
+      // Dashboard'a yönlendirildikten hemen sonra /api/me/ tekrar
+      // çağrılıyordu (CODE-CONFIRMED duplicate request, bkz. AŞAMA 4).
+      if (meRes.ok) {
+        setCached("me", meData);
+      }
 
       if (meRes.ok && meData.user?.role === "STUDENT") {
         const surveyRes = await fetch(`${API_BASE}/api/survey/pre_survey/status/`, { headers });
@@ -91,7 +100,7 @@ export default function Login() {
         try {
           response = await doLogin(60000);
           setWaking(false);
-        } catch (retryErr: any) {
+        } catch {
           setWaking(false);
           setIsLoading(false);
           setError("Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.");

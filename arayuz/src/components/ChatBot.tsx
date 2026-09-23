@@ -2,13 +2,14 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, User, Loader2 } from 'lucide-react';
 import chatbotLogo from '../assets/chatbot_logo.png';
+import { API_BASE_URL, authHeaders } from '../app/utils/api';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
-const API_BASE = 'https://finedu-project.onrender.com';
+const API_BASE = API_BASE_URL;
 
 const WELCOME: Message = {
   role: 'assistant',
@@ -49,10 +50,7 @@ export default function ChatBot() {
     try {
       const res = await fetch(`${API_BASE}/api/chatbot/`, {
         method: 'POST',
-        headers: {
-          Authorization: `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: authHeaders(true),
         body: JSON.stringify({ message: text }),
       });
 

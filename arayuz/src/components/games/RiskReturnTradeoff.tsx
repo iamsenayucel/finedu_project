@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Target, Award } from 'lucide-react';
 
 interface RiskReturnTradeoffProps {
   onComplete?: (score: number) => void;
@@ -225,17 +224,6 @@ export default function RiskReturnTradeoff({ onComplete }: RiskReturnTradeoffPro
     setSelected(id);
     setShowFeedback(true);
     if (id === question.correct) setScore(s => s + 10);
-  };
-
-  const handleNext = () => {
-    setShowFeedback(false);
-    setSelected(null);
-    if (qIndex >= QUESTIONS.length - 1) {
-      setStage('finished');
-      if (onComplete) onComplete(score + (selected === question.correct ? 0 : 0));
-    } else {
-      setQIndex(i => i + 1);
-    }
   };
 
   const handleNextAfterScore = () => {

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,12 +24,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# Render'da SECRET_KEY ortam değişkeni tanımlıysa o kullanılır; tanımlı
-# değilse (yerel geliştirme) eski gömülü anahtara düşer.
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY',
-    'django-insecure-nid!p@121jji@!s&t#zuqe_c%%3z$^_5)#2iv06t5vnvpe!3sw',
-)
+# Render'da SECRET_KEY ortam değişkeni tanımlıysa o kullanılır. Tanımlı
+# değilse: DATABASE_URL de ayarlıysa (Render/production-benzeri bir ortamda
+# olduğumuzun işareti — bkz. DATABASES bloğu) artık sessizce eski gömülü
+# anahtara DÜŞMÜYORUZ, açıkça hata veriyoruz. DATABASE_URL yoksa (salt yerel
+# sqlite3 geliştirmesi) geliştirme-only fallback anahtar kullanılmaya devam
+# eder — yerel `manage.py runserver` akışını bozmamak için.
+_env_secret_key = os.environ.get('SECRET_KEY')
+if _env_secret_key:
+    SECRET_KEY = _env_secret_key
+elif os.environ.get('DATABASE_URL'):
+    raise ImproperlyConfigured(
+        'SECRET_KEY ortam değişkeni tanımlı değil. DATABASE_URL ayarlı '
+        'olduğu için (production-benzeri ortam) güvensiz gömülü fallback '
+        'anahtar kullanılamaz. Render → Environment → SECRET_KEY ekleyin.'
+    )
+else:
+    SECRET_KEY = 'django-insecure-nid!p@121jji@!s&t#zuqe_c%%3z$^_5)#2iv06t5vnvpe!3sw'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Varsayılan False (güvenli); yerel geliştirmede terminalde
@@ -165,6 +177,53 @@ REST_FRAMEWORK = {
         # Chatbot dış API'ye (OpenAI) senkron istek attığı için kullanıcı
         # başına sınırlanmazsa tek worker'ı art arda isteklerle kilitleyebilir.
         'chatbot': '5/min',
+        # /api/login/ brute-force koruması (bkz. accounts.views.LoginRateThrottle).
+        # IP başına dakikada 20 istek: okul ağlarında birçok öğrenci aynı NAT/IP
+        # arkasından aynı anda giriş yapabildiği için düşük bir limit (ör. 5/min)
+        # normal bir sınıfı kilitleyebilir. 20/min hem tipik bir sınıfın ders başı
+        # giriş dalgasını geçirir hem de otomatik brute-force'u anlamlı ölçüde
+        # yavaşlatır/pahalılaştırır. IP bazlı olduğu için dağıtık saldırıları veya
+        # yanlış proxy/IP tespitini tam çözmez (bkz. PRD/final rapor notu).
+        'login': '20/min',
+    },
+}
+
+# --- LOGGING (AŞAMA 4 — Observability) ---
+# Önceden hiçbir LOGGING config yoktu: logger.exception(...) çağrıları
+# (accounts/views.py) Python'ın logging.lastResort fallback'ine düşüyordu —
+# bu, formatter'sız bir StreamHandler olduğu için sadece ham mesaj +
+# traceback yazdırıyor (MEASURED: timestamp/level/logger adı YOK). Bu da
+# production'da (Render log akışı) hangi modülün, ne zaman, hangi seviyede
+# hata verdiğini ayırt etmeyi zorlaştırıyordu.
+#
+# Aşağıdaki config, dev'de kullanılan aynı `logger.exception()` çağrılarını
+# değiştirmeden, yalnızca level/timestamp/logger adı/mesaj/exception içeren
+# bir konsol handler'ı ekliyor (stdout/stderr zaten Render tarafından
+# toplanıyor — ayrı bir log dosyası/servisi gerekmiyor). PII/token/request
+# body burada LOGLANMIYOR (bkz. accounts/views.py — hiçbir logger çağrısı
+# request.data'yı veya Authorization header'ını mesaja dahil etmiyor).
+#
+# Varsayılan seviye production'da (DATABASE_URL tanımlıysa) INFO, yerel
+# geliştirmede DEBUG=True ise DEBUG'dır; DJANGO_LOG_LEVEL ortam değişkeniyle
+# gerektiğinde override edilebilir (ör. geçici troubleshooting için DEBUG).
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '{asctime} {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': os.environ.get('DJANGO_LOG_LEVEL', 'DEBUG' if DEBUG else 'INFO'),
     },
 }
 
@@ -189,3 +248,46 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
+# --- HTTPS / GÜVENLİK HEADER SERTLEŞTİRMESİ (yalnızca production-benzeri ortam) ---
+# X-Content-Type-Options: nosniff, Referrer-Policy: same-origin ve
+# X-Frame-Options: DENY zaten Django'nun varsayılanları (SECURE_CONTENT_TYPE_NOSNIFF,
+# SECURE_REFERRER_POLICY, X_FRAME_OPTIONS) üzerinden SecurityMiddleware/
+# XFrameOptionsMiddleware ile otomatik gönderiliyor — burada tekrar tanımlamaya
+# gerek yok (bkz. `python -c "from django.conf import global_settings"` ile
+# doğrulanan varsayılanlar).
+#
+# Render, TLS'i kendi proxy'sinde sonlandırıp Django'ya düz HTTP ile
+# X-Forwarded-Proto header'ı ile iletir. SECURE_PROXY_SSL_HEADER olmadan
+# request.is_secure() hep False döner ve SECURE_SSL_REDIRECT=True açıldığında
+# sonsuz yönlendirme döngüsüne (redirect loop) yol açar. Bu satır her ortamda
+# güvenlidir: header proxy tarafından eklenmediği (yerel geliştirme) durumda
+# hiçbir etkisi olmaz.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# SECRET_KEY kontrolünde kullanılan aynı sinyal: DATABASE_URL tanımlıysa
+# Render/production-benzeri bir ortamdayız demektir (yerel geliştirme sqlite3
+# kullanır ve DATABASE_URL tanımlamaz).
+_is_production_like = bool(os.environ.get('DATABASE_URL'))
+
+if _is_production_like:
+    # HTTP isteklerini HTTPS'e yönlendir (Render zaten HTTPS sunuyor; bu,
+    # yanlışlıkla düz HTTP ile gelen istekleri güvenli hale getirir).
+    SECURE_SSL_REDIRECT = True
+
+    # HSTS: tarayıcıya bir süre boyunca bu domaine yalnızca HTTPS ile
+    # bağlanmasını söyler. İlk kez açıldığı ve canlı ortamda runtime
+    # doğrulaması yapılamadığı için düşük/temkinli bir süreyle başlıyoruz
+    # (1 gün). Birkaç haftalık sorunsuz gözlemden sonra kademeli olarak
+    # artırılıp includeSubDomains/preload değerlendirilebilir (bkz. final
+    # rapor "Remaining Risks").
+    SECURE_HSTS_SECONDS = 86400
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+
+    # Session/CSRF cookie'leri yalnızca HTTPS üzerinden gönderilsin. Bu,
+    # esas olarak classic Django template yüzeyini (login/register/dashboard)
+    # ilgilendirir; React frontend TokenAuthentication kullanıyor ve bu
+    # cookie'lere bağımlı değil.
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True

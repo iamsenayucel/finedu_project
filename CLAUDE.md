@@ -23,20 +23,34 @@ python manage.py runserver     # dev server
 python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
-python manage.py test          # Django test runner (accounts/tests.py is currently an empty scaffold)
+python manage.py check                            # Django system check
+python manage.py makemigrations --check --dry-run # migration drift check (fails if models changed but no migration was committed)
+python manage.py test                              # Django test runner — accounts/tests.py (69 tests as of AŞAMA 3)
 ```
 
-Local Postgres for dev is available via `docker-compose.yml` (`postgres:15`, exposed on host port `5433`). Without a `DATABASE_URL` env var, Django falls back to local `db.sqlite3` (see `finedu_core/settings.py`).
+Local Postgres for dev is available via `docker-compose.yml` (`postgres:15`, exposed on host port `5433`). Without a `DATABASE_URL` env var, Django falls back to local `db.sqlite3` (see `finedu_core/settings.py`). Tests always run against this local-fallback config (no `DATABASE_URL`/`OPENAI_API_KEY`/Cloudinary credentials needed — nothing in the test suite makes a real external network call).
 
 ### Frontend (run from `arayuz/`)
 
 ```bash
-npm install
+npm ci            # reproducible install from package-lock.json (use this, not `npm install`, in CI/fresh clones)
 npm run dev       # Vite dev server
-npm run build     # production build (vite build) — this is the only CI-equivalent check available; there is no lint or test script
+npm run lint      # ESLint (flat config, eslint.config.js)
+npm run typecheck # tsc --noEmit — real TypeScript type-check, separate from the build
+npm run test      # Vitest, watch mode
+npm run test:run  # Vitest, single run (used in CI)
+npm run build     # production build (vite build)
 ```
 
-There is no `npm run lint` or `npm test` configured. Use `npm run build` to catch TypeScript/JSX structural errors (esbuild-level, not full `tsc` type-checking — `typescript` isn't installed as a direct binary in this project).
+`npm run build` only proves the app bundles (esbuild-level); it does not run the TypeScript type checker. Use `npm run typecheck` for that. All five checks (lint, typecheck, test:run, build, plus the backend checks above) run in CI — see below.
+
+### CI
+
+`.github/workflows/ci.yml` runs on every pull request and on push to `main`, as two independent jobs:
+- **backend**: `python manage.py check`, migration drift check, `python manage.py test`.
+- **frontend**: `npm ci`, `npm run lint`, `npm run typecheck`, `npm run test:run`, `npm run build`.
+
+Any failure blocks a clean merge signal (GitHub won't auto-block the merge itself unless branch protection's "required status checks" is turned on for `main` in repo settings).
 
 ## Architecture
 
