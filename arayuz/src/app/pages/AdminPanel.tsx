@@ -1,10 +1,11 @@
 import { useState, useEffect, Fragment } from "react";
 import { useNavigate } from "react-router";
 import { getCached, setCached } from "../utils/apiCache";
-import { API_BASE_URL, authHeaders, getAuthToken } from "../utils/api";
+import { API_BASE_URL, getAuthToken, clearSession, apiFetch } from "../utils/api";
 import { Navbar } from "../components/Navbar";
 import { Card, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
+import { PageErrorState } from "../components/PageErrorState";
 import { Input, Select } from "../components/Input";
 import {
   Plus, BookOpen, Video, Gamepad2, Users,
@@ -24,6 +25,7 @@ export default function AdminPanel() {
   const [units, setUnits] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -77,27 +79,58 @@ export default function AdminPanel() {
     const token = localStorage.getItem("token");
     if (!token) return navigate("/login");
 
+    setLoadError(false);
+
     try {
-      const headers = authHeaders();
       const cachedMe = getCached("me");
 
       const [meRes, unitsRes, usersRes] = await Promise.all([
-        cachedMe ? Promise.resolve(null) : fetch(`${API_BASE_URL}/api/me/`, { headers }),
-        fetch(`${API_BASE_URL}/api/units/`, { headers }),
-        fetch(`${API_BASE_URL}/api/users/`, { headers })
+        cachedMe ? Promise.resolve(null) : apiFetch(`${API_BASE_URL}/api/me/`),
+        apiFetch(`${API_BASE_URL}/api/units/`),
+        apiFetch(`${API_BASE_URL}/api/users/`)
       ]);
+
+      // 401: apiFetch zaten global session-expiry akışını (clearSession +
+      // /login redirect) tetikledi — burada tekrar işlem yapmaya gerek yok.
+      if ((meRes && meRes.status === 401) || unitsRes.status === 401 || usersRes.status === 401) {
+        return;
+      }
+
+      // /api/me/ herkesin erişebildiği bir uç — başarısızsa bu her zaman
+      // gerçek bir hata demektir (rol farketmeksizin).
+      if (meRes && !meRes.ok) {
+        setLoadError(true);
+        return;
+      }
 
       let meData = cachedMe;
       if (meRes) {
         meData = await meRes.json();
         setCached("me", meData);
       }
+      // Rol kontrolü units/users kontrolünden ÖNCE gelmeli: /api/users/
+      // ADMIN olmayan biri için backend'de bilinçli olarak 403 döner (bkz.
+      // sunucu logu) — bu durum bir "request failure" değil, zaten
+      // navigate("/dashboard") ile ele alınacak bir yetki farkı. Sırayı
+      // tersine çevirmek (önce ok-check) ADMIN olmayan kullanıcıyı yanlışlıkla
+      // error state'te /admin'de bırakıyordu (AŞAMA 5 kapanış — regression
+      // burada yakalandı ve düzeltildi).
       if (meData.user.role !== "ADMIN") {
         return navigate("/dashboard");
       }
 
+      // Buraya yalnızca gerçek ADMIN ulaşır — units/users burada başarısız
+      // olursa gerçek bir hata demektir (403 artık rol-bazlı beklenen bir
+      // şey değil, admin zaten backend'de yetkili). units/users'ı []
+      // bırakıp "henüz veri yok" gibi göstermek yanlış olur — gerçek empty
+      // state ile request failure birbirine karışmamalı (AŞAMA 5 kapanış).
+      if (!unitsRes.ok || !usersRes.ok) {
+        setLoadError(true);
+        return;
+      }
+
       setCurrentUser(meData.user);
-      
+
       const fetchedUnits = await unitsRes.json();
       fetchedUnits.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
       fetchedUnits.forEach((u: any) => {
@@ -111,10 +144,12 @@ export default function AdminPanel() {
 
       setUnits(fetchedUnits);
       setUsers(await usersRes.json());
-    } catch (error) { 
-      console.error(error); 
-    } finally { 
-      setIsLoading(false); 
+    } catch (error) {
+      // Network hatası / JSON parse hatası — oturum sorunu değil.
+      console.error(error);
+      setLoadError(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -124,9 +159,7 @@ export default function AdminPanel() {
     if (!getAuthToken()) return;
     setReportLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin-report/`, {
-        headers: authHeaders(),
-      });
+      const res = await apiFetch(`${API_BASE_URL}/api/admin-report/`);
       if (res.ok) setReport(await res.json());
     } finally {
       setReportLoading(false);
@@ -142,8 +175,8 @@ export default function AdminPanel() {
     setSupportStatsLoading(true);
     try {
       const [statsRes, orgsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/admin/support-preferences/stats/`, { headers: authHeaders() }),
-        fetch(`${API_BASE_URL}/api/support-organizations/`, { headers: authHeaders() }),
+        apiFetch(`${API_BASE_URL}/api/admin/support-preferences/stats/`),
+        apiFetch(`${API_BASE_URL}/api/support-organizations/`),
       ]);
       if (statsRes.ok) setSupportStats(await statsRes.json());
       if (orgsRes.ok) setSupportOrganizations(await orgsRes.json());
@@ -162,9 +195,7 @@ export default function AdminPanel() {
       if (filters.date_from) params.set("date_from", filters.date_from);
       if (filters.date_to) params.set("date_to", filters.date_to);
 
-      const res = await fetch(`${API_BASE_URL}/api/admin/support-preferences/?${params.toString()}`, {
-        headers: authHeaders(),
-      });
+      const res = await apiFetch(`${API_BASE_URL}/api/admin/support-preferences/?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setSupportRows(data.results);
@@ -192,9 +223,7 @@ export default function AdminPanel() {
     if (!getAuthToken()) return;
     setSurveyStatsLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/survey-results/${type}/stats/`, {
-        headers: authHeaders(),
-      });
+      const res = await apiFetch(`${API_BASE_URL}/api/admin/survey-results/${type}/stats/`);
       if (res.ok) setSurveyStats(await res.json());
     } finally {
       setSurveyStatsLoading(false);
@@ -210,9 +239,7 @@ export default function AdminPanel() {
       if (filters.grade_level) params.set("grade_level", filters.grade_level);
       if (filters.completed_only) params.set("completed_only", "true");
 
-      const res = await fetch(`${API_BASE_URL}/api/admin/survey-results/${type}/?${params.toString()}`, {
-        headers: authHeaders(),
-      });
+      const res = await apiFetch(`${API_BASE_URL}/api/admin/survey-results/${type}/?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setSurveyRows(data.results);
@@ -252,9 +279,8 @@ export default function AdminPanel() {
     const itemsPayload = newList.map((item, i) => ({ id: item.id, order: i + 1 }));
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/reorder/`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/reorder/`, {
         method: "POST",
-        headers: authHeaders(true),
         body: JSON.stringify({ type, items: itemsPayload })
       });
 
@@ -340,9 +366,11 @@ export default function AdminPanel() {
     }
 
     try {
-      const headers: any = { "Authorization": `Token ${token}` };
       if (isFormData) {
         await new Promise((resolve, reject) => {
+          // Video upload progress'i için fetch değil XMLHttpRequest kullanılıyor
+          // (fetch'in upload progress event'i yok) — bu yüzden apiFetch'in
+          // merkezi 401 davranışına buradan giremiyor, ayrıca ele alınıyor.
           const xhr = new XMLHttpRequest();
           xhr.open(method, url, true);
           xhr.setRequestHeader("Authorization", `Token ${token}`);
@@ -350,6 +378,12 @@ export default function AdminPanel() {
             if (event.lengthComputable) setUploadProgress(Math.round((event.loaded * 100) / event.total));
           };
           xhr.onload = () => {
+            if (xhr.status === 401) {
+              clearSession();
+              window.location.href = "/login";
+              reject("Unauthorized");
+              return;
+            }
             if (xhr.status >= 200 && xhr.status < 300) resolve(JSON.parse(xhr.responseText));
             else reject(JSON.parse(xhr.responseText));
           };
@@ -357,8 +391,7 @@ export default function AdminPanel() {
           xhr.send(formPayload);
         });
       } else {
-        headers["Content-Type"] = "application/json";
-        const res = await fetch(url, { method, headers, body: JSON.stringify(bodyData) });
+        const res = await apiFetch(url, { method, body: JSON.stringify(bodyData) });
         if (!res.ok) throw new Error("İşlem başarısız");
       }
       setModal({ ...modal, isOpen: false });
@@ -376,8 +409,8 @@ export default function AdminPanel() {
     if (!window.confirm("Bunu kalıcı olarak silmek istediğinize emin misiniz?")) return;
     const endpoints: any = { "UNIT": "units", "SUBTOPIC": "subtopics", "CONTENT": "contents", "USER": "users" };
     try {
-      const res = await fetch(`${API_BASE_URL}/api/${endpoints[type]}/${id}/`, {
-        method: "DELETE", headers: authHeaders()
+      const res = await apiFetch(`${API_BASE_URL}/api/${endpoints[type]}/${id}/`, {
+        method: "DELETE"
       });
       if (res.ok) fetchData();
     } catch (error) { console.error(error); }
@@ -385,9 +418,18 @@ export default function AdminPanel() {
 
   if (isLoading) return <div className="p-10 text-center font-bold text-primary">Yükleniyor...</div>;
 
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar userName={currentUser?.first_name || "Admin"} onLogout={() => { clearSession(); navigate("/login"); }} />
+        <PageErrorState title="Yönetim paneli verileri yüklenemedi" onRetry={() => { setIsLoading(true); fetchData(); }} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <Navbar userName={currentUser?.first_name || "Admin"} onLogout={() => { localStorage.removeItem("token"); navigate("/login"); }} />
+      <Navbar userName={currentUser?.first_name || "Admin"} onLogout={() => { clearSession(); navigate("/login"); }} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-foreground mb-8">İçerik Yönetim Paneli</h1>

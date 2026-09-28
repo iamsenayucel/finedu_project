@@ -106,11 +106,17 @@ WSGI_APPLICATION = 'finedu_core.wsgi.application'
 
 # Database
 
+# SQLITE_NAME: yalnızca DATABASE_URL tanımsızken (yerel sqlite fallback)
+# devreye girer. AŞAMA 5 E2E altyapısı, geliştiricinin gerçek db.sqlite3'üne
+# kalıcı test kullanıcısı yığmamak için ayrı bir dosya adı (örn.
+# e2e_db.sqlite3) geçirir (bkz. CLAUDE.md "E2E tests") — DATABASE_URL set edilmediği
+# için _is_production_like / SECRET_KEY zorunluluğu tetiklenmez, normal yerel
+# `runserver` akışı env değişkeni tanımlanmadığı sürece birebir aynı kalır.
 DATABASES = {
-    # Eğer sistemde bir DATABASE_URL (Neon.tech linki) varsa onu kullan, 
+    # Eğer sistemde bir DATABASE_URL (Neon.tech linki) varsa onu kullan,
     # yoksa (kendi bilgisayarında test ediyorsan) eski sqlite3'ü kullan.
     'default': dj_database_url.config(
-        default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
+        default='sqlite:///' + str(BASE_DIR / os.environ.get('SQLITE_NAME', 'db.sqlite3')),
         conn_max_age=600
     )
 }
@@ -165,7 +171,8 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 # (özel domain vb.) Render'da ortam değişkeniyle override edilebilir.
 CORS_ALLOWED_ORIGINS = os.environ.get(
     'CORS_ALLOWED_ORIGINS',
-    'http://localhost:5173,https://finedu-project.vercel.app',
+    'http://localhost:5173,https://finedu-project.vercel.app,'
+    'https://fineduakademi.com,https://www.fineduakademi.com',
 ).split(',')
 
 REST_FRAMEWORK = {

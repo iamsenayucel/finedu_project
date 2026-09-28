@@ -34,18 +34,20 @@ export function Navbar({ userName, onLogout, streakDays }: NavbarProps) {
               {/* Profile link */}
               <Link
                 to="/profile"
+                aria-label={`Profil${userName ? `: ${userName}` : ""}`}
                 className="flex items-center gap-2 px-3 py-2 bg-primary/8 hover:bg-primary/15 text-primary rounded-xl transition-all duration-200 font-semibold text-sm"
               >
-                <User className="size-4" />
+                <User className="size-4" aria-hidden="true" />
                 <span className="hidden sm:inline">{userName}</span>
               </Link>
 
               <button
                 onClick={onLogout}
+                aria-label="Çıkış Yap"
                 className="flex items-center gap-2 px-4 py-2 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-xl transition-all duration-200 font-semibold"
               >
-                <LogOut className="size-4" />
-                <span className="hidden sm:inline">Çıkış Yap</span>
+                <LogOut className="size-4" aria-hidden="true" />
+                <span className="hidden sm:inline" aria-hidden="true">Çıkış Yap</span>
               </button>
             </div>
           )}

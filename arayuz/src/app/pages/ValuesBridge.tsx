@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { getCached, setCached, invalidateCache } from "../utils/apiCache";
-import { API_BASE_URL, authHeaders } from "../utils/api";
+import { getCached, setCached } from "../utils/apiCache";
+import { API_BASE_URL, apiFetch, clearSession } from "../utils/api";
 import { Navbar } from "../components/Navbar";
 import { Card, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
+import { PageErrorState } from "../components/PageErrorState";
 import {
   Heart, Info, CheckCircle2, AlertTriangle, Sparkles, RefreshCw, HeartHandshake,
 } from "lucide-react";
@@ -41,19 +42,15 @@ export default function ValuesBridge() {
   const [successOrg, setSuccessOrg] = useState<SupportOrganization | null>(null);
 
   const fetchData = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return navigate("/login");
-
     setIsLoading(true);
     setLoadError(false);
     try {
-      const headers = authHeaders();
       const cachedMe = getCached("me");
 
       const [meRes, orgsRes, prefRes] = await Promise.all([
-        cachedMe ? Promise.resolve(null) : fetch(`${API_BASE_URL}/api/me/`, { headers }),
-        fetch(`${API_BASE_URL}/api/support-organizations/`, { headers }),
-        fetch(`${API_BASE_URL}/api/student/support-preference/`, { headers }),
+        cachedMe ? Promise.resolve(null) : apiFetch(`${API_BASE_URL}/api/me/`),
+        apiFetch(`${API_BASE_URL}/api/support-organizations/`),
+        apiFetch(`${API_BASE_URL}/api/student/support-preference/`),
       ]);
 
       let meData = cachedMe;
@@ -81,8 +78,7 @@ export default function ValuesBridge() {
   useEffect(() => { fetchData(); }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    invalidateCache();
+    clearSession();
     navigate("/login");
   };
 
@@ -91,9 +87,8 @@ export default function ValuesBridge() {
     setSubmitError("");
     setSubmittingOrgId(org.id);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/student/support-preference/`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/student/support-preference/`, {
         method: "PUT",
-        headers: authHeaders(true),
         body: JSON.stringify({ organization_id: org.id }),
       });
 
@@ -141,14 +136,7 @@ export default function ValuesBridge() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar userName={user?.first_name || ""} onLogout={handleLogout} />
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <AlertTriangle className="size-12 mx-auto text-destructive mb-4" />
-          <h2 className="text-xl font-bold text-foreground mb-2">Değerler Köprüsü yüklenemedi</h2>
-          <p className="text-muted-foreground mb-6">Sunucuya ulaşılamadı. Lütfen bağlantını kontrol edip tekrar dene.</p>
-          <Button variant="primary" onClick={fetchData}>
-            <RefreshCw className="size-4 mr-2" /> Tekrar Dene
-          </Button>
-        </div>
+        <PageErrorState title="Değerler Köprüsü yüklenemedi" onRetry={fetchData} />
       </div>
     );
   }

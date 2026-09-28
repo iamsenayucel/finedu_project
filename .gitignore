@@ -10,3 +10,9 @@ __pycache__/
 *.pyc
 db.sqlite3
 .env
+
+# AŞAMA 5 E2E — ayrı/throwaway sqlite dosyası ve Playwright çıktıları
+e2e_db.sqlite3
+arayuz/playwright-report/
+arayuz/test-results/
+arayuz/blob-report/

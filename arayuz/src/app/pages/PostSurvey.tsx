@@ -5,7 +5,7 @@ import { Button } from "../components/Button";
 import { GraduationCap, ArrowRight, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { POST_SURVEY_QUESTIONS as QUESTIONS, POST_SURVEY_SECTION_TITLES as SECTION_TITLES } from "../data/surveyQuestions";
-import { API_BASE_URL } from "../utils/api";
+import { API_BASE_URL, apiFetch } from "../utils/api";
 
 const API_BASE = API_BASE_URL;
 const SURVEY_TYPE = "post_survey";
@@ -25,18 +25,10 @@ export default function PostSurvey() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    const headers = { "Authorization": `Token ${token}`, "Content-Type": "application/json" };
-
     const init = async () => {
       try {
         // Öğrenci, zorunlu tüm eğitim içeriklerini tamamlamadan Son Anket'e erişemez.
-        const meRes = await fetch(`${API_BASE}/api/me/`, { headers });
+        const meRes = await apiFetch(`${API_BASE}/api/me/`);
         const meData = await meRes.json();
         if (meRes.ok && meData.user?.role === "STUDENT") {
           const completed = meData.user.completed_count ?? 0;
@@ -47,7 +39,7 @@ export default function PostSurvey() {
           }
         }
 
-        const statusRes = await fetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/status/`, { headers });
+        const statusRes = await apiFetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/status/`);
         const statusData = await statusRes.json();
         if (!statusRes.ok) throw new Error();
 
@@ -79,11 +71,9 @@ export default function PostSurvey() {
     setIsSaving(true);
     setError("");
 
-    const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/answer/`, {
+      const res = await apiFetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/answer/`, {
         method: "POST",
-        headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ question_id: question.id, selected_option: optionKey }),
       });
       if (!res.ok) throw new Error();
@@ -104,11 +94,9 @@ export default function PostSurvey() {
 
     setIsFinishing(true);
     setError("");
-    const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/complete/`, {
+      const res = await apiFetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/complete/`, {
         method: "POST",
-        headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error();
       setShowTransition(true);

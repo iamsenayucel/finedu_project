@@ -66,3 +66,49 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    # backend/frontend job'larından bağımsız çalışır (gereksiz serial pipeline
+    # yaratmamak için `needs` ile bağlanmıyor, bkz. AŞAMA 5 madde 79) — kendi
+    # izole local backend + frontend'ini ayağa kaldırıp gerçek browser'da
+    # kritik akışları doğrular. Production Neon DB / Render'a dokunmaz —
+    # e2e/backend_server.py ayrı bir e2e_db.sqlite3 üzerinde migrate + seed
+    # çalıştırır (bkz. AŞAMA 5 madde 27).
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install backend dependencies
+        run: pip install -r requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: arayuz/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: arayuz
+        run: npm ci
+
+      - name: Install Playwright browser (Chromium)
+        working-directory: arayuz
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E suite
+        working-directory: arayuz
+        run: npm run test:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: arayuz/playwright-report/
+          retention-days: 7

@@ -40,15 +40,21 @@ npm run typecheck # tsc --noEmit — real TypeScript type-check, separate from t
 npm run test      # Vitest, watch mode
 npm run test:run  # Vitest, single run (used in CI)
 npm run build     # production build (vite build)
+npm run test:e2e  # Playwright E2E — see "E2E tests" below
 ```
 
 `npm run build` only proves the app bundles (esbuild-level); it does not run the TypeScript type checker. Use `npm run typecheck` for that. All five checks (lint, typecheck, test:run, build, plus the backend checks above) run in CI — see below.
 
+#### E2E tests (Playwright, AŞAMA 5)
+
+`npm run test:e2e` (from `arayuz/`) drives `playwright.config.ts`, which starts and tears down **both** servers itself: the Vite dev server, and a real local Django backend running against an isolated `e2e_db.sqlite3` (via `e2e/backend_server.py` at the repo root, which runs `migrate` then the `seed_e2e` management command before `runserver`). It never touches the developer's `db.sqlite3`, Neon, or Render — `SQLITE_NAME` (an optional env var on `DATABASES['default']` in `finedu_core/settings.py`, only honored when `DATABASE_URL` is unset) is what points it at the throwaway file. First-time local setup: the backend `venv` must have `requirements.txt` installed, and `npx playwright install chromium` must be run once to download the browser binary. Test users are deterministic — `e2e_admin` / `e2e_teacher` / `e2e_student` / `e2e_student_presurvey`, see `arayuz/e2e/fixtures.ts` and `accounts/management/commands/seed_e2e.py`.
+
 ### CI
 
-`.github/workflows/ci.yml` runs on every pull request and on push to `main`, as two independent jobs:
+`.github/workflows/ci.yml` runs on every pull request and on push to `main`, as three independent jobs:
 - **backend**: `python manage.py check`, migration drift check, `python manage.py test`.
 - **frontend**: `npm ci`, `npm run lint`, `npm run typecheck`, `npm run test:run`, `npm run build`.
+- **e2e**: installs both stacks + a Chromium browser, then `npm run test:e2e` (see above). Does not block/depend on the other two jobs.
 
 Any failure blocks a clean merge signal (GitHub won't auto-block the merge itself unless branch protection's "required status checks" is turned on for `main` in repo settings).
 
@@ -65,11 +71,10 @@ Any failure blocks a clean merge signal (GitHub won't auto-block the merge itsel
 
 ### Frontend: React + Vite, `arayuz/src/`
 
-- Two component trees exist side by side: `src/app/` (pages, layout components, routing) and `src/components/games/` (the standalone educational game components). `src/app/routes.ts` defines all top-level routes via `react-router`'s `createBrowserRouter` (`/`, `/login`, `/register`, `/dashboard`, `/unit/:unitId`, `/admin`, `/profile`).
+- Two component trees exist side by side: `src/app/` (pages, layout components, routing) and `src/components/games/` (the standalone educational game components). `src/app/routes.tsx` defines all top-level routes via `react-router`'s `createBrowserRouter` (`/`, `/login`, `/register`, `/dashboard`, `/unit/:unitId`, `/admin`, `/profile`, `/pre-survey`, `/post-survey`, `/values-bridge`) — every route except the three public ones is nested under `RequireAuth` (`src/app/routes/RequireAuth.tsx`, AŞAMA 5), which redirects an anonymous visitor to `/login` before the page component mounts. Role-specific gating (e.g. non-ADMIN on `/admin`) stays inside the page itself (it fetches `/api/me/` and redirects) — this is a UX layer only, not a security boundary; the backend enforces the real permission.
 - `src/components/games/GameContainer.tsx` maps a `game_code` string (from `Content.game_code`) to a specific game component via a `switch`. **When adding a new game**, it must be registered in three places that don't share a source of truth: `GameContainer.tsx`'s switch, the Django `GAME_CHOICES` in `accounts/models.py`, and the admin UI's game picker in `AdminPanel.tsx` — check all three.
-- **No shared API client**: the backend base URL (`https://finedu-project.onrender.com`) is hardcoded as a literal string independently in every page/component that calls the API (`Login.tsx`, `Dashboard.tsx`, `AdminPanel.tsx`, `Profile.tsx`, `Register.tsx`, `UnitDetail.tsx`, `ChatBot.tsx`). There's no `fetch` wrapper, no env-based config, and no axios instance — if the backend URL ever changes, all of these need to be updated individually.
-- Auth requests build headers manually per call: `{ "Authorization": \`Token ${localStorage.getItem("token")}\`, "Content-Type": "application/json" }`. There's no centralized auth interceptor.
-- `src/app/utils/apiCache.ts` is a minimal in-memory TTL cache (5 min) used to avoid redundant GETs across page views; call `invalidateCache()` after mutations that should bust it (e.g. after login, per `Login.tsx`).
+- `src/app/utils/api.ts` is the shared API client: `API_BASE_URL` (env-overridable via `VITE_API_BASE_URL`, falls back to the production Render URL), `getAuthToken()`/`authHeaders()`, and (AŞAMA 5) `apiFetch(url, options)` + `clearSession()`. `apiFetch` wraps `fetch`, auto-attaches the auth header, and on a `401` response calls `clearSession()` (clears the token + the whole `apiCache`) and hard-redirects to `/login` — this is the app's global session-expiry handler. Almost every authenticated page/component (`Dashboard.tsx`, `Profile.tsx`, `AdminPanel.tsx`, `UnitDetail.tsx`, `PreSurvey.tsx`, `PostSurvey.tsx`, `ValuesBridge.tsx`, `ChatBot.tsx`) calls through `apiFetch` instead of raw `fetch`; the one exception is `AdminPanel.tsx`'s video-file upload, which still uses `XMLHttpRequest` directly (for upload-progress events) and handles its own 401 case inline. `Login.tsx`'s `/api/login/` call and `Register.tsx`'s `/api/register/` call intentionally stay on raw `fetch` — they're unauthenticated by definition, and routing a failed-login 401 through the global handler would be a false session-expiry signal.
+- `src/app/utils/apiCache.ts` is a minimal in-memory TTL cache (5 min) used to avoid redundant GETs across page views; it's cleared by `clearSession()` on every logout/401 so a second user who logs in on the same browser never sees the previous user's cached `/api/me/` data.
 - **Render free-tier cold start**: the backend sleeps after inactivity. `Login.tsx` pings `/api/health/` on mount to warm the server, and retries the login request with a longer timeout (60s) if the first attempt (15s) aborts. Note this only handles normal cold-start sleep — if the backend gets stuck at boot (gunicorn logs show no "Booting worker" line after "Control socket listening"), retries won't help; the fix is a manual restart in the Render dashboard, not a frontend/backend code change.
 - `UnitDetail.tsx` implements sequential content locking: content at index N is locked unless the content at index N-1 is in the student's completed-IDs list — there's no backend-enforced ordering, it's purely a frontend gate.
 - Path alias `@` → `src/` is configured in `vite.config.ts`. Vercel deploy uses `arayuz/vercel.json` to rewrite all paths to `/index.html` for SPA routing (client-side routes 404 on Vercel without this).

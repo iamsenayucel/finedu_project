@@ -1,10 +1,11 @@
 import { useState, useEffect, Fragment } from "react";
-import { getCached, setCached, invalidateCache } from "../utils/apiCache";
-import { API_BASE_URL, authHeaders, getAuthToken } from "../utils/api";
+import { getCached, setCached } from "../utils/apiCache";
+import { API_BASE_URL, getAuthToken, clearSession, apiFetch } from "../utils/api";
 import { useNavigate } from "react-router";
 import { Navbar } from "../components/Navbar";
 import { Card, CardHeader, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
+import { PageErrorState } from "../components/PageErrorState";
 import { Input, Select } from "../components/Input";
 import {
   BookOpen, Award, Users, TrendingUp,
@@ -28,6 +29,7 @@ export default function Dashboard() {
   const [supportPreference, setSupportPreference] = useState<any>(null);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // --- ÖĞRETMEN STATE'LERİ ---
   const [classrooms, setClassrooms] = useState<any[]>([]);
@@ -50,16 +52,32 @@ export default function Dashboard() {
       return;
     }
 
-    const headers = authHeaders(true);
+    setLoadError(false);
 
     try {
       const cachedMe = getCached("me");
 
       // me cache'deyse atla, progress her zaman taze çek
       const [meRes, progRes] = await Promise.all([
-        cachedMe ? Promise.resolve(null) : fetch(`${API_BASE_URL}/api/me/`, { headers }),
-        fetch(`${API_BASE_URL}/api/progress/`, { headers }),
+        cachedMe ? Promise.resolve(null) : apiFetch(`${API_BASE_URL}/api/me/`),
+        apiFetch(`${API_BASE_URL}/api/progress/`),
       ]);
+
+      // 401: apiFetch zaten clearSession() + /login redirect'i tetikledi
+      // (global session-expiry davranışı) — burada tekrar login'e
+      // yönlendirmeye veya state güncellemeye gerek yok, sadece dur.
+      if ((meRes && meRes.status === 401) || progRes.status === 401) {
+        return;
+      }
+
+      // 403 / 5xx / diğer başarısız yanıtlar bir session sorunu DEĞİL —
+      // token/oturum korunur, kullanıcı login'e atılmaz; yalnızca veri şu an
+      // gösterilemiyor (network/server hatası ≠ auth hatası, AŞAMA 5 kapanış).
+      if ((meRes && !meRes.ok) || !progRes.ok) {
+        setLoadError(true);
+        setIsLoading(false);
+        return;
+      }
 
       let meData = cachedMe;
       if (meRes) {
@@ -67,7 +85,7 @@ export default function Dashboard() {
         setCached("me", meData);
       }
       if (meData.user.role === "STUDENT") {
-        const surveyRes = await fetch(`${API_BASE_URL}/api/survey/pre_survey/status/`, { headers });
+        const surveyRes = await apiFetch(`${API_BASE_URL}/api/survey/pre_survey/status/`);
         if (surveyRes.ok) {
           const surveyData = await surveyRes.json();
           if (!surveyData.is_completed) {
@@ -81,7 +99,7 @@ export default function Dashboard() {
         const completedCount = meData.user.completed_count ?? 0;
         const totalContentCount = meData.user.total_content_count ?? 0;
         if (totalContentCount > 0 && completedCount >= totalContentCount) {
-          const postSurveyRes = await fetch(`${API_BASE_URL}/api/survey/post_survey/status/`, { headers });
+          const postSurveyRes = await apiFetch(`${API_BASE_URL}/api/survey/post_survey/status/`);
           if (postSurveyRes.ok) {
             const postSurveyData = await postSurveyRes.json();
             if (!postSurveyData.is_completed) {
@@ -91,7 +109,7 @@ export default function Dashboard() {
           }
         }
 
-        const prefRes = await fetch(`${API_BASE_URL}/api/student/support-preference/`, { headers });
+        const prefRes = await apiFetch(`${API_BASE_URL}/api/student/support-preference/`);
         if (prefRes.ok) {
           const prefData = await prefRes.json();
           setSupportPreference(prefData.preference);
@@ -115,27 +133,30 @@ export default function Dashboard() {
 
       if (meData.user.role === "TEACHER") {
         // classrooms ve analytics aynı anda başlasın
-        Promise.all([fetchClassrooms(headers), fetchAnalytics()]);
+        Promise.all([fetchClassrooms(), fetchAnalytics()]);
       }
     } catch (err) {
+      // Network hatası / JSON parse hatası / beklenmeyen response şekli —
+      // bunların hiçbiri "oturum geçersiz" anlamına gelmez (yalnızca gerçek
+      // 401 öyledir, yukarıda ayrıca ele alınıyor). Token'a dokunma, login'e
+      // yönlendirme — kullanıcıya error state göster.
       console.error(err);
-      navigate("/login");
+      setLoadError(true);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchClassrooms = async (headers: any) => {
-    const classRes = await fetch(`${API_BASE_URL}/api/classrooms/`, { headers });
+  const fetchClassrooms = async () => {
+    const classRes = await apiFetch(`${API_BASE_URL}/api/classrooms/`);
     if (classRes.ok) setClassrooms(await classRes.json());
   };
 
-  const fetchAnalytics = async (headers?: any) => {
+  const fetchAnalytics = async () => {
     if (!getAuthToken()) return;
     setIsLoadingAnalytics(true);
     try {
-      const h = headers || authHeaders();
-      const res = await fetch(`${API_BASE_URL}/api/analytics/`, { headers: h });
+      const res = await apiFetch(`${API_BASE_URL}/api/analytics/`);
       if (res.ok) setAnalytics(await res.json());
     } finally {
       setIsLoadingAnalytics(false);
@@ -145,8 +166,7 @@ export default function Dashboard() {
   useEffect(() => { fetchData(); }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    invalidateCache();
+    clearSession();
     navigate("/login");
   };
 
@@ -161,32 +181,30 @@ export default function Dashboard() {
   // --- ÖĞRETMEN FONKSİYONLARI ---
   const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch(`${API_BASE_URL}/api/classrooms/`, {
-      method: "POST", headers: authHeaders(true),
+    const res = await apiFetch(`${API_BASE_URL}/api/classrooms/`, {
+      method: "POST",
       body: JSON.stringify(classForm)
     });
     if (res.ok) {
       setShowClassModal(false); setClassForm({ name: "", grade_level: "" });
-      fetchClassrooms(authHeaders(true));
+      fetchClassrooms();
     }
   };
 
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch(`${API_BASE_URL}/api/classrooms/${selectedClassId}/add_student/`, {
-      method: "POST", headers: authHeaders(true),
+    const res = await apiFetch(`${API_BASE_URL}/api/classrooms/${selectedClassId}/add_student/`, {
+      method: "POST",
       body: JSON.stringify({ student_code: studentCode })
     });
     if (res.ok) {
-      fetchClassrooms(authHeaders(true));
+      fetchClassrooms();
       setShowStudentModal(false);
     }
   };
 
   const handleStudentClick = async (studentId: number) => {
-    const res = await fetch(`${API_BASE_URL}/api/student/${studentId}/detail/`, {
-      headers: authHeaders()
-    });
+    const res = await apiFetch(`${API_BASE_URL}/api/student/${studentId}/detail/`);
     if (res.ok) {
       setStudentDetail(await res.json());
       setShowDetailModal(true);
@@ -206,6 +224,15 @@ export default function Dashboard() {
             {[...Array(4)].map((_, i) => <div key={i} className="h-48 animate-pulse bg-muted rounded-xl" />)}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar userName={user?.first_name || ""} onLogout={handleLogout} />
+        <PageErrorState title="Veriler yüklenirken bir sorun oluştu" onRetry={() => { setIsLoading(true); fetchData(); }} />
       </div>
     );
   }

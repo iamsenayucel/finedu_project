@@ -3,9 +3,10 @@ import { useNavigate } from "react-router";
 import { Navbar } from "../components/Navbar";
 import { Card, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
+import { PageErrorState } from "../components/PageErrorState";
 import { ArrowLeft, Award, Flame, BookOpen, Target, Calendar, Star, Trophy, Hash } from "lucide-react";
 import { motion } from "framer-motion";
-import { API_BASE_URL, authHeaders } from "../utils/api";
+import { API_BASE_URL, apiFetch, clearSession } from "../utils/api";
 
 const API = `${API_BASE_URL}/api`;
 
@@ -25,20 +26,35 @@ export default function Profile() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+
+  const fetchProfile = async () => {
+    setIsLoading(true);
+    setLoadError(false);
+    try {
+      const res = await apiFetch(`${API}/profile/`);
+      // 401: apiFetch zaten clearSession() + /login redirect'i tetikledi.
+      if (res.status === 401) return;
+      // 403 / 5xx / diğer — session geçerli, yalnızca veri şu an alınamadı
+      // (network/server hatası ≠ auth hatası — AŞAMA 5 kapanış).
+      if (!res.ok) { setLoadError(true); return; }
+      setProfile(await res.json());
+    } catch (err) {
+      console.error(err);
+      setLoadError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) { navigate("/login"); return; }
-
-    fetch(`${API}/profile/`, { headers: authHeaders() })
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(setProfile)
-      .catch(() => navigate("/login"))
-      .finally(() => setIsLoading(false));
+    fetchProfile();
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    clearSession();
     navigate("/login");
   };
 
@@ -67,6 +83,8 @@ export default function Profile() {
             </div>
             <SkeletonBlock className="h-48 w-full" />
           </div>
+        ) : loadError ? (
+          <PageErrorState title="Profil yüklenirken bir sorun oluştu" onRetry={fetchProfile} />
         ) : profile ? (
           <div className="space-y-6">
             {/* Profile Header */}

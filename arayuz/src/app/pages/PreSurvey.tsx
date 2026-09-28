@@ -5,7 +5,7 @@ import { Button } from "../components/Button";
 import { GraduationCap, ArrowRight, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PRE_SURVEY_QUESTIONS as QUESTIONS, PRE_SURVEY_SECTION_TITLES as SECTION_TITLES } from "../data/surveyQuestions";
-import { API_BASE_URL } from "../utils/api";
+import { API_BASE_URL, apiFetch } from "../utils/api";
 
 const API_BASE = API_BASE_URL;
 const SURVEY_TYPE = "pre_survey";
@@ -22,15 +22,7 @@ export default function PreSurvey() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    const headers = { "Authorization": `Token ${token}`, "Content-Type": "application/json" };
-
-    fetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/status/`, { headers })
+    apiFetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/status/`)
       .then((res) => res.json())
       .then((data) => {
         if (data.is_completed) {
@@ -59,11 +51,9 @@ export default function PreSurvey() {
     setIsSaving(true);
     setError("");
 
-    const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/answer/`, {
+      const res = await apiFetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/answer/`, {
         method: "POST",
-        headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ question_id: question.id, selected_option: optionKey }),
       });
       if (!res.ok) throw new Error();
@@ -84,11 +74,9 @@ export default function PreSurvey() {
 
     setIsFinishing(true);
     setError("");
-    const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/complete/`, {
+      const res = await apiFetch(`${API_BASE}/api/survey/${SURVEY_TYPE}/complete/`, {
         method: "POST",
-        headers: { "Authorization": `Token ${token}`, "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error();
       setShowTransition(true);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { invalidateCache, setCached } from "../utils/apiCache";
-import { API_BASE_URL } from "../utils/api";
+import { API_BASE_URL, setAuthToken } from "../utils/api";
 import { LogIn, User, Lock, AlertCircle } from "lucide-react";
 import { Button } from "../components/Button";
 import { Card, CardBody } from "../components/Card";
@@ -125,12 +125,16 @@ export default function Login() {
 
       if (response.ok) {
         invalidateCache();
-        localStorage.setItem("token", data.token);
+        setAuthToken(data.token);
         await redirectAfterLogin(data.token);
       } else {
-        const errorMsg = data.non_field_errors ? data.non_field_errors[0] :
-                         data.error ? data.error : "Kullanıcı adı veya şifre hatalı!";
-        setError(errorMsg);
+        // /api/login/ DRF'nin hazır obtain_auth_token view'ı — yanlış şifrede
+        // non_field_errors İngilizce backend metni taşır ("Unable to log in
+        // with provided credentials."). Bunu kullanıcıya olduğu gibi
+        // göstermek yerine (AŞAMA 5 madde 47/93 — ham backend/teknik metin
+        // gösterilmemeli) her zaman ürünün kendi Türkçe mesajını kullanıyoruz;
+        // yalnızca backend'in kendi tanımladığı `error` alanı (varsa) öncelikli.
+        setError(data.error || "Kullanıcı adı veya şifre hatalı!");
       }
     } catch (err: any) {
       setError(err.message || "Beklenmeyen bir hata oluştu.");

@@ -10,6 +10,10 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
     css: false,
+    // e2e/ Playwright'ın kendi test runner'ına ait (playwright.config.ts) —
+    // Vitest'in varsayılan *.spec.ts deseni onları da eşleştirip "Playwright
+    // Test did not expect test() to be called here" hatasıyla patlatıyordu.
+    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
   },
   plugins: [
     // The React and Tailwind plugins are both required for Make, even if

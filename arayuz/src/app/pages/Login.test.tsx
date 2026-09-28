@@ -82,12 +82,15 @@ describe("Login.tsx — token storage + role-based redirect (AŞAMA 2 shared api
     await waitFor(() => expect(navigateMock).toHaveBeenCalledWith("/pre-survey"));
   });
 
-  it("shows the backend error message and does not store a token on failed login", async () => {
+  it("shows the app's own Turkish message (not the raw DRF text) and does not store a token on failed login", async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = input.toString();
       if (url.endsWith("/api/health/")) return jsonResponse({});
       if (url.endsWith("/api/login/")) {
-        return jsonResponse({ non_field_errors: ["Kullanıcı adı veya şifre hatalı!"] }, false);
+        // Gerçek backend (DRF'nin stock obtain_auth_token'ı) yanlış şifrede
+        // bunu döner — İngilizce, kullanıcıya birebir gösterilmemeli
+        // (AŞAMA 5 madde 47/93, bkz. Login.tsx yorumu).
+        return jsonResponse({ non_field_errors: ["Unable to log in with provided credentials."] }, false);
       }
       throw new Error(`Unexpected fetch: ${url}`);
     });
@@ -99,7 +102,27 @@ describe("Login.tsx — token storage + role-based redirect (AŞAMA 2 shared api
     await userEvent.click(screen.getByRole("button", { name: /Giriş Yap/i }));
 
     expect(await screen.findByText("Kullanıcı adı veya şifre hatalı!")).toBeInTheDocument();
+    expect(screen.queryByText(/Unable to log in/i)).not.toBeInTheDocument();
     expect(navigateMock).not.toHaveBeenCalled();
     expect(localStorage.getItem("token")).toBeNull();
+  });
+
+  it("prefers a backend-supplied `error` field over the generic fallback when present", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.endsWith("/api/health/")) return jsonResponse({});
+      if (url.endsWith("/api/login/")) {
+        return jsonResponse({ error: "Hesabınız geçici olarak kilitlendi." }, false);
+      }
+      throw new Error(`Unexpected fetch: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<Login />);
+    await userEvent.type(screen.getByPlaceholderText("Kullanıcı adınızı girin"), "someuser");
+    await userEvent.type(screen.getByPlaceholderText("••••••••"), "somepass");
+    await userEvent.click(screen.getByRole("button", { name: /Giriş Yap/i }));
+
+    expect(await screen.findByText("Hesabınız geçici olarak kilitlendi.")).toBeInTheDocument();
   });
 });

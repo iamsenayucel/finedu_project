@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { getCached, setCached } from "../utils/apiCache";
-import { API_BASE_URL, authHeaders } from "../utils/api";
+import { API_BASE_URL, apiFetch, clearSession } from "../utils/api";
 import { Navbar } from "../components/Navbar";
 import { Card, CardHeader, CardBody } from "../components/Card";
 import { Button } from "../components/Button";
@@ -46,14 +46,12 @@ export default function UnitDetail() {
 
     const fetchData = async () => {
       try {
-        const headers = authHeaders(true);
-
         // 3 isteği aynı anda başlat — sıralı değil paralel
         const cachedMe = getCached("me");
         const [meRes, unitRes, progressRes] = await Promise.all([
-          cachedMe ? Promise.resolve(null) : fetch(`${API_BASE_URL}/api/me/`, { headers }),
-          fetch(`${API_BASE_URL}/api/units/${unitId}/`, { headers }),
-          fetch(`${API_BASE_URL}/api/progress/`, { headers }),
+          cachedMe ? Promise.resolve(null) : apiFetch(`${API_BASE_URL}/api/me/`),
+          apiFetch(`${API_BASE_URL}/api/units/${unitId}/`),
+          apiFetch(`${API_BASE_URL}/api/progress/`),
         ]);
 
         let userData = cachedMe;
@@ -83,6 +81,11 @@ export default function UnitDetail() {
     fetchData();
   }, [unitId, navigate]);
 
+  const handleLogout = () => {
+    clearSession();
+    navigate("/login");
+  };
+
   // ÇÖZÜM 2: PUAN SIFIR KALMASI SORUNU ÇÖZÜLDÜ!
   // Artık fonksiyona puan da gelebilir, gelirse backend'e gönderiyoruz.
   const markAsCompleted = async (contentId: number, score?: number) => {
@@ -98,9 +101,8 @@ export default function UnitDetail() {
          payload.score = score;
       }
 
-      const res = await fetch(`${API_BASE_URL}/api/progress/`, {
+      const res = await apiFetch(`${API_BASE_URL}/api/progress/`, {
         method: "POST",
-        headers: authHeaders(true),
         body: JSON.stringify(payload) // Artık sadece ID değil, gerekiyorsa puanı da yolluyoruz!
       });
 
@@ -130,7 +132,7 @@ export default function UnitDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar userName="" onLogout={() => navigate("/login")} />
+        <Navbar userName="" onLogout={handleLogout} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
           <div className="h-8 w-32 animate-pulse bg-muted rounded-lg" />
           <div className="h-40 w-full animate-pulse bg-muted rounded-2xl" />
@@ -164,7 +166,7 @@ export default function UnitDetail() {
 
   return (
     <div className="min-h-screen bg-background relative">
-      <Navbar userName={user?.first_name || "Öğrenci"} onLogout={() => navigate("/login")} streakDays={user?.streak_days} />
+      <Navbar userName={user?.first_name || "Öğrenci"} onLogout={handleLogout} streakDays={user?.streak_days} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="mb-6">
@@ -266,8 +268,8 @@ export default function UnitDetail() {
                   <Video className="size-5 text-primary" />
                   {activeContent.title}
                 </h3>
-                <button onClick={() => setActiveContent(null)} className="p-1 hover:bg-muted rounded-full transition-colors">
-                  <X className="size-6 text-muted-foreground" />
+                <button onClick={() => setActiveContent(null)} aria-label="Kapat" className="p-1 hover:bg-muted rounded-full transition-colors">
+                  <X className="size-6 text-muted-foreground" aria-hidden="true" />
                 </button>
               </div>
               

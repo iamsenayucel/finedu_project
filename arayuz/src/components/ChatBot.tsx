@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, User, Loader2 } from 'lucide-react';
 import chatbotLogo from '../assets/chatbot_logo.png';
-import { API_BASE_URL, authHeaders } from '../app/utils/api';
+import { API_BASE_URL, apiFetch, getAuthToken, onAuthChange } from '../app/utils/api';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -22,6 +22,7 @@ export default function ChatBot() {
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(() => getAuthToken());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -36,7 +37,14 @@ export default function ChatBot() {
     }
   }, [isOpen]);
 
-  const token = localStorage.getItem('token');
+  // ChatBot App seviyesinde <RouterProvider>'ın DIŞINDA mount olur, bu yüzden
+  // login/logout'un client-side navigate()'i onu yeniden render ETMEZ —
+  // localStorage değişikliği kendi başına React state değildir. Önceden bu
+  // yüzden ChatBot, login sonrası sayfa yenilenene kadar hiç görünmüyordu
+  // (AŞAMA 5 kapanış — confirmed bug). setAuthToken/clearSession'ın yaydığı
+  // event'i dinleyerek token'ı güncel tutuyoruz.
+  useEffect(() => onAuthChange(() => setToken(getAuthToken())), []);
+
   if (!token) return null;
 
   const handleSend = async () => {
@@ -48,9 +56,8 @@ export default function ChatBot() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/chatbot/`, {
+      const res = await apiFetch(`${API_BASE}/api/chatbot/`, {
         method: 'POST',
-        headers: authHeaders(true),
         body: JSON.stringify({ message: text }),
       });
 
@@ -113,9 +120,10 @@ export default function ChatBot() {
               </div>
               <button
                 onClick={() => setIsOpen(false)}
+                aria-label="Sohbeti kapat"
                 className="text-white/80 hover:text-white hover:bg-white/20 rounded-full p-1 transition-colors"
               >
-                <X className="size-5" />
+                <X className="size-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -178,12 +186,13 @@ export default function ChatBot() {
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
+                aria-label="Mesajı gönder"
                 className="bg-primary text-primary-foreground rounded-xl px-3 py-2.5 disabled:opacity-40 hover:bg-primary/90 active:scale-95 transition-all flex-shrink-0"
               >
                 {isLoading ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                 ) : (
-                  <Send className="size-4" />
+                  <Send className="size-4" aria-hidden="true" />
                 )}
               </button>
             </div>
@@ -196,6 +205,7 @@ export default function ChatBot() {
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.94 }}
         onClick={() => setIsOpen((v) => !v)}
+        aria-label={isOpen ? "Sohbeti kapat" : "Sohbet asistanını aç"}
         className="bg-primary text-primary-foreground rounded-full p-1.5 shadow-2xl flex items-center justify-center transition-colors hover:bg-primary/90 size-16"
       >
         <AnimatePresence mode="wait">
@@ -207,7 +217,7 @@ export default function ChatBot() {
               exit={{ rotate: 90, opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              <X className="size-6" />
+              <X className="size-6" aria-hidden="true" />
             </motion.span>
           ) : (
             <motion.span
