@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /profile
+Disallow: /unit/
+Disallow: /pre-survey
+Disallow: /post-survey
+Disallow: /values-bridge
+
+Sitemap: https://fineduakademi.com/sitemap.xml
