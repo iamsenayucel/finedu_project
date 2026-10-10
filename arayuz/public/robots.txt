@@ -8,4 +8,4 @@ Disallow: /pre-survey
 Disallow: /post-survey
 Disallow: /values-bridge
 
-Sitemap: https://fineduakademi.com/sitemap.xml
+Sitemap: https://www.fineduakademi.com/sitemap.xml
