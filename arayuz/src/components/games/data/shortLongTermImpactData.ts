@@ -59,7 +59,7 @@ export const PART1_CASES: McCase[] = [
   },
   {
     id: 2,
-    title: '🐷 Küçük Kaçamakların Maliyeti (Birikim Hedefi)',
+    title: '💰 Küçük Kaçamakların Maliyeti (Birikim Hedefi)',
     scenario:
       'Uzun zamandır hayalini kurduğun bir bilgisayarı/bisikleti almak için para biriktiriyorsun. Ancak son günlerde her okul/iş çıkışında birikim kumbarandan para alıp pahalı atıştırmalıklar ve kahveler almaya başladın.',
     question: 'Bu alışkanlığının gelecekteki hedefine etkisi ne olur?',

@@ -16,7 +16,7 @@ const PAIRS = [
     id: 1,
     term: 'Tasarruf',
     definition: 'Gelirin bir kısmını gelecekte kullanmak üzere biriktirmektir.',
-    emoji: '🐷',
+    emoji: '💰',
     color: 'from-emerald-500 to-teal-500',
     light: 'bg-emerald-50 border-emerald-200',
     badge: 'bg-emerald-100 text-emerald-700',
